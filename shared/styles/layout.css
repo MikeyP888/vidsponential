@@ -1,0 +1,114 @@
+/* Layout and container styles */
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background: white;
+    min-height: 100vh;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+.header {
+    position: relative;
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.status-bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.completed-today-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 8px; /* Reduced from 20px to 8px */
+}
+
+.completed-today-bar:last-of-type {
+    margin-bottom: 20px; /* Keep normal spacing before page title */
+}
+
+.completed-today-text {
+    font-size: 14px;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.completed-today-text span {
+    font-weight: bold;
+    color: #27ae60;
+}
+
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo {
+    height: 40.5px; /* Reduced from 45px (10% smaller) */
+    width: auto;
+}
+
+.page-title {
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 0;
+    padding-bottom: 25px;
+}
+
+.main-fields {
+    margin-bottom: 30px;
+}
+
+.info-section {
+    margin: 0;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+.chapters-section {
+    margin-bottom: 30px;
+}
+
+.field-group {
+    margin-bottom: 10px;
+}
+
+.field-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #2c3e50;
+    font-size: 12px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+}

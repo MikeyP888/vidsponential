@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Dummy Data - Vidsponential</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0.5rem;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Add Dummy Data to Supabase</h1>
+        <p>This will populate your website_* tables with sample data for testing.</p>
+        
+        <button onclick="addAllDummyData()">Add All Dummy Data</button>
+        <button onclick="clearLog()">Clear Log</button>
+        
+        <div class="log" id="log"></div>
+    </div>
+
+    <script type="module">
+        import { WEBSITE_CONFIG } from './shared/js/config.js';
+
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(WEBSITE_CONFIG.supabaseUrl, WEBSITE_CONFIG.supabaseAnonKey);
+
+        window.supabaseClient = supabaseClient;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        window.log = log;
+
+        window.clearLog = function() {
+            document.getElementById('log').innerHTML = '';
+        };
+
+        // Sample data
+        const sampleNiches = [
+            {
+                website_niche_name: 'Celebrity',
+                website_niche_slug: 'celebrity',
+                website_niche_description: 'Celebrity gossip, news, and drama',
+                website_niche_display_order: 1
+            },
+            {
+                website_niche_name: 'Football',
+                website_niche_slug: 'football',
+                website_niche_description: 'Football news, analysis, and highlights',
+                website_niche_display_order: 2
+            },
+            {
+                website_niche_name: 'True Crime',
+                website_niche_slug: 'true-crime',
+                website_niche_description: 'True crime stories and investigations',
+                website_niche_display_order: 3
+            },
+            {
+                website_niche_name: 'Finance',
+                website_niche_slug: 'finance',
+                website_niche_description: 'Personal finance and investment advice',
+                website_niche_display_order: 4
+            },
+            {
+                website_niche_name: 'History',
+                website_niche_slug: 'history',
+                website_niche_description: 'Historical events and documentaries',
+                website_niche_display_order: 5
+            }
+        ];
+
+        const sampleArticleCategories = [
+            {
+                website_article_category_name: 'Tips & Tricks',
+                website_article_category_slug: 'tips-tricks',
+                website_article_category_description: 'Helpful tips for content creators'
+            },
+            {
+                website_article_category_name: 'Industry News',
+                website_article_category_slug: 'industry-news',
+                website_article_category_description: 'Latest news in the YouTube industry'
+            },
+            {
+                website_article_category_name: 'Case Studies',
+                website_article_category_slug: 'case-studies',
+                website_article_category_description: 'Success stories and analysis'
+            }
+        ];
+
+        async function addNiches() {
+            log('Adding niches...', 'info');
+            try {
+                const { data, error } = await supabaseClient
+                    .from('website_niches')
+                    .insert(sampleNiches)
+                    .select();
+                
+                if (error) throw error;
+                log(`Successfully added ${data.length} niches`, 'success');
+                return data;
+            } catch (error) {
+                log(`Error adding niches: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function addArticleCategories() {
+            log('Adding article categories...', 'info');
+            try {
+                const { data, error } = await supabaseClient
+                    .from('website_article_categories')
+                    .insert(sampleArticleCategories)
+                    .select();
+                
+                if (error) throw error;
+                log(`Successfully added ${data.length} article categories`, 'success');
+                return data;
+            } catch (error) {
+                log(`Error adding article categories: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function addScripts(niches) {
+            if (!niches) {
+                log('Cannot add scripts without niches', 'error');
+                return null;
+            }
+
+            log('Adding scripts...', 'info');
+            
+            const sampleScripts = [
+                // Celebrity scripts
+                {
+                    website_niche_id: niches[0].website_niche_id,
+                    website_script_title: 'Taylor Swift\'s Secret Romance',
+                    website_script_subtitle: '10 Hidden Clues Everyone Missed',
+                    website_script_description: 'An in-depth analysis of Taylor Swift\'s latest relationship rumors and the evidence fans have uncovered.',
+                    website_script_thumbnail_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-thumbnails/taylor-swift-romance.jpg',
+                    website_script_pdf_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-pdfs/taylor-swift-romance.pdf',
+                    website_script_display_order: 1,
+                    website_script_status_id: 2
+                },
+                {
+                    website_niche_id: niches[0].website_niche_id,
+                    website_script_title: 'Hollywood\'s Biggest Scandal',
+                    website_script_subtitle: 'What They Don\'t Want You to Know',
+                    website_script_description: 'Uncovering the truth behind Hollywood\'s most controversial moments and cover-ups.',
+                    website_script_thumbnail_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-thumbnails/hollywood-scandal.jpg',
+                    website_script_pdf_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-pdfs/hollywood-scandal.pdf',
+                    website_script_display_order: 2,
+                    website_script_status_id: 2
+                },
+                {
+                    website_niche_id: niches[0].website_niche_id,
+                    website_script_title: 'Celebrity Feud Exposed',
+                    website_script_subtitle: 'The Real Story Behind the Drama',
+                    website_script_description: 'Breaking down the most explosive celebrity feuds and what really happened behind the scenes.',
+                    website_script_thumbnail_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-thumbnails/celebrity-feud.jpg',
+                    website_script_pdf_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-pdfs/celebrity-feud.pdf',
+                    website_script_display_order: 3,
+                    website_script_status_id: 2
+                },
+                // Football scripts
+                {
+                    website_niche_id: niches[1].website_niche_id,
+                    website_script_title: 'NFL Draft Predictions 2025',
+                    website_script_subtitle: 'Who Will Be Picked First?',
+                    website_script_description: 'Analyzing the top prospects and predicting how the 2025 NFL Draft will unfold.',
+                    website_script_thumbnail_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-thumbnails/nfl-draft.jpg',
+                    website_script_pdf_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-pdfs/nfl-draft.pdf',
+                    website_script_display_order: 1,
+                    website_script_status_id: 2
+                },
+                {
+                    website_niche_id: niches[1].website_niche_id,
+                    website_script_title: 'Greatest Football Comeback',
+                    website_script_subtitle: 'The Most Epic Turnaround Ever',
+                    website_script_description: 'Reliving the most incredible comeback in football history and what made it possible.',
+                    website_script_thumbnail_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-thumbnails/epic-comeback.jpg',
+                    website_script_pdf_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-pdfs/epic-comeback.pdf',
+                    website_script_display_order: 2,
+                    website_script_status_id: 2
+                },
+                // True Crime scripts
+                {
+                    website_niche_id: niches[2].website_niche_id,
+                    website_script_title: 'The Mystery That Shocked America',
+                    website_script_subtitle: 'Cold Case Finally Solved',
+                    website_script_description: 'A decades-old cold case gets new evidence that changes everything we thought we knew.',
+                    website_script_thumbnail_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-thumbnails/cold-case.jpg',
+                    website_script_pdf_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-pdfs/cold-case.pdf',
+                    website_script_display_order: 1,
+                    website_script_status_id: 2
+                },
+                {
+                    website_niche_id: niches[2].website_niche_id,
+                    website_script_title: 'Serial Killer Psychology',
+                    website_script_subtitle: 'Inside the Criminal Mind',
+                    website_script_description: 'Understanding the psychological patterns and behaviors of history\'s most notorious serial killers.',
+                    website_script_thumbnail_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-thumbnails/criminal-mind.jpg',
+                    website_script_pdf_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-pdfs/criminal-mind.pdf',
+                    website_script_display_order: 2,
+                    website_script_status_id: 2
+                },
+                // Finance scripts
+                {
+                    website_niche_id: niches[3].website_niche_id,
+                    website_script_title: 'Millionaire by 30',
+                    website_script_subtitle: 'The Ultimate Investment Strategy',
+                    website_script_description: 'Step-by-step guide to building wealth through smart investing and compound interest.',
+                    website_script_thumbnail_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-thumbnails/millionaire-guide.jpg',
+                    website_script_pdf_url: 'https://euzbpslzrimyokzvgbzk.supabase.co/storage/v1/object/public/script-pdfs/millionaire-guide.pdf',
+                    website_script_display_order: 1,
+                    website_script_status_id: 2
+                }
+            ];
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('website_scripts')
+                    .insert(sampleScripts)
+                    .select();
+                
+                if (error) throw error;
+                log(`Successfully added ${data.length} scripts`, 'success');
+                return data;
+            } catch (error) {
+                log(`Error adding scripts: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function addArticles(categories) {
+            if (!categories) {
+                log('Cannot add articles without categories', 'error');
+                return null;
+            }
+
+            log('Adding articles...', 'info');
+
+            const sampleArticles = [
+                {
+                    website_article_category_id: categories[0].website_article_category_id,
+                    website_article_title: '10 YouTube Script Writing Tips That Actually Work',
+                    website_article_excerpt: 'Learn the professional techniques that top YouTubers use to create engaging, high-converting scripts that keep viewers watching.',
+                    website_article_content: '<p>Creating compelling YouTube scripts is an art form that combines storytelling, psychology, and strategic content planning. Here are the top 10 tips that will transform your script writing...</p><p>1. Start with a hook that creates immediate curiosity</p><p>2. Use the "problem-solution" framework</p><p>3. Include pattern interrupts every 30 seconds</p>',
+                    website_article_featured_image_url: 'https://via.placeholder.com/600x400/667eea/white?text=Script+Writing+Tips',
+                    website_article_status_id: 2,
+                    website_article_created_at: new Date().toISOString()
+                },
+                {
+                    website_article_category_id: categories[1].website_article_category_id,
+                    website_article_title: 'YouTube Algorithm Changes: What Creators Need to Know',
+                    website_article_excerpt: 'The latest YouTube algorithm updates and how they affect content creators. Stay ahead of the curve with these insights.',
+                    website_article_content: '<p>YouTube recently announced significant changes to their recommendation algorithm that will impact how content is discovered and promoted on the platform...</p><p>The key changes include:</p><ul><li>Increased focus on watch time retention</li><li>Enhanced creator diversity promotion</li><li>New metrics for engagement quality</li></ul>',
+                    website_article_featured_image_url: 'https://via.placeholder.com/600x400/f44336/white?text=Algorithm+Update',
+                    website_article_status_id: 2,
+                    website_article_created_at: new Date(Date.now() - 86400000).toISOString() // 1 day ago
+                },
+                {
+                    website_article_category_id: categories[2].website_article_category_id,
+                    website_article_title: 'Case Study: How One Script Generated 10M Views',
+                    website_article_excerpt: 'A detailed breakdown of a viral YouTube script that generated over 10 million views and what made it so successful.',
+                    website_article_content: '<p>In this comprehensive case study, we analyze the script structure, hooks, and psychological triggers that led to this video\'s massive success...</p><p>The video achieved:</p><ul><li>10.2 million views in 30 days</li><li>92% audience retention rate</li><li>150% above-average engagement</li></ul>',
+                    website_article_featured_image_url: 'https://via.placeholder.com/600x400/4caf50/white?text=10M+Views+Case+Study',
+                    website_article_status_id: 2,
+                    website_article_created_at: new Date(Date.now() - 172800000).toISOString() // 2 days ago
+                }
+            ];
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('website_articles')
+                    .insert(sampleArticles)
+                    .select();
+                
+                if (error) throw error;
+                log(`Successfully added ${data.length} articles`, 'success');
+                return data;
+            } catch (error) {
+                log(`Error adding articles: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        window.addAllDummyData = async function() {
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = 'Adding Data...';
+
+            try {
+                log('Starting dummy data insertion...', 'info');
+                
+                // Add niches first
+                const niches = await addNiches();
+                
+                // Add article categories
+                const categories = await addArticleCategories();
+                
+                // Add scripts (requires niches)
+                await addScripts(niches);
+                
+                // Add articles (requires categories)
+                await addArticles(categories);
+                
+                log('All dummy data added successfully!', 'success');
+                log('You can now test your website at http://localhost:8000', 'info');
+                
+            } catch (error) {
+                log(`Unexpected error: ${error.message}`, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Add All Dummy Data';
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Outline Editor</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍎</text></svg>">
+    
+    <!-- Inter Font from Penpot -->
+    <style>
+        /* cyrillic-ext */
+        @font-face {
+          font-family: 'Inter';
+          font-style: normal;
+          font-weight: 600;
+          font-display: block;
+          src: url(https://design.penpot.app/internal/gfonts/font/inter/v19/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZJhiI2B.woff2) format('woff2');
+          unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+        }
+        /* latin */
+        @font-face {
+          font-family: 'Inter';
+          font-style: normal;
+          font-weight: 600;
+          font-display: block;
+          src: url(https://design.penpot.app/internal/gfonts/font/inter/v19/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZ9hiA.woff2) format('woff2');
+          unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+        }
+        
+        /* cyrillic-ext */
+        @font-face {
+          font-family: 'Inter';
+          font-style: normal;
+          font-weight: 400;
+          font-display: block;
+          src: url(https://design.penpot.app/internal/gfonts/font/inter/v19/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZJhiI2B.woff2) format('woff2');
+          unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+        }
+        /* latin */
+        @font-face {
+          font-family: 'Inter';
+          font-style: normal;
+          font-weight: 400;
+          font-display: block;
+          src: url(https://design.penpot.app/internal/gfonts/font/inter/v19/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZ9hiA.woff2) format('woff2');
+          unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FFFD;
+        }
+    </style>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            position: relative;
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .logo {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 50px;
+            width: auto;
+        }
+
+        .script-id {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-unsaved {
+            background: #ff9800;
+            color: white;
+        }
+
+        .status-saved {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status-loading {
+            background: #2196f3;
+            color: white;
+        }
+
+        .status-error {
+            background: #f44336;
+            color: white;
+        }
+
+        .main-fields {
+            margin-bottom: 30px;
+        }
+
+        .field-group {
+            margin-bottom: 10px;
+        }
+
+        .field-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-size: 12px;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 18px;
+            font-family: Tahoma, sans-serif;
+            line-height: 1.2;
+            resize: none;
+            min-height: 24px;
+            overflow: hidden;
+        }
+
+        .field-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .field-input.unsaved {
+            border-color: #ff9800;
+            background: rgba(255, 152, 0, 0.05);
+        }
+
+        .headline-options {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .headline-item {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: flex-start;
+        }
+
+        .headline-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .headline-label {
+            display: block;
+            text-align: left;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .headline-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 18px;
+            font-family: Tahoma, sans-serif;
+            line-height: 1.2;
+            resize: none;
+            min-height: 50px;
+            overflow: hidden;
+        }
+
+        .headline-rating-container {
+            min-width: 100px;
+        }
+
+        .headline-rating {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-family: Tahoma, sans-serif;
+            min-height: 50px;
+        }
+
+        /* Chapter Section - from Penpot */
+        .chapters-section {
+            margin-bottom: 30px;
+        }
+
+        .chapter-se-7a2807fb2c0d {
+            position: relative;
+            width: 100%;
+            background: #f9f9f9FF;
+            border-radius: 8px 8px 8px 8px;
+            display: flex;
+            align-items: center;
+            align-content: stretch;
+            justify-content: center;
+            padding: 10px 10px 10px 20px;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            flex-grow: 1;
+            align-self: center;
+            margin-bottom: 20px;
+        }
+
+        /* Chapter Number Container */
+        .chapter-nu-7a2807fb2c10 {
+            position: relative;
+            width: auto;
+            height: auto;
+            background: linear-gradient(to bottom, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            border-radius: 8px 8px 8px 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            align-content: stretch;
+            justify-content: center;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            margin: 0px 0px 10px 0px;
+            min-height: 29px;
+            min-width: 107px;
+            align-self: start;
+        }
+
+        /* Chapter Number Text */
+        .chapter-nu-7a2807fb2c21 {
+            width: 87px;
+            height: 29px;
+            flex-shrink: 0;
+            margin: 0px 10px 0px 10px;
+            color: rgba(255, 255, 255, 1);
+            font-size: 19px;
+            font-family: "Inter";
+            font-style: normal;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Ch Title + Rating (horizontal container) */
+        .ch-title-7a2807fb2c0f {
+            position: relative;
+            width: 100%;
+            height: auto;
+            border-radius: 0px 0px 0px 0px;
+            display: flex;
+            align-items: flex-end;
+            align-content: stretch;
+            justify-content: start;
+            gap: 10px;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-self: center;
+        }
+
+        /* Title + Label (vertical container) */
+        .title-la-7a2807fb2c1a {
+            position: relative;
+            width: calc(100% - 110px);
+            height: auto;
+            border-radius: 0px 0px 0px 0px;
+            display: flex;
+            align-items: end;
+            align-content: stretch;
+            justify-content: end;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            align-self: end;
+        }
+
+        /* Title Rating + Label (vertical container) */
+        .title-rating-l-7a2807fb2c19 {
+            position: relative;
+            width: 100px;
+            height: auto;
+            border-radius: 0px 0px 0px 0px;
+            display: flex;
+            align-items: start;
+            align-content: stretch;
+            justify-content: end;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            align-self: end;
+        }
+
+        /* Ch Outline + Rating (horizontal container) */
+        .ch-outline-7a2807fb2c0e {
+            position: relative;
+            width: 100%;
+            height: auto;
+            border-radius: 0px 0px 0px 0px;
+            display: flex;
+            align-items: flex-end;
+            align-content: stretch;
+            justify-content: start;
+            gap: 10px;
+            padding: 8px 0px 0px 0px;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-self: center;
+        }
+
+        /* Outline + Label (vertical container) */
+        .outline-7a2807fb2c12 {
+            position: relative;
+            width: calc(100% - 110px);
+            height: auto;
+            border-radius: 0px 0px 0px 0px;
+            display: flex;
+            align-items: end;
+            align-content: stretch;
+            justify-content: end;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            align-self: end;
+        }
+
+        /* Outline Rating + Label (vertical container) */
+        .outline-rating-l-7a2807fb2c11 {
+            position: relative;
+            width: 100px;
+            height: auto;
+            border-radius: 0px 0px 0px 0px;
+            display: flex;
+            align-items: start;
+            align-content: stretch;
+            justify-content: end;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            align-self: end;
+        }
+
+        /* Field Labels */
+        .label-ch-7a2807fb2c1f, .label-ch-7a2807fb2c17, .label-rat-7a2807fb2c1c, .label-rat-7a2807fb2c14 {
+            width: 100%;
+            height: 21px;
+            flex-shrink: 0;
+            margin: 0px 0px 3px 0px;
+            align-self: start;
+            color: rgba(0, 0, 0, 1);
+            font-size: 14px;
+            font-family: "Inter";
+            font-style: normal;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .label-rat-7a2807fb2c1c, .label-rat-7a2807fb2c14 {
+            text-align: center;
+        }
+
+        /* Field Containers */
+        .title-fiel-7a2807fb2c1e, .outline-fi-7a2807fb2c16, .rating-fie-7a2807fb2c1b, .rating-fie-7a2807fb2c13 {
+            position: relative;
+            width: 100%;
+            height: auto;
+            background: #FFFFFFFF;
+            border: 0.5px solid #5b5a5aFF;
+            border-radius: 8px 8px 8px 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: start;
+            align-content: stretch;
+            justify-content: start;
+            padding: 0px; /* Remove padding since inputs handle their own */
+            flex-direction: column;
+            flex-wrap: nowrap;
+            min-height: 59px; /* All containers same height */
+            align-self: start;
+        }
+
+        /* Field Text Inputs */
+        .chapter-ti-7a2807fb2c20, .chapter-ou-7a2807fb2c18, .rating-7a2807fb2c1d, .rating-7a2807fb2c15 {
+            width: 100%;
+            height: auto;
+            flex-shrink: 0;
+            margin: 0px; /* Remove margin since we're using padding */
+            color: rgba(0, 0, 0, 1);
+            font-size: 19px;
+            font-family: "Inter";
+            font-style: normal;
+            font-weight: 400;
+            background: transparent;
+            border: none;
+            outline: none;
+            resize: none;
+            overflow: hidden;
+            line-height: 1.5;
+            padding: 15px;
+        }
+
+        /* Text fields - simpler approach matching rating field height */
+        .chapter-ti-7a2807fb2c20, .chapter-ou-7a2807fb2c18 {
+            min-height: 29px; /* Same as rating fields */
+            box-sizing: border-box;
+            line-height: 1.2; /* Tighter line height for better sizing */
+        }
+
+        /* Chapter outline gets larger minimum height */
+        .chapter-ou-7a2807fb2c18 {
+            min-height: 150px;
+        }
+
+        .chapter-ti-7a2807fb2c20 {
+            font-weight: 600;
+        }
+
+        /* Rating fields - centered both ways */
+        .rating-7a2807fb2c1d, .rating-7a2807fb2c15 {
+            text-align: center;
+            min-height: 29px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .controls {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 20px 0;
+            border-top: 2px solid #e0e0e0;
+            margin-top: 30px;
+        }
+
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .navigation {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .message {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+
+        .message.success {
+            color: #27ae60;
+        }
+
+        .message.error {
+            color: #e74c3c;
+        }
+
+        .auto-save-indicator {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .validation-error {
+            border-color: #e74c3c !important;
+            background: rgba(231, 76, 60, 0.05) !important;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .chapter-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .headline-item {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .controls-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .navigation {
+                order: 2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- =============================================== -->
+        <!--                 HEADER SECTION                -->
+        <!-- =============================================== -->
+        <div class="header">
+            <img src="vidsponential logo.png" alt="Vidsponential Logo" class="logo">
+            <div class="script-id" id="scriptIdDisplay">Loading...</div>
+            <div class="status-indicator" id="statusIndicator">Loading</div>
+        </div>
+
+        <!-- =============================================== -->
+        <!--                 MAIN CONTENT                  -->
+        <!-- =============================================== -->
+        <div id="content">
+            <!-- Working Headline and Primary Keyword Fields -->
+            <div class="main-fields">
+                <div class="field-group">
+                    <label class="field-label" for="workingHeadline">Working Headline</label>
+                    <textarea class="field-input" id="workingHeadline" placeholder="Enter the working headline..."></textarea>
+                </div>
+                
+                <div class="field-group">
+                    <label class="field-label" for="primaryKeyword">Primary Keyword</label>
+                    <input type="text" class="field-input" id="primaryKeyword" placeholder="Enter the primary keyword...">
+                </div>
+            </div>
+
+            <!-- Headline Options Section -->
+            <div class="headline-options">
+                <h2 class="section-title">Headline Options</h2>
+                <div id="headlinesList"></div>
+            </div>
+
+            <!-- Chapter Outlines Section -->
+            <div class="chapters-section">
+                <h2 class="section-title">Chapter Outlines</h2>
+                <div id="chaptersList"></div>
+            </div>
+        </div>
+
+        <!-- =============================================== -->
+        <!--                 NO SCRIPTS MESSAGE            -->
+        <!-- =============================================== -->
+        <div id="noScriptsMessage" class="message" style="display: none;">
+            No script outlines to display - everything checked ✓
+        </div>
+
+        <!-- =============================================== -->
+        <!--                 CONTROLS SECTION              -->
+        <!-- =============================================== -->
+        <div class="controls">
+            <div class="controls-row">
+                <div class="navigation">
+                    <button class="btn btn-secondary" id="prevBtn" onclick="navigateScript(-1)">← Previous</button>
+                    <button class="btn btn-secondary" id="nextBtn" onclick="navigateScript(1)">Next →</button>
+                </div>
+                <div>
+                    <div class="auto-save-indicator" id="autoSaveStatus">Auto-save: Ready</div>
+                </div>
+                <div>
+                    <button class="btn btn-success" id="saveBtn" onclick="saveScript()">Save & Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ================================================= */
+        /*              GLOBAL VARIABLES                    */
+        /* ================================================= */
+        
+        // Application state
+        let currentScriptData = null;
+        let scriptsToReview = [];
+        let currentScriptIndex = 0;
+        let hasUnsavedChanges = false;
+        let autoSaveTimer = null;
+        let isLoading = false;
+
+        // Supabase configuration
+        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
+
+        /* ================================================= */
+        /*              INITIALIZATION                      */
+        /* ================================================= */
+        
+        // Initialize the application
+        async function init() {
+            try {
+                updateStatus('loading', 'Loading scripts...');
+                await loadScriptsToReview();
+                if (scriptsToReview.length > 0) {
+                    await loadCurrentScript();
+                    setupEventListeners();
+                    startAutoSave();
+                } else {
+                    showNoScriptsMessage();
+                }
+            } catch (error) {
+                console.error('Initialization error:', error);
+                updateStatus('error', `Failed to load scripts: ${error.message}`);
+                
+                document.getElementById('noScriptsMessage').innerHTML = `
+                    <div class="message error">
+                        <strong>Error loading scripts:</strong><br>
+                        ${error.message}<br><br>
+                        <small>Check the browser console (F12) for more details.</small>
+                    </div>
+                `;
+                document.getElementById('content').style.display = 'none';
+                document.getElementById('noScriptsMessage').style.display = 'block';
+            }
+        }
+
+        /* ================================================= */
+        /*              DATA LOADING FUNCTIONS              */
+        /* ================================================= */
+        
+        async function loadScriptsToReview() {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_status_id=eq.22&select=script_id,working_headline`, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to load scripts: ${response.status} - ${errorText}`);
+            }
+
+            scriptsToReview = await response.json();
+        }
+
+        async function loadCurrentScript() {
+            if (scriptsToReview.length === 0) {
+                showNoScriptsMessage();
+                return;
+            }
+
+            const scriptId = scriptsToReview[currentScriptIndex].script_id;
+            
+            try {
+                updateStatus('loading', 'Loading script data...');
+                
+                const scriptResponse = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}&select=script_id,working_headline,primary_keyword`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (!scriptResponse.ok) throw new Error('Failed to load script');
+                const [scriptData] = await scriptResponse.json();
+
+                const headlinesResponse = await fetch(`${SUPABASE_URL}/rest/v1/headlines?script_id=eq.${scriptId}&select=headline_id,headline,headline_mp_rating&order=headline_id`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (!headlinesResponse.ok) throw new Error('Failed to load headlines');
+                const headlines = await headlinesResponse.json();
+
+                const chaptersResponse = await fetch(`${SUPABASE_URL}/rest/v1/chapters?script_id=eq.${scriptId}&select=chapter_id,chapter_number,chapter_headline,chapter_headline_mp_rating,chapter_outline,chapter_outline_mp_rating&order=chapter_number`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (!chaptersResponse.ok) throw new Error('Failed to load chapters');
+                const chapters = await chaptersResponse.json();
+
+                currentScriptData = {
+                    script: scriptData,
+                    headlines: headlines,
+                    chapters: chapters
+                };
+
+                displayScriptData();
+                updateNavigationButtons();
+                updateStatus('saved', 'Loaded successfully');
+                hasUnsavedChanges = false;
+
+            } catch (error) {
+                console.error('Error loading script:', error);
+                updateStatus('error', 'Failed to load script data');
+            }
+        }
+
+        /* ================================================= */
+        /*              DISPLAY FUNCTIONS                   */
+        /* ================================================= */
+        
+        function displayScriptData() {
+            if (!currentScriptData) return;
+
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('noScriptsMessage').style.display = 'none';
+
+            document.getElementById('scriptIdDisplay').textContent = `Script ID: ${currentScriptData.script.script_id}`;
+
+            document.getElementById('workingHeadline').value = currentScriptData.script.working_headline || '';
+            document.getElementById('primaryKeyword').value = currentScriptData.script.primary_keyword || '';
+
+            displayHeadlines();
+            displayChapters();
+        }
+
+        function displayHeadlines() {
+            const container = document.getElementById('headlinesList');
+            container.innerHTML = '';
+
+            currentScriptData.headlines.forEach(headline => {
+                const headlineDiv = document.createElement('div');
+                headlineDiv.className = 'headline-item';
+                headlineDiv.innerHTML = `
+                    <div class="headline-main">
+                        <label class="headline-label">Headline_id: ${headline.headline_id}</label>
+                        <textarea class="headline-input" data-headline-id="${headline.headline_id}" placeholder="Enter headline...">${headline.headline || ''}</textarea>
+                    </div>
+                    <div class="headline-rating-container">
+                        <label class="rating-label">Rating /100</label>
+                        <input type="number" class="headline-rating" data-headline-id="${headline.headline_id}" min="1" max="100" value="${headline.headline_mp_rating || ''}">
+                    </div>
+                `;
+                container.appendChild(headlineDiv);
+            });
+            
+            container.querySelectorAll('.headline-input').forEach(autoResize);
+        }
+
+        function displayChapters() {
+            const container = document.getElementById('chaptersList');
+            container.innerHTML = '';
+
+            currentScriptData.chapters.forEach(chapter => {
+                const chapterDiv = document.createElement('div');
+                chapterDiv.className = 'chapter-se-7a2807fb2c0d';
+                chapterDiv.innerHTML = `
+                    <!-- Chapter Number Container -->
+                    <div class="chapter-nu-7a2807fb2c10">
+                        <div class="chapter-nu-7a2807fb2c21">Chapter ${chapter.chapter_number}</div>
+                    </div>
+                    
+                    <!-- Ch Title + Rating -->
+                    <div class="ch-title-7a2807fb2c0f">
+                        <!-- Title + Label -->
+                        <div class="title-la-7a2807fb2c1a">
+                            <label class="label-ch-7a2807fb2c1f">Chapter Title:</label>
+                            <div class="title-fiel-7a2807fb2c1e">
+                                <textarea class="chapter-ti-7a2807fb2c20" data-chapter-id="${chapter.chapter_id}">${chapter.chapter_headline || ''}</textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Title Rating + Label -->
+                        <div class="title-rating-l-7a2807fb2c19">
+                            <label class="label-rat-7a2807fb2c1c">Rating / 100:</label>
+                            <div class="rating-fie-7a2807fb2c1b">
+                                <input type="number" class="rating-7a2807fb2c1d" data-chapter-id="${chapter.chapter_id}" data-field="chapter_headline_mp_rating" min="1" max="100" value="${chapter.chapter_headline_mp_rating || ''}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Ch Outline + Rating -->
+                    <div class="ch-outline-7a2807fb2c0e">
+                        <!-- Outline + Label -->
+                        <div class="outline-7a2807fb2c12">
+                            <label class="label-ch-7a2807fb2c17">Chapter Outline:</label>
+                            <div class="outline-fi-7a2807fb2c16">
+                                <textarea class="chapter-ou-7a2807fb2c18" data-chapter-id="${chapter.chapter_id}">${chapter.chapter_outline || ''}</textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Outline Rating + Label -->
+                        <div class="outline-rating-l-7a2807fb2c11">
+                            <label class="label-rat-7a2807fb2c14">Rating / 100:</label>
+                            <div class="rating-fie-7a2807fb2c13">
+                                <input type="number" class="rating-7a2807fb2c15" data-chapter-id="${chapter.chapter_id}" data-field="chapter_outline_mp_rating" min="1" max="100" value="${chapter.chapter_outline_mp_rating || ''}">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(chapterDiv);
+            });
+            
+            container.querySelectorAll('.chapter-ti-7a2807fb2c20, .chapter-ou-7a2807fb2c18').forEach(autoResize);
+        }
+
+        /* ================================================= */
+        /*              AUTO-RESIZE FUNCTION               */
+        /* ================================================= */
+        
+        function autoResize(textarea) {
+            function resize() {
+                // Reset height to calculate content
+                textarea.style.height = 'auto';
+                
+                // Get the actual content without line breaks
+                const content = textarea.value;
+                const hasLineBreaks = content.includes('\n');
+                
+                // Check if this is a chapter outline field
+                const isOutlineField = textarea.classList.contains('chapter-ou-7a2807fb2c18');
+                
+                if (!content.trim() || (!hasLineBreaks && content.length < 50)) {
+                    // Empty or single short line
+                    if (isOutlineField) {
+                        textarea.style.height = '150px'; // Chapter outline minimum
+                    } else {
+                        textarea.style.height = '59px'; // Chapter title matches rating field
+                    }
+                } else {
+                    // Multiple lines or long content - use scroll height but respect minimums
+                    const scrollHeight = textarea.scrollHeight;
+                    const minHeight = isOutlineField ? 150 : 59;
+                    textarea.style.height = Math.max(scrollHeight, minHeight) + 'px';
+                }
+            }
+            
+            // Initial resize
+            setTimeout(resize, 0);
+            
+            // Add event listeners
+            textarea.addEventListener('input', resize);
+            textarea.addEventListener('paste', function() {
+                setTimeout(resize, 0);
+            });
+        }
+
+        /* ================================================= */
+        /*              EVENT LISTENERS                     */
+        /* ================================================= */
+        
+        function setupEventListeners() {
+            const workingHeadline = document.getElementById('workingHeadline');
+            const primaryKeyword = document.getElementById('primaryKeyword');
+            
+            workingHeadline.addEventListener('input', markUnsaved);
+            primaryKeyword.addEventListener('input', markUnsaved);
+            autoResize(workingHeadline);
+
+            document.addEventListener('input', function(e) {
+                if (e.target.matches('.headline-input, .headline-rating, .chapter-ti-7a2807fb2c20, .chapter-ou-7a2807fb2c18, .rating-7a2807fb2c1d, .rating-7a2807fb2c15')) {
+                    markUnsaved();
+                    
+                    if (e.target.matches('.headline-input, .chapter-ti-7a2807fb2c20, .chapter-ou-7a2807fb2c18')) {
+                        autoResize(e.target);
+                    }
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    saveScript();
+                }
+            });
+        }
+
+        function markUnsaved() {
+            if (!hasUnsavedChanges) {
+                hasUnsavedChanges = true;
+                updateStatus('unsaved', 'Unsaved changes');
+                
+                document.querySelectorAll('.field-input, .headline-input, .chapter-ti-7a2807fb2c20, .chapter-ou-7a2807fb2c18').forEach(el => {
+                    el.classList.add('unsaved');
+                });
+            }
+        }
+
+        /* ================================================= */
+        /*              AUTO-SAVE FUNCTIONS                */
+        /* ================================================= */
+        
+        function startAutoSave() {
+            setInterval(() => {
+                if (hasUnsavedChanges && !isLoading) {
+                    autoSave();
+                }
+            }, 30000);
+        }
+
+        async function autoSave() {
+            try {
+                document.getElementById('autoSaveStatus').textContent = 'Auto-save: Saving...';
+                await saveCurrentData(false, false);
+                document.getElementById('autoSaveStatus').textContent = 'Auto-save: Saved';
+                setTimeout(() => {
+                    document.getElementById('autoSaveStatus').textContent = 'Auto-save: Ready';
+                }, 2000);
+            } catch (error) {
+                document.getElementById('autoSaveStatus').textContent = 'Auto-save: Failed';
+                console.error('Auto-save failed:', error);
+            }
+        }
+
+        /* ================================================= */
+        /*              VALIDATION FUNCTIONS               */
+        /* ================================================= */
+        
+        function validateData(showErrors = false) {
+            let isValid = true;
+
+            document.querySelectorAll('.validation-error').forEach(el => {
+                el.classList.remove('validation-error');
+            });
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.remove();
+            });
+
+            if (!showErrors) {
+                return { isValid: true, errors: [] };
+            }
+
+            const workingHeadline = document.getElementById('workingHeadline');
+            if (!workingHeadline.value.trim()) {
+                workingHeadline.classList.add('validation-error');
+                const error = document.createElement('div');
+                error.className = 'error-message';
+                error.textContent = 'Working headline is required';
+                workingHeadline.parentNode.appendChild(error);
+                isValid = false;
+            }
+
+            const primaryKeyword = document.getElementById('primaryKeyword');
+            if (!primaryKeyword.value.trim()) {
+                primaryKeyword.classList.add('validation-error');
+                const error = document.createElement('div');
+                error.className = 'error-message';
+                error.textContent = 'Primary keyword is required';
+                primaryKeyword.parentNode.appendChild(error);
+                isValid = false;
+            }
+
+            return { isValid, errors: [] };
+        }
+
+        /* ================================================= */
+        /*              SAVE FUNCTIONS                     */
+        /* ================================================= */
+        
+        async function saveScript() {
+            await saveCurrentData(true, true);
+        }
+
+        async function saveCurrentData(changeStatus = false, showValidationErrors = false) {
+            if (isLoading) return;
+
+            const validation = validateData(showValidationErrors);
+            if (showValidationErrors && !validation.isValid) {
+                updateStatus('error', 'Please fix validation errors');
+                return;
+            }
+
+            isLoading = true;
+            updateStatus('loading', 'Saving...');
+
+            try {
+                const scriptId = currentScriptData.script.script_id;
+
+                // Save main script data
+                const scriptUpdate = {
+                    working_headline: document.getElementById('workingHeadline').value,
+                    primary_keyword: document.getElementById('primaryKeyword').value
+                };
+
+                if (changeStatus) {
+                    scriptUpdate.script_status_id = 30;
+                }
+
+                await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(scriptUpdate)
+                });
+
+                // Save headlines
+                const headlineInputs = document.querySelectorAll('.headline-input');
+                const headlineRatings = document.querySelectorAll('.headline-rating');
+
+                for (let i = 0; i < headlineInputs.length; i++) {
+                    const headlineId = headlineInputs[i].dataset.headlineId;
+                    const rating = headlineRatings[i].value || null;
+
+                    await fetch(`${SUPABASE_URL}/rest/v1/headlines?headline_id=eq.${headlineId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=minimal'
+                        },
+                        body: JSON.stringify({
+                            headline: headlineInputs[i].value,
+                            headline_mp_rating: rating
+                        })
+                    });
+                }
+
+                // Save chapters
+                const chapterTitles = document.querySelectorAll('.chapter-ti-7a2807fb2c20');
+                const chapterOutlines = document.querySelectorAll('.chapter-ou-7a2807fb2c18');
+                const chapterTitleRatings = document.querySelectorAll('.rating-7a2807fb2c1d');
+                const chapterOutlineRatings = document.querySelectorAll('.rating-7a2807fb2c15');
+
+                for (let i = 0; i < chapterTitles.length; i++) {
+                    const chapterId = chapterTitles[i].dataset.chapterId;
+                    const titleRating = chapterTitleRatings[i].value || null;
+                    const outlineRating = chapterOutlineRatings[i].value || null;
+
+                    await fetch(`${SUPABASE_URL}/rest/v1/chapters?chapter_id=eq.${chapterId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=minimal'
+                        },
+                        body: JSON.stringify({
+                            chapter_headline: chapterTitles[i].value,
+                            chapter_headline_mp_rating: titleRating,
+                            chapter_outline: chapterOutlines[i].value,
+                            chapter_outline_mp_rating: outlineRating
+                        })
+                    });
+                }
+
+                hasUnsavedChanges = false;
+                document.querySelectorAll('.unsaved').forEach(el => {
+                    el.classList.remove('unsaved');
+                });
+
+                if (changeStatus) {
+                    scriptsToReview.splice(currentScriptIndex, 1);
+                    
+                    if (scriptsToReview.length === 0) {
+                        showNoScriptsMessage();
+                    } else {
+                        if (currentScriptIndex >= scriptsToReview.length) {
+                            currentScriptIndex = 0;
+                        }
+                        await loadCurrentScript();
+                    }
+                    updateStatus('saved', 'Saved & moved to next');
+                } else {
+                    updateStatus('saved', 'Saved');
+                }
+
+            } catch (error) {
+                console.error('Save error:', error);
+                updateStatus('error', 'Save failed');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        /* ================================================= */
+        /*              NAVIGATION FUNCTIONS               */
+        /* ================================================= */
+        
+        async function navigateScript(direction) {
+            if (isLoading) return;
+
+            if (hasUnsavedChanges) {
+                if (!confirm('You have unsaved changes. Do you want to continue without saving?')) {
+                    return;
+                }
+            }
+
+            const newIndex = currentScriptIndex + direction;
+            if (newIndex >= 0 && newIndex < scriptsToReview.length) {
+                currentScriptIndex = newIndex;
+                await loadCurrentScript();
+            }
+        }
+
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            prevBtn.disabled = currentScriptIndex === 0;
+            nextBtn.disabled = currentScriptIndex === scriptsToReview.length - 1;
+        }
+
+        /* ================================================= */
+        /*              UTILITY FUNCTIONS                  */
+        /* ================================================= */
+        
+        function updateStatus(status, message) {
+            const indicator = document.getElementById('statusIndicator');
+            indicator.className = `status-indicator status-${status}`;
+            indicator.textContent = message;
+        }
+
+        function showNoScriptsMessage() {
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('noScriptsMessage').style.display = 'block';
+            updateStatus('saved', 'All scripts reviewed');
+        }
+
+        /* ================================================= */
+        /*              EVENT INITIALIZATION               */
+        /* ================================================= */
+        
+        // Initialize when page loads
+        window.addEventListener('DOMContentLoaded', init);
+
+        // Warn before leaving with unsaved changes
+        window.addEventListener('beforeunload', function(e) {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>

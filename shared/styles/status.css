@@ -1,0 +1,30 @@
+/* Status indicators and badges */
+
+.status-indicator {
+    display: inline-block;
+    padding: 3.6px 10.8px; /* Reduced from 4px 12px (10% smaller) */
+    border-radius: 18px; /* Reduced from 20px (10% smaller) */
+    font-size: 10.8px; /* Reduced from 12px (10% smaller) */
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-unsaved {
+    background: #ff9800;
+    color: white;
+}
+
+.status-saved {
+    background: #4caf50;
+    color: white;
+}
+
+.status-loading {
+    background: #2196f3;
+    color: white;
+}
+
+.status-error {
+    background: #f44336;
+    color: white;
+}

@@ -1,0 +1,192 @@
+/* Form fields, textareas, and input styling */
+
+.field-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 18px;
+    font-family: Tahoma, sans-serif;
+    line-height: 1.6;
+    resize: none;
+    min-height: 24px;
+    overflow: hidden;
+}
+
+.field-input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.field-input.unsaved {
+    border-color: #ff9800;
+    background: rgba(255, 152, 0, 0.05);
+}
+
+/* Field Containers - All containers same height and styling */
+.title-fiel-7a2807fb2c1e, .rating-fie-7a2807fb2c1b, .rating-fie-7a2807fb2c13 {
+    position: relative;
+    width: 100%;
+    height: auto;
+    background: #FFFFFFFF;
+    border: 0.5px solid #5b5a5aFF;
+    border-radius: 8px 8px 8px 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: start;
+    align-content: stretch;
+    justify-content: start;
+    padding: 0px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    min-height: 59px;
+}
+
+.title-fiel-7a2807fb2c1e {
+    min-height: 59px !important;
+}
+
+.outline-fi-7a2807fb2c16 {
+    position: relative;
+    width: 100%;
+    height: auto;
+    background: #FFFFFFFF;
+    border: 0.5px solid #5b5a5aFF;
+    border-radius: 8px 8px 8px 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: start;
+    align-content: stretch;
+    justify-content: start;
+    padding: 0px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    min-height: 180px !important;
+    align-self: start;
+}
+
+/* Field Text Inputs */
+.chapter-ti-7a2807fb2c20, .chapter-ou-7a2807fb2c18, .rating-7a2807fb2c1d, .rating-7a2807fb2c15 {
+    width: 100%;
+    height: auto;
+    flex-shrink: 0;
+    margin: 0px;
+    color: rgba(0, 0, 0, 1);
+    font-size: 19px;
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 400;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.6;
+    padding: 15px;
+}
+
+/* Text fields - CHAPTER TITLE MATCHES RATING FIELD HEIGHT EXACTLY */
+.chapter-ti-7a2807fb2c20 {
+    min-height: 59px !important;
+    max-height: 59px;
+    box-sizing: border-box;
+    line-height: 1.6 !important;
+    font-weight: 600;
+    overflow: hidden;
+}
+
+.chapter-ou-7a2807fb2c18 {
+    min-height: 150px !important;
+    box-sizing: border-box;
+    line-height: 1.6 !important;
+}
+
+/* Rating fields - FORCE ABSOLUTE CENTERING OVERRIDING ALL BROWSER DEFAULTS */
+.rating-7a2807fb2c1d, .rating-7a2807fb2c15 {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 59px !important;
+    text-align: center !important;
+    text-align-last: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+    font-size: 18px !important;
+    font-family: "Tahoma", sans-serif !important;
+    font-weight: 600 !important;
+    color: #2c3e50 !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: textfield !important;
+    appearance: none !important;
+    outline: none !important;
+    font-family: inherit !important;
+}
+
+/* Remove number input spinners that might affect centering */
+.rating-7a2807fb2c1d::-webkit-outer-spin-button,
+.rating-7a2807fb2c1d::-webkit-inner-spin-button,
+.rating-7a2807fb2c15::-webkit-outer-spin-button,
+.rating-7a2807fb2c15::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+
+/* Field Labels - ENFORCED consistent styling */
+.label-ch-7a2807fb2c1f, .label-ch-7a2807fb2c17, .label-rat-7a2807fb2c1c, .label-rat-7a2807fb2c14 {
+    width: 100%;
+    height: 21px !important;
+    flex-shrink: 0;
+    margin: 0px 0px 3px 0px !important;
+    align-self: start;
+    color: #2c3e50;
+    font-size: 11px;
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 600;
+    text-align: left;
+    line-height: 1.9;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Form validation states */
+.validation-error {
+    border-color: #e74c3c !important;
+    background: rgba(231, 76, 60, 0.05) !important;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.message {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    color: #7f8c8d;
+}
+
+.message.success {
+    color: #27ae60;
+}
+
+.message.error {
+    color: #e74c3c;
+}
+
+.auto-save-indicator {
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+}

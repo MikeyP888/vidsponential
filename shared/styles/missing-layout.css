@@ -1,0 +1,196 @@
+/* Missing Layout CSS Classes */
+
+/* Chapter Container - Gray background */
+.chapter-se-7a2807fb2c0d {
+    position: relative;
+    width: 100%;
+    height: auto;
+    background: #f9f9f9FF;
+    border-radius: 8px 8px 8px 8px;
+    display: flex;
+    align-items: center;
+    align-content: stretch;
+    justify-content: center;
+    padding: 10px 10px 10px 20px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-self: center;
+    margin-bottom: 20px;
+}
+
+/* Chapter Number - Horizontal gradient, positioned left */
+.chapter-nu-7a2807fb2c10 {
+    position: relative;
+    width: auto;
+    height: auto;
+    background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+    border-radius: 8px 8px 8px 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    align-content: stretch;
+    justify-content: center;
+    padding: 8px 16px;
+    margin-bottom: 15px;
+    align-self: flex-start;
+}
+
+.chapter-nu-7a2807fb2c21 {
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+/* Chapter Title Row - Horizontal Layout */
+.ch-title-7a2807fb2c0f {
+    position: relative;
+    width: 100%;
+    height: auto;
+    border-radius: 0px 0px 0px 0px;
+    display: flex;
+    align-items: center;
+    align-content: stretch;
+    justify-content: start;
+    gap: 10px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    margin-bottom: 15px;
+}
+
+/* Chapter Outline Row - Horizontal Layout */
+.ch-outline-7a2807fb2c0e {
+    position: relative;
+    width: 100%;
+    height: auto;
+    border-radius: 0px 0px 0px 0px;
+    display: flex;
+    align-items: start;
+    align-content: stretch;
+    justify-content: start;
+    gap: 10px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+/* Title Label and Field Container */
+.title-la-7a2807fb2c1a {
+    position: relative;
+    width: calc(100% - 120px);
+    height: auto;
+    border-radius: 0px 0px 0px 0px;
+    display: flex;
+    align-items: end;
+    align-content: stretch;
+    justify-content: end;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+/* Outline Label and Field Container */
+.outline-7a2807fb2c12 {
+    position: relative;
+    width: calc(100% - 120px);
+    height: auto;
+    border-radius: 0px 0px 0px 0px;
+    display: flex;
+    align-items: end;
+    align-content: stretch;
+    justify-content: end;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+/* Title Rating Container */
+.title-rating-l-7a2807fb2c19 {
+    position: relative;
+    width: 100px;
+    height: auto;
+    border-radius: 0px 0px 0px 0px;
+    display: flex;
+    align-items: start;
+    align-content: stretch;
+    justify-content: end;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-self: end;
+}
+
+/* Outline Rating Container */
+.outline-rating-l-7a2807fb2c11 {
+    position: relative;
+    width: 100px;
+    height: auto;
+    border-radius: 0px 0px 0px 0px;
+    display: flex;
+    align-items: start;
+    align-content: stretch;
+    justify-content: end;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-self: end;
+}
+
+/* Script Info Grid - Fixed spacing */
+.script-info {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    margin-bottom: 30px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.info-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* Controls Row - Better button positioning */
+.controls-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.navigation-controls {
+    display: flex;
+    gap: 10px;
+    margin-right: auto;
+}
+
+.auto-save-indicator {
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+}
+
+/* Chapter Text Paragraph Spacing - 10px after each paragraph */
+.chapter-ou-7a2807fb2c18 {
+    line-height: 2.2 !important; /* Increased line height to create more space between paragraphs */
+    white-space: pre-wrap !important;
+    font-family: Georgia, "Times New Roman", serif !important;
+    font-size: 16px !important;
+}

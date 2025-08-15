@@ -1,0 +1,66 @@
+/* Button styles and variants */
+
+.header-btn {
+    padding: 7.2px 14.4px; /* Reduced from 8px 16px (10% smaller) */
+    font-size: 10.8px; /* Reduced from 12px (10% smaller) */
+    text-decoration: none;
+    border-radius: 5.4px; /* Reduced from 6px (10% smaller) */
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.45px; /* Reduced from 0.5px (10% smaller) */
+    position: relative;
+}
+
+.header-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-primary {
+    background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%); /* Same gradient as chapter number boxes */
+    color: white;
+}
+
+.btn-secondary:not(:disabled) {
+    background: #c1c1c1 !important; /* Light gray color for enabled navigation buttons */
+    color: white;
+}
+
+.btn-secondary {
+    background: #c1c1c1; /* Light gray color for enabled navigation buttons */
+    color: white;
+}
+
+.btn-secondary:disabled {
+    background: #d5dbdb !important; /* Light gray for disabled buttons */
+    color: white;
+    opacity: 0.7;
+}
+
+.btn-success {
+    background: #27ae60;
+    color: white;
+}
