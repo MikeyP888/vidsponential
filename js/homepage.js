@@ -23,7 +23,7 @@ async function loadNiches() {
     }
 
     nichesGrid.innerHTML = niches.map(niche => `
-        <a href="portfolio-celebrity.html?niche=${encodeURIComponent(niche.website_niche_slug)}" class="niche-card">
+        <a href="portfolio/index.html?niche=${encodeURIComponent(niche.website_niche_slug)}" class="niche-card">
             <h3 class="niche-title">${niche.website_niche_name}</h3>
             <p class="niche-description">${niche.website_niche_description || 'Explore our collection of scripts in this category'}</p>
         </a>
