@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upwork Proposals Editor</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💼</text></svg>">
+    
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../shared/styles/components.css">
+    <link rel="stylesheet" href="../shared/styles/base.css">
+    <link rel="stylesheet" href="../shared/styles/layout.css">
+    <link rel="stylesheet" href="../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../shared/styles/forms.css">
+    <link rel="stylesheet" href="../shared/styles/status.css">
+    <link rel="stylesheet" href="../shared/styles/notifications.css">
+    <link rel="stylesheet" href="../shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../shared/styles/sidebar.css">
+</head>
+<body class="has-sidebar">
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
+    
+    <div class="container with-sidebar">
+        <!-- =============================================== -->
+        <!--                 HEADER SECTION                  -->
+        <!-- =============================================== -->
+        <div class="header">
+            
+            <!-- Status Indicator -->
+            <div class="status-bar">
+                <div class="status-indicator" id="statusIndicator">Loading</div>
+            </div>
+            
+            <!-- Proposals Completed Today -->
+            <div class="completed-today-bar">
+                <div class="completed-today-text">Proposals Sent Today: <span id="proposalsCompletedTodayCount">0</span></div>
+            </div>
+            
+            <!-- Page Title -->
+            <h1 class="page-title">Upwork Proposals Editor</h1>
+        </div>
+
+        <!-- =============================================== -->
+        <!--                 MAIN CONTENT                   -->
+        <!-- =============================================== -->
+        <div id="content">
+            <!-- Proposal Info Section -->
+            <div class="info-section">
+                <div class="script-info" id="proposalInfo" style="display: none;">
+                    <div class="info-item">
+                        <div class="info-label">Proposal ID</div>
+                        <div class="info-value" id="proposalIdValue">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Job Title</div>
+                        <div class="info-value" id="jobTitleValue">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Client</div>
+                        <div class="info-value" id="clientValue">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Budget</div>
+                        <div class="info-value" id="budgetValue">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proposal Content Area -->
+            <div class="editor-section" id="proposalSection" style="display: none;">
+                <h2>Cover Letter</h2>
+                <textarea id="coverLetterContent" class="content-textarea" rows="15"></textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-group" id="actionButtons" style="display: none;">
+                <button class="btn btn-secondary" onclick="skipProposal()">Skip</button>
+                <button class="btn btn-primary" onclick="saveAndContinue()">Save & Continue</button>
+            </div>
+
+            <!-- No Proposals Message -->
+            <div id="noProposalsMessage" style="display: none; text-align: center; padding: 40px;">
+                <h2>No Proposals to Review</h2>
+                <p>All proposals have been reviewed. Check back later for new items.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Navigation Component -->
+    <script type="module" src="../shared/js/sidebar-component.js"></script>
+    
+    <!-- Page-specific Scripts -->
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
+        
+        let currentProposalData = null;
+        let proposalsToReview = [];
+        let currentProposalIndex = 0;
+        
+        // Load proposals on page load
+        async function loadProposals() {
+            try {
+                document.getElementById('statusIndicator').textContent = 'Loading Proposals...';
+                
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/cover_letters?cover_letter_status_id=eq.10&select=*`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                        }
+                    }
+                );
+                
+                if (response.ok) {
+                    proposalsToReview = await response.json();
+                    
+                    if (proposalsToReview.length > 0) {
+                        loadProposal(0);
+                        document.getElementById('statusIndicator').textContent = 'LOADED SUCCESSFULLY';
+                        document.getElementById('statusIndicator').className = 'status-indicator status-success';
+                    } else {
+                        document.getElementById('noProposalsMessage').style.display = 'block';
+                        document.getElementById('statusIndicator').textContent = 'No Items';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading proposals:', error);
+                document.getElementById('statusIndicator').textContent = 'Error Loading';
+                document.getElementById('statusIndicator').className = 'status-indicator status-error';
+            }
+        }
+        
+        function loadProposal(index) {
+            if (index >= proposalsToReview.length) {
+                document.getElementById('noProposalsMessage').style.display = 'block';
+                document.getElementById('proposalInfo').style.display = 'none';
+                document.getElementById('proposalSection').style.display = 'none';
+                document.getElementById('actionButtons').style.display = 'none';
+                return;
+            }
+            
+            currentProposalData = proposalsToReview[index];
+            currentProposalIndex = index;
+            
+            // Display proposal info
+            document.getElementById('proposalIdValue').textContent = currentProposalData.cover_letter_id || '-';
+            document.getElementById('jobTitleValue').textContent = currentProposalData.job_title || '-';
+            document.getElementById('clientValue').textContent = currentProposalData.client_name || '-';
+            document.getElementById('budgetValue').textContent = currentProposalData.budget || '-';
+            
+            // Display cover letter content
+            document.getElementById('coverLetterContent').value = currentProposalData.cover_letter_text || '';
+            
+            // Show sections
+            document.getElementById('proposalInfo').style.display = 'grid';
+            document.getElementById('proposalSection').style.display = 'block';
+            document.getElementById('actionButtons').style.display = 'flex';
+            document.getElementById('noProposalsMessage').style.display = 'none';
+        }
+        
+        async function saveAndContinue() {
+            if (!currentProposalData) return;
+            
+            try {
+                // Update proposal status
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/cover_letters?cover_letter_id=eq.${currentProposalData.cover_letter_id}`,
+                    {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            cover_letter_status_id: 20, // Mark as reviewed
+                            cover_letter_text: document.getElementById('coverLetterContent').value
+                        })
+                    }
+                );
+                
+                if (response.ok) {
+                    // Refresh navigation badges
+                    await window.refreshNavigationBadges();
+                    
+                    // Load next proposal
+                    currentProposalIndex++;
+                    loadProposal(currentProposalIndex);
+                }
+            } catch (error) {
+                console.error('Error saving:', error);
+            }
+        }
+        
+        function skipProposal() {
+            currentProposalIndex++;
+            loadProposal(currentProposalIndex);
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProposals();
+        });
+    </script>
+</body>
+</html>
