@@ -185,31 +185,40 @@ export function setupEventListeners(saveScript) {
     });
 }
 
-// Update notification badges in header
+// Update notification badges in header - now with null checks
 export function updateNotificationBadges(counts) {
     const outlinesBadge = document.getElementById('outlinesBadge');
     const chaptersBadge = document.getElementById('chaptersBadge');
     const visualsBadge = document.getElementById('visualsBadge');
     
-    if (counts.outlines > 0) {
-        outlinesBadge.textContent = counts.outlines;
-        outlinesBadge.style.display = 'flex';
-    } else {
-        outlinesBadge.style.display = 'none';
+    // Only update outlines badge if it exists on this page
+    if (outlinesBadge) {
+        if (counts.outlines > 0) {
+            outlinesBadge.textContent = counts.outlines;
+            outlinesBadge.style.display = 'flex';
+        } else {
+            outlinesBadge.style.display = 'none';
+        }
     }
     
-    if (counts.chapters > 0) {
-        chaptersBadge.textContent = counts.chapters;
-        chaptersBadge.style.display = 'flex';
-    } else {
-        chaptersBadge.style.display = 'none';
+    // Only update chapters badge if it exists on this page
+    if (chaptersBadge) {
+        if (counts.chapters > 0) {
+            chaptersBadge.textContent = counts.chapters;
+            chaptersBadge.style.display = 'flex';
+        } else {
+            chaptersBadge.style.display = 'none';
+        }
     }
     
-    if (counts.visuals > 0) {
-        visualsBadge.textContent = counts.visuals;
-        visualsBadge.style.display = 'flex';
-    } else {
-        visualsBadge.style.display = 'none';
+    // Only update visuals badge if it exists on this page
+    if (visualsBadge) {
+        if (counts.visuals > 0) {
+            visualsBadge.textContent = counts.visuals;
+            visualsBadge.style.display = 'flex';
+        } else {
+            visualsBadge.style.display = 'none';
+        }
     }
 }
 
