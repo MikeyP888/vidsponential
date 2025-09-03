@@ -9,8 +9,8 @@ export const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
 
 // Script Status IDs - Updated for Chapter Editor
 export const SCRIPT_STATUS = {
-    READY_FOR_CHAPTERS: 25,    // Changed from 15
-    CHAPTERS_COMPLETED: 30,    // Changed from 20
+    READY_FOR_CHAPTERS: 25,    // Scripts ready for chapter editing
+    CHAPTERS_COMPLETED: 35,    // FIXED: Changed from 30 to 35 to match expected workflow
     READY_FOR_OUTLINE: 15,     // Keep for navigation badges
     READY_FOR_VISUALS: 46
 };
