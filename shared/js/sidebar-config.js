@@ -173,11 +173,70 @@ const sidebarConfig = {
 // User role configuration - change this to control access
 const currentUserRole = "admin"; // Options: "admin", "premium", "user"
 
-// Notification badges (can be updated dynamically)
-const notificationBadges = {
-    "manage_jobs": 5,
-    "manage_scripts": 12,
-    // Add more as needed
+// Notification badges (will be updated dynamically)
+let notificationBadges = {
+    // These will be populated by fetchScriptCounts()
 };
 
-export { sidebarConfig, currentUserRole, notificationBadges };
+// Supabase configuration
+const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
+
+// Function to fetch script counts for each editor
+async function fetchScriptCounts() {
+    try {
+        // Define which status_id each editor should show
+        const editorStatuses = {
+            'research': 12,    // Research Editor
+            'outlines': 15,    // Outline Editor  
+            'chapters': 25,    // Chapter Editor
+            'visuals': 40      // Visual Editor
+        };
+
+        // Fetch counts for each status
+        for (const [editorId, statusId] of Object.entries(editorStatuses)) {
+            const response = await fetch(
+                `${SUPABASE_URL}/rest/v1/scripts?script_status_id=eq.${statusId}&select=script_id`,
+                {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Range': '0-999',
+                        'Prefer': 'count=exact'
+                    }
+                }
+            );
+
+            if (response.ok) {
+                // Get the count from the content-range header
+                const contentRange = response.headers.get('content-range');
+                if (contentRange) {
+                    const match = contentRange.match(/\d+\-\d+\/(\d+)/);
+                    const count = match ? parseInt(match[1]) : 0;
+                    
+                    // Only set badge if count > 0
+                    if (count > 0) {
+                        notificationBadges[editorId] = count;
+                    }
+                }
+            }
+        }
+        
+        // Trigger update of sidebar display if it exists
+        if (window.updateSidebarBadges) {
+            window.updateSidebarBadges(notificationBadges);
+        }
+        
+    } catch (error) {
+        console.error('Error fetching script counts:', error);
+    }
+}
+
+// Fetch counts on load
+fetchScriptCounts();
+
+// Refresh counts every 30 seconds
+setInterval(fetchScriptCounts, 30000);
+
+export { sidebarConfig, currentUserRole, notificationBadges, fetchScriptCounts };

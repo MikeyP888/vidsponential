@@ -157,9 +157,9 @@ body.has-sidebar {
 
 .container.with-sidebar {
     margin-left: 0;
-    width: calc(100% - 280px);
-    position: relative;
-    left: 280px;
+    width: 100%;
+    max-width: 100%;
+    padding: 0 20px;
 }
 
 /* Responsive design */
@@ -173,8 +173,9 @@ body.has-sidebar {
     }
     
     .container.with-sidebar {
-        width: calc(100% - 260px);
-        left: 260px;
+        width: 100%;
+        max-width: 100%;
+        padding: 0 20px;
     }
 }
 
@@ -188,8 +189,9 @@ body.has-sidebar {
     }
     
     .container.with-sidebar {
-        width: calc(100% - 240px);
-        left: 240px;
+        width: 100%;
+        max-width: 100%;
+        padding: 0 20px;
     }
     
     .nav-label {

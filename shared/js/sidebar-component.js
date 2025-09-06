@@ -1,10 +1,16 @@
 // Vertical Sidebar Navigation Component
-import { sidebarConfig, currentUserRole, notificationBadges } from './sidebar-config.js';
+import { sidebarConfig, currentUserRole, notificationBadges, fetchScriptCounts } from './sidebar-config.js';
 
 class SidebarNavigation {
     constructor() {
         this.currentPage = this.getCurrentPageName();
+        this.badges = {};
         this.init();
+        
+        // Set up global function for badge updates
+        window.updateSidebarBadges = (newBadges) => {
+            this.updateBadges(newBadges);
+        };
     }
 
     getCurrentPageName() {
@@ -32,7 +38,8 @@ class SidebarNavigation {
         }
 
         const isActive = this.currentPage === item.fileName;
-        const badge = notificationBadges[item.id] ? `<span class="nav-badge">${notificationBadges[item.id]}</span>` : '';
+        const badgeCount = this.badges[item.id] || notificationBadges[item.id];
+        const badge = badgeCount ? `<span class="nav-badge" data-badge-id="${item.id}">${badgeCount}</span>` : '';
         
         return `
             <div class="sidebar-nav-item ${isActive ? 'active' : ''}" onclick="navigateToPage('${item.fileName}')">
@@ -41,6 +48,33 @@ class SidebarNavigation {
                 ${badge}
             </div>
         `;
+    }
+
+    updateBadges(newBadges) {
+        this.badges = newBadges;
+        // Update just the badge elements without re-rendering entire sidebar
+        Object.keys(newBadges).forEach(id => {
+            const badgeElement = document.querySelector(`[data-badge-id="${id}"]`);
+            if (badgeElement) {
+                badgeElement.textContent = newBadges[id];
+            } else {
+                // If badge doesn't exist but should, re-render the sidebar
+                const hasItem = sidebarConfig.sections.some(section => 
+                    section.items.some(item => item.id === id)
+                );
+                if (hasItem) {
+                    this.init();
+                }
+            }
+        });
+        
+        // Remove badges that should no longer be shown
+        document.querySelectorAll('.nav-badge').forEach(badge => {
+            const id = badge.dataset.badgeId;
+            if (!newBadges[id]) {
+                badge.remove();
+            }
+        });
     }
 
     createSection(section) {

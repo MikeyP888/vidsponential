@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="../../shared/styles/missing-layout.css">
     <link rel="stylesheet" href="../../shared/styles/navigation.css">
     <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+    <link rel="stylesheet" href="../../shared/styles/bottom-navigation.css">
 
     <style>
         /* ================================================= */
@@ -226,34 +227,160 @@
             No script visuals to display - everything checked ✓
         </div>
 
-        <!-- =============================================== -->
-        <!--                BOTTOM CONTROLS                 -->
-        <!-- =============================================== -->
-        <div class="controls-section">
-            <div class="controls-row">
-                <div class="navigation-controls">
-                    <button class="btn btn-secondary" id="prevBtn" onclick="navigateScript(-1)">← Previous</button>
-                    <button class="btn btn-secondary" id="nextBtn" onclick="navigateScript(1)">Next →</button>
-                </div>
-                <div>
-                    <div class="auto-save-indicator" id="autoSaveStatus">Auto-save: Ready</div>
-                </div>
-                <div>
-                    <button class="btn btn-success" id="saveBtn" onclick="saveScript()">Save & Continue</button>
-                </div>
-            </div>
-        </div>
+        <!-- Bottom navigation will be added by JavaScript -->
     </div>
 
-    <!-- Include the visuals app JavaScript -->
+    <script type="module" src="../../../../../shared/js/sidebar-component.js"></script>
+    <script type="module" src="../../../../../shared/js/textarea-autosize.js"></script>
     <script>
-        console.log('Starting to load visuals app...');
-    </script>
-    <script src="../../../../../shared/js/visuals-app.js"></script>
-    <script>
-        console.log('Visuals app script tag processed');
+        // Visual Editor Application - Loads scripts with status_id=40, updates to 45
+        
+        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
+        
+        let scriptsToReview = [];
+        let currentScriptIndex = 0;
+        let hasUnsavedChanges = false;
+        let isLoading = false;
+
+        async function init() {
+            try {
+                console.log('=== VISUAL EDITOR DEBUG: Starting initialization ===');
+                updateStatus('loading', 'Loading scripts...');
+                
+                const scripts = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_status_id=eq.40&select=script_id,script_headline`, {
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+                }).then(r => r.json());
+                
+                console.log('Loaded visual scripts:', scripts);
+                scriptsToReview = scripts;
+                
+                if (scripts.length > 0) {
+                    await loadCurrentScriptData();
+                } else {
+                    showNoScriptsMessage('There are no scripts ready for visuals (status_id = 40) at this time.');
+                }
+            } catch (error) {
+                console.error('Visual Editor initialization error:', error);
+                updateStatus('error', `Failed to load scripts: ${error.message}`);
+            }
+        }
+
+        async function loadCurrentScriptData() {
+            if (scriptsToReview.length === 0) return;
+            
+            const scriptId = scriptsToReview[currentScriptIndex].script_id;
+            
+            try {
+                const scriptInfo = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}&select=*`, {
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+                }).then(r => r.json()).then(data => data[0]);
+                
+                displayScriptData({ script: scriptInfo });
+                updateNavigationButtons();
+                updateStatus('saved', 'Loaded successfully');
+            } catch (error) {
+                console.error('Error loading script:', error);
+                updateStatus('error', 'Failed to load script data');
+            }
+        }
+
+        function displayScriptData(data) {
+            if (!data) return;
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('scriptInfo').style.display = 'grid';
+            
+            document.getElementById('scriptIdValue').textContent = data.script.script_id || '-';
+            document.getElementById('wordsValue').textContent = data.script.target_word_count || '-';
+            document.getElementById('clientValue').textContent = data.script.client_name || '-';
+            document.getElementById('channelValue').textContent = data.script.channel_name || '-';
+            document.getElementById('typeValue').textContent = data.script.script_type || '-';
+            document.getElementById('genreValue').textContent = data.script.genre || '-';
+        }
+
+        async function saveScript() {
+            if (isLoading) return;
+            
+            try {
+                isLoading = true;
+                updateStatus('loading', 'Saving visuals and updating status...');
+                
+                const scriptId = scriptsToReview[currentScriptIndex].script_id;
+                
+                await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`, {
+                    method: 'PATCH',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ script_status_id: 45 })
+                });
+                
+                updateStatus('saved', 'Visuals completed and status updated to 45');
+                scriptsToReview.splice(currentScriptIndex, 1);
+                
+                if (scriptsToReview.length > 0) {
+                    if (currentScriptIndex >= scriptsToReview.length) currentScriptIndex = 0;
+                    await loadCurrentScriptData();
+                } else {
+                    showNoScriptsMessage('All visuals completed!');
+                }
+                
+            } catch (error) {
+                console.error('Save error:', error);
+                updateStatus('error', 'Failed to save visuals');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        async function navigateScript(direction) {
+            if (hasUnsavedChanges && !confirm('You have unsaved changes. Continue?')) return;
+            
+            const newIndex = currentScriptIndex + direction;
+            if (newIndex >= 0 && newIndex < scriptsToReview.length) {
+                currentScriptIndex = newIndex;
+                await loadCurrentScriptData();
+            }
+        }
+
+        function updateNavigationButtons() {
+            if (window.updateBottomNavigation) {
+                window.updateBottomNavigation(currentScriptIndex, scriptsToReview.length);
+            }
+        }
+
+        function updateStatus(status, message) {
+            const statusIndicator = document.getElementById('statusIndicator');
+            if (statusIndicator) {
+                statusIndicator.textContent = message;
+                statusIndicator.className = `status-indicator ${status}`;
+            }
+        }
+
+        function showNoScriptsMessage(message) {
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('noScriptsMessage').innerHTML = `<div class="message info"><strong>No scripts found</strong><br>${message}</div>`;
+            document.getElementById('noScriptsMessage').style.display = 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, starting Visual Editor...');
+            init();
+        });
+
+        window.saveScript = saveScript;
+        window.navigateScript = navigateScript;
     </script>
     
-    <script type="module" src="../../../../../shared/js/sidebar-component.js"></script>
+    <script type="module">
+        import BottomNavigation from '../../../../../shared/js/bottom-navigation.js';
+        window.bottomNav = new BottomNavigation({
+            onSave: () => window.saveScript(),
+            onNavigate: (direction) => window.navigateScript(direction),
+            showAutoSave: true
+        });
+        
+        window.updateBottomNavigation = (currentIndex, totalItems) => {
+            if (window.bottomNav) window.bottomNav.updateNavigation(currentIndex, totalItems);
+        };
+    </script>
 </body>
 </html>

@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="../../shared/styles/missing-layout.css">
     <link rel="stylesheet" href="../../shared/styles/navigation.css">
     <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+    <link rel="stylesheet" href="../../shared/styles/bottom-navigation.css">
 </head>
 <body class="has-sidebar">
     <!-- Sidebar Container -->
@@ -178,26 +179,297 @@
             No script outlines to display - everything checked ✓
         </div>
 
-        <!-- =============================================== -->
-        <!--                BOTTOM CONTROLS                 -->
-        <!-- =============================================== -->
-        <div class="controls-section">
-            <div class="controls-row">
-                <div class="navigation-controls">
-                    <button class="btn btn-secondary" id="prevBtn" onclick="navigateScript(-1)">← Previous</button>
-                    <button class="btn btn-secondary" id="nextBtn" onclick="navigateScript(1)">Next →</button>
-                </div>
-                <div>
-                    <div class="auto-save-indicator" id="autoSaveStatus">Auto-save: Ready</div>
-                </div>
-                <div>
-                    <button class="btn btn-success" id="saveBtn" onclick="saveScript()">Save & Continue</button>
-                </div>
-            </div>
-        </div>
+        <!-- Bottom navigation will be added by JavaScript -->
     </div>
 
     <script type="module" src="../../../../../shared/js/sidebar-component.js"></script>
-    <script type="module" src="../../../../../shared/js/app.js"></script>
+    <script type="module" src="../../../../../shared/js/textarea-autosize.js"></script>
+    <script>
+        // Outline Editor Application
+        
+        // Configuration
+        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
+        
+        // Application state
+        let currentScriptData = null;
+        let scriptsToReview = [];
+        let currentScriptIndex = 0;
+        let hasUnsavedChanges = false;
+        let isLoading = false;
+
+        // Initialize the application
+        async function init() {
+            try {
+                console.log('=== OUTLINE EDITOR DEBUG: Starting initialization ===');
+                updateStatus('loading', 'Loading scripts...');
+                
+                // Load scripts with status_id = 15 (ready for outline)
+                const scripts = await loadScriptsToReview();
+                console.log('Loaded outline scripts:', scripts);
+                
+                scriptsToReview = scripts;
+                
+                if (scripts.length > 0) {
+                    console.log('Loading first script with ID:', scripts[0].script_id);
+                    await loadCurrentScriptData();
+                    setupEventListeners();
+                    startAutoSave();
+                } else {
+                    showNoScriptsMessage();
+                }
+            } catch (error) {
+                console.error('Initialization error:', error);
+                handleInitializationError(error);
+            }
+        }
+
+        // Load scripts that need outlines (status 15)
+        async function loadScriptsToReview() {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_status_id=eq.15&select=script_id,script_headline`, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to load scripts: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        }
+
+        // Load current script data
+        async function loadCurrentScriptData() {
+            if (scriptsToReview.length === 0) {
+                showNoScriptsMessage();
+                return;
+            }
+
+            const scriptId = scriptsToReview[currentScriptIndex].script_id;
+            console.log('Loading outline data for script ID:', scriptId);
+            
+            try {
+                updateStatus('loading', 'Loading script data...');
+                
+                const scriptInfo = await loadScriptInfo(scriptId);
+                currentScriptData = { script: scriptInfo };
+                
+                displayScriptData(currentScriptData);
+                updateNavigationButtons();
+                updateStatus('saved', 'Loaded successfully');
+                hasUnsavedChanges = false;
+            } catch (error) {
+                console.error('Error loading script:', error);
+                updateStatus('error', 'Failed to load script data');
+            }
+        }
+
+        // Load script information
+        async function loadScriptInfo(scriptId) {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}&select=*`, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load script info');
+            }
+
+            const data = await response.json();
+            return data[0];
+        }
+
+        // Display script data in UI
+        function displayScriptData(data) {
+            if (!data) return;
+
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('noScriptsMessage').style.display = 'none';
+            document.getElementById('scriptInfo').style.display = 'grid';
+
+            // Update script info
+            document.getElementById('scriptIdValue').textContent = data.script.script_id || '-';
+            document.getElementById('wordsValue').textContent = data.script.target_word_count || '-';
+            document.getElementById('clientValue').textContent = data.script.client_name || '-';
+            document.getElementById('channelValue').textContent = data.script.channel_name || '-';
+            document.getElementById('typeValue').textContent = data.script.script_type || '-';
+            document.getElementById('genreValue').textContent = data.script.genre || '-';
+            document.getElementById('subgenreValue').textContent = data.script.subgenre || '-';
+            document.getElementById('formatValue').textContent = data.script.format || '-';
+            document.getElementById('structureValue').textContent = data.script.structure || '-';
+            document.getElementById('researchValue').textContent = data.script.research_depth || '-';
+            document.getElementById('toneValue').textContent = data.script.tone || '-';
+            document.getElementById('angleValue').textContent = data.script.angle || '-';
+        }
+
+        // Save script function - Updates status from 15 to 20
+        async function saveScript() {
+            if (isLoading) return;
+            
+            try {
+                isLoading = true;
+                updateStatus('loading', 'Saving outline and updating status...');
+                
+                const scriptId = scriptsToReview[currentScriptIndex].script_id;
+                
+                // Update script status from 15 to 20
+                await updateScriptStatus(scriptId, 20);
+                
+                updateStatus('saved', 'Outline completed and status updated to 20');
+                hasUnsavedChanges = false;
+                
+                // Remove this script from the review list since it's now status 20
+                scriptsToReview.splice(currentScriptIndex, 1);
+                
+                // Load next script or show completion message
+                if (scriptsToReview.length > 0) {
+                    if (currentScriptIndex >= scriptsToReview.length) {
+                        currentScriptIndex = 0;
+                    }
+                    await loadCurrentScriptData();
+                } else {
+                    updateStatus('completed', 'All outlines completed!');
+                    showNoScriptsMessage();
+                }
+                
+            } catch (error) {
+                console.error('Save error:', error);
+                updateStatus('error', 'Failed to save outline');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // Update script status
+        async function updateScriptStatus(scriptId, newStatusId) {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({ script_status_id: newStatusId })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to update script status to ${newStatusId}`);
+            }
+        }
+
+        // Navigate between scripts
+        async function navigateScript(direction) {
+            if (isLoading) return;
+
+            if (hasUnsavedChanges) {
+                if (!confirm('You have unsaved changes. Do you want to continue without saving?')) {
+                    return;
+                }
+            }
+
+            const newIndex = currentScriptIndex + direction;
+            if (newIndex >= 0 && newIndex < scriptsToReview.length) {
+                currentScriptIndex = newIndex;
+                await loadCurrentScriptData();
+            }
+        }
+
+        // Update navigation button states
+        function updateNavigationButtons() {
+            if (window.updateBottomNavigation) {
+                window.updateBottomNavigation(currentScriptIndex, scriptsToReview.length);
+            }
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // No specific outline fields yet - this is a placeholder implementation
+        }
+
+        // Auto-save functionality
+        function startAutoSave() {
+            if (window.bottomNav) {
+                window.bottomNav.startAutoSave(async () => {
+                    // Placeholder for auto-save functionality
+                    hasUnsavedChanges = false;
+                });
+            }
+        }
+
+        // Utility functions
+        function updateStatus(status, message) {
+            const statusIndicator = document.getElementById('statusIndicator');
+            if (statusIndicator) {
+                statusIndicator.textContent = message;
+                statusIndicator.className = `status-indicator ${status}`;
+            }
+        }
+
+        function showNoScriptsMessage() {
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('noScriptsMessage').innerHTML = `
+                <div class="message info">
+                    <strong>No scripts found</strong><br>
+                    There are no scripts ready for outline (status_id = 15) at this time.
+                </div>
+            `;
+            document.getElementById('noScriptsMessage').style.display = 'block';
+        }
+
+        function handleInitializationError(error) {
+            updateStatus('error', `Failed to load scripts: ${error.message}`);
+            
+            document.getElementById('noScriptsMessage').innerHTML = `
+                <div class="message error">
+                    <strong>Error loading scripts:</strong><br>
+                    ${error.message}
+                </div>
+            `;
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('noScriptsMessage').style.display = 'block';
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, starting Outline Editor initialization...');
+            init().catch(error => {
+                console.error('Failed to initialize Outline Editor:', error);
+            });
+        });
+
+        // Make functions available globally for HTML onclick handlers
+        window.saveScript = saveScript;
+        window.navigateScript = navigateScript;
+    </script>
+    
+    <script type="module">
+        import BottomNavigation from '../../../../../shared/js/bottom-navigation.js';
+        window.bottomNav = new BottomNavigation({
+            onSave: () => window.saveScript(),
+            onNavigate: (direction) => window.navigateScript(direction),
+            showAutoSave: true
+        });
+        
+        // Make the navigation update function available globally
+        window.updateBottomNavigation = (currentIndex, totalItems) => {
+            if (window.bottomNav) {
+                window.bottomNav.updateNavigation(currentIndex, totalItems);
+            }
+        };
+        
+        // Make the unsaved changes function available globally
+        window.setUnsavedChanges = (hasChanges) => {
+            if (window.bottomNav) {
+                window.bottomNav.setUnsavedChanges(hasChanges);
+            }
+        };
+    </script>
 </body>
 </html>

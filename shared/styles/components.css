@@ -173,7 +173,8 @@
     padding: 0px;
     flex-direction: column;
     flex-wrap: nowrap;
-    min-height: 180px;
+    min-height: auto;
+    max-height: none;
     align-self: start;
 }
 
@@ -192,9 +193,11 @@
     outline: none;
     resize: none;
     overflow: hidden;
+    overflow-y: hidden;
     line-height: 1.6;
     padding: 15px;
-    min-height: 150px;
+    min-height: 225px;
+    max-height: none;
     box-sizing: border-box;
     vertical-align: top;
 }

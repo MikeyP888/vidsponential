@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="../../shared/styles/missing-layout.css">
     <link rel="stylesheet" href="../../shared/styles/navigation.css">
     <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+    <link rel="stylesheet" href="../../shared/styles/bottom-navigation.css">
 </head>
 <body class="has-sidebar">
     <!-- Sidebar Container -->
@@ -117,26 +118,33 @@
         <!-- No Scripts Message -->
         <div id="noScriptsMessage" class="message" style="display: none;"></div>
 
-        <!-- =============================================== -->
-        <!--                BOTTOM CONTROLS                 -->
-        <!-- =============================================== -->
-        <div class="controls-section">
-            <div class="controls-row">
-                <div class="navigation-controls">
-                    <button class="btn btn-secondary" id="prevBtn" onclick="navigateScript(-1)">← Previous</button>
-                    <button class="btn btn-secondary" id="nextBtn" onclick="navigateScript(1)">Next →</button>
-                </div>
-                <div>
-                    <div class="auto-save-indicator" id="autoSaveStatus">Auto-save: Ready</div>
-                </div>
-                <div>
-                    <button class="btn btn-success" id="saveBtn" onclick="saveScript()">Save & Continue</button>
-                </div>
-            </div>
-        </div>
+        <!-- Bottom navigation will be added by JavaScript -->
     </div>
 
     <script type="module" src="../../../../../shared/js/sidebar-component.js"></script>
+    <script type="module" src="../../../../../shared/js/textarea-autosize.js"></script>
+    <script type="module">
+        import BottomNavigation from '../../../../../shared/js/bottom-navigation.js';
+        window.bottomNav = new BottomNavigation({
+            onSave: () => window.saveScript(),
+            onNavigate: (direction) => window.navigateScript(direction),
+            showAutoSave: true
+        });
+        
+        // Make the navigation update function available globally
+        window.updateBottomNavigation = (currentIndex, totalItems) => {
+            if (window.bottomNav) {
+                window.bottomNav.updateNavigation(currentIndex, totalItems);
+            }
+        };
+        
+        // Make the unsaved changes function available globally
+        window.setUnsavedChanges = (hasChanges) => {
+            if (window.bottomNav) {
+                window.bottomNav.setUnsavedChanges(hasChanges);
+            }
+        };
+    </script>
     <script>
         // Research Editor Application
         
@@ -171,6 +179,9 @@
                 console.log('=== RESEARCH EDITOR DEBUG: Starting initialization ===');
                 updateStatus('loading', 'Loading scripts...');
                 
+                // First, let's check what scripts exist in the database
+                await debugCheckAllScripts();
+                
                 // Load scripts with status_id = 12 (ready for research)
                 const scripts = await loadScriptsToReview();
                 console.log('Loaded research scripts:', scripts);
@@ -191,8 +202,42 @@
             }
         }
 
+        // Debug function to check all scripts and their status
+        async function debugCheckAllScripts() {
+            console.log('=== DEBUG: Checking ALL scripts in database ===');
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/scripts?select=script_id,script_status_id,script_headline&order=script_id`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const allScripts = await response.json();
+                    console.log('Total scripts in database:', allScripts.length);
+                    console.log('All scripts with their status_id:', allScripts);
+                    
+                    // Check specifically for status_id = 12
+                    const status12Scripts = allScripts.filter(s => s.script_status_id === 12);
+                    console.log('Scripts with status_id = 12:', status12Scripts);
+                    
+                    // Show first 5 scripts as sample
+                    console.log('Sample of first 5 scripts:', allScripts.slice(0, 5));
+                } else {
+                    console.error('Failed to fetch all scripts:', response.status);
+                }
+            } catch (error) {
+                console.error('Error checking all scripts:', error);
+            }
+        }
+
         // Load scripts that need research (status 12)
         async function loadScriptsToReview() {
+            console.log('=== DEBUG: Fetching scripts with script_status_id=12 ===');
+            console.log('URL:', `${SUPABASE_URL}/rest/v1/scripts?script_status_id=eq.12&select=script_id,script_headline`);
+            
             const response = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_status_id=eq.12&select=script_id,script_headline`, {
                 headers: {
                     'apikey': SUPABASE_ANON_KEY,
@@ -203,10 +248,17 @@
 
             if (!response.ok) {
                 const errorText = await response.text();
+                console.error('Failed to load scripts:', response.status, errorText);
                 throw new Error(`Failed to load scripts: ${response.status} - ${errorText}`);
             }
 
-            return await response.json();
+            const scripts = await response.json();
+            console.log('=== DEBUG: Scripts found with status_id=12:', scripts);
+            console.log('Number of scripts:', scripts.length);
+            if (scripts.length > 0) {
+                console.log('First script:', scripts[0]);
+            }
+            return scripts;
         }
 
         // Load current script data and research
@@ -243,6 +295,7 @@
 
         // Load script information
         async function loadScriptInfo(scriptId) {
+            console.log('=== DEBUG: Loading script info for script_id:', scriptId);
             const response = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}&select=*`, {
                 headers: {
                     'apikey': SUPABASE_ANON_KEY,
@@ -251,15 +304,19 @@
             });
 
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Failed to load script info:', response.status, errorText);
                 throw new Error('Failed to load script info');
             }
 
             const data = await response.json();
+            console.log('Script info loaded:', data[0]);
             return data[0];
         }
 
         // Load research data
         async function loadResearchData(scriptId) {
+            console.log('=== DEBUG: Loading research data for script_id:', scriptId);
             const response = await fetch(`${SUPABASE_URL}/rest/v1/script_research?script_id=eq.${scriptId}&select=*`, {
                 headers: {
                     'apikey': SUPABASE_ANON_KEY,
@@ -268,10 +325,16 @@
             });
 
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Failed to load research data:', response.status, errorText);
                 throw new Error('Failed to load research data');
             }
 
             const data = await response.json();
+            console.log('Research data loaded:', data);
+            if (data[0] && data[0].script_research_id) {
+                console.log('WARNING: Research data has script_research_id:', data[0].script_research_id, '- Make sure we display script_id instead');
+            }
             return data[0] || {}; // Return empty object if no research data exists yet
         }
 
@@ -283,9 +346,19 @@
             document.getElementById('noScriptsMessage').style.display = 'none';
             document.getElementById('scriptInfo').style.display = 'grid';
 
-            // Update script info
-            document.getElementById('scriptIdValue').textContent = data.script.script_id;
+            // Update script info - Make sure we're using script_id, not script_research_id
+            document.getElementById('scriptIdValue').textContent = data.script.script_id || '-';
             document.getElementById('wordsValue').textContent = data.script.target_word_count || '-';
+            document.getElementById('clientValue').textContent = data.script.client_name || '-';
+            document.getElementById('channelValue').textContent = data.script.channel_name || '-';
+            document.getElementById('typeValue').textContent = data.script.script_type || '-';
+            document.getElementById('genreValue').textContent = data.script.genre || '-';
+            document.getElementById('subgenreValue').textContent = data.script.subgenre || '-';
+            document.getElementById('formatValue').textContent = data.script.format || '-';
+            document.getElementById('structureValue').textContent = data.script.structure || '-';
+            document.getElementById('researchValue').textContent = data.script.research_depth || '-';
+            document.getElementById('toneValue').textContent = data.script.tone || '-';
+            document.getElementById('angleValue').textContent = data.script.angle || '-';
             
             // Display research fields
             displayResearchFields(data.research);
@@ -314,6 +387,7 @@
                                     <textarea class="text-field-multi__input" 
                                              id="research_${field.name}" 
                                              data-field="${field.name}"
+                                             style="min-height: 225px; height: 225px;"
                                              placeholder="Enter ${field.label.toLowerCase()}...">${researchData[field.name] || ''}</textarea>
                                 </div>
                             </div>
@@ -337,6 +411,42 @@
                 
                 container.appendChild(fieldSection);
             });
+
+            // Force textarea heights immediately - bypass auto-resize module issues
+            setTimeout(() => {
+                console.log('=== DEBUG: Setting textarea heights ===');
+                const textareas = document.querySelectorAll('.text-field-multi__input');
+                console.log('Found textareas:', textareas.length);
+                
+                textareas.forEach((textarea, index) => {
+                    console.log(`Setting height for textarea ${index}:`, textarea);
+                    
+                    // Force styles directly
+                    textarea.style.minHeight = '225px';
+                    textarea.style.height = '225px';
+                    textarea.style.overflowY = 'hidden';
+                    textarea.style.resize = 'none';
+                    textarea.style.boxSizing = 'border-box';
+                    
+                    if (textarea.value && textarea.value.length > 0) {
+                        console.log('Textarea has content, expanding:', textarea.value.length);
+                        textarea.style.height = 'auto';
+                        const newHeight = Math.max(225, textarea.scrollHeight + 15);
+                        textarea.style.height = newHeight + 'px';
+                        console.log('Set height to:', newHeight);
+                    } else {
+                        console.log('Textarea is empty, using minimum height');
+                    }
+                    
+                    // Add input listener for real-time resizing
+                    textarea.addEventListener('input', function() {
+                        this.style.height = 'auto';
+                        const newHeight = Math.max(225, this.scrollHeight + 15);
+                        this.style.height = newHeight + 'px';
+                        this.style.overflowY = 'hidden';
+                    });
+                });
+            }, 200);
         }
 
         // Save script function - UPDATED to change status from 12 to 13
@@ -355,6 +465,9 @@
                 
                 updateStatus('saved', 'Research saved and status updated to 13');
                 hasUnsavedChanges = false;
+                if (window.setUnsavedChanges) {
+                    window.setUnsavedChanges(false);
+                }
                 
                 // Remove this script from the review list since it's now status 13
                 scriptsToReview.splice(currentScriptIndex, 1);
@@ -503,14 +616,10 @@
 
         // Update navigation button states
         function updateNavigationButtons() {
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            
-            prevBtn.disabled = currentScriptIndex === 0;
-            nextBtn.disabled = currentScriptIndex === scriptsToReview.length - 1;
-            
-            prevBtn.className = prevBtn.disabled ? 'btn btn-secondary disabled' : 'btn btn-secondary';
-            nextBtn.className = nextBtn.disabled ? 'btn btn-secondary disabled' : 'btn btn-secondary';
+            // Update the bottom navigation component
+            if (window.updateBottomNavigation) {
+                window.updateBottomNavigation(currentScriptIndex, scriptsToReview.length);
+            }
         }
 
         // Set up event listeners
@@ -524,6 +633,9 @@
                     textField.addEventListener('input', () => {
                         hasUnsavedChanges = true;
                         updateStatus('unsaved', 'Unsaved changes');
+                        if (window.setUnsavedChanges) {
+                            window.setUnsavedChanges(true);
+                        }
                     });
                 }
                 
@@ -531,6 +643,9 @@
                     ratingField.addEventListener('input', () => {
                         hasUnsavedChanges = true;
                         updateStatus('unsaved', 'Unsaved changes');
+                        if (window.setUnsavedChanges) {
+                            window.setUnsavedChanges(true);
+                        }
                     });
                 }
             });
@@ -538,30 +653,15 @@
 
         // Auto-save functionality
         function startAutoSave() {
-            autoSaveTimer = setInterval(async () => {
-                if (hasUnsavedChanges && !isLoading) {
-                    try {
-                        const scriptId = scriptsToReview[currentScriptIndex].script_id;
-                        const researchData = collectResearchData();
-                        await saveResearchData(scriptId, researchData);
-                        hasUnsavedChanges = false;
-                        
-                        const autoSaveStatus = document.getElementById('autoSaveStatus');
-                        if (autoSaveStatus) {
-                            autoSaveStatus.textContent = 'Auto-save: Saved';
-                            setTimeout(() => {
-                                autoSaveStatus.textContent = 'Auto-save: Ready';
-                            }, 2000);
-                        }
-                    } catch (error) {
-                        console.error('Auto-save failed:', error);
-                        const autoSaveStatus = document.getElementById('autoSaveStatus');
-                        if (autoSaveStatus) {
-                            autoSaveStatus.textContent = 'Auto-save: Failed';
-                        }
-                    }
-                }
-            }, 30000); // Auto-save every 30 seconds
+            // Use the bottom navigation component's auto-save
+            if (window.bottomNav) {
+                window.bottomNav.startAutoSave(async () => {
+                    const scriptId = scriptsToReview[currentScriptIndex].script_id;
+                    const researchData = collectResearchData();
+                    await saveResearchData(scriptId, researchData);
+                    hasUnsavedChanges = false;
+                });
+            }
         }
 
         // Utility functions
