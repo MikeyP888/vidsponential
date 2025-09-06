@@ -14,7 +14,7 @@ if (!fs.existsSync('index.html')) {
   process.exit(1);
 }
 
-// Create a simple manifest of all HTML files for reference
+// Find all HTML files in root directory
 const htmlFiles = fs.readdirSync('.').filter(file => file.endsWith('.html'));
 console.log('Found HTML files:', htmlFiles);
 
@@ -30,3 +30,4 @@ console.log('Build completed successfully!');
 console.log('Homepage: Professional YouTube Script Writing');
 console.log('Portfolio: Available at /portfolio/');
 console.log('Celebrity Scripts: Available at /portfolio/celebrity-scripts/');
+console.log(`Total pages deployed: ${htmlFiles.length}`);

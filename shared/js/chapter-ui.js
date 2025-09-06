@@ -139,38 +139,63 @@ export function setupEventListeners(saveScript) {
     });
 }
 
-// Update notification badges in header
+// Update notification badges in header - with null checks
 export function updateNotificationBadges(counts) {
-    const outlinesBadge = document.getElementById('outlinesBadge');
-    const chaptersBadge = document.getElementById('chaptersBadge');
-    const visualsBadge = document.getElementById('visualsBadge');
-    
-    if (counts.outlines > 0) {
-        outlinesBadge.textContent = counts.outlines;
-        outlinesBadge.style.display = 'flex';
-    } else {
-        outlinesBadge.style.display = 'none';
-    }
-    
-    if (counts.chapters > 0) {
-        chaptersBadge.textContent = counts.chapters;
-        chaptersBadge.style.display = 'flex';
-    } else {
-        chaptersBadge.style.display = 'none';
-    }
-    
-    if (counts.visuals > 0) {
-        visualsBadge.textContent = counts.visuals;
-        visualsBadge.style.display = 'flex';
-    } else {
-        visualsBadge.style.display = 'none';
+    try {
+        const outlinesBadge = document.getElementById('outlinesBadge');
+        const chaptersBadge = document.getElementById('chaptersBadge');
+        const visualsBadge = document.getElementById('visualsBadge');
+        
+        // Only update badges if they exist on the page
+        if (outlinesBadge) {
+            if (counts.outlines > 0) {
+                outlinesBadge.textContent = counts.outlines;
+                outlinesBadge.style.display = 'flex';
+            } else {
+                outlinesBadge.style.display = 'none';
+            }
+        }
+        
+        if (chaptersBadge) {
+            if (counts.chapters > 0) {
+                chaptersBadge.textContent = counts.chapters;
+                chaptersBadge.style.display = 'flex';
+            } else {
+                chaptersBadge.style.display = 'none';
+            }
+        }
+        
+        if (visualsBadge) {
+            if (counts.visuals > 0) {
+                visualsBadge.textContent = counts.visuals;
+                visualsBadge.style.display = 'flex';
+            } else {
+                visualsBadge.style.display = 'none';
+            }
+        }
+    } catch (error) {
+        console.warn('Could not update notification badges:', error.message);
+        // Continue execution even if badges fail to update
     }
 }
 
 // Update completion count displays - modified for chapters
 export function updateCompletionCounts(counts) {
-    document.getElementById('chaptersCompletedTodayCount').textContent = counts.chaptersCount;
-    document.getElementById('scriptsCompletedTodayCount').textContent = counts.scriptsCount;
+    try {
+        const chaptersElement = document.getElementById('chaptersCompletedTodayCount');
+        const scriptsElement = document.getElementById('scriptsCompletedTodayCount');
+        
+        if (chaptersElement) {
+            chaptersElement.textContent = counts.chaptersCount;
+        }
+        
+        if (scriptsElement) {
+            scriptsElement.textContent = counts.scriptsCount;
+        }
+    } catch (error) {
+        console.warn('Could not update completion counts:', error.message);
+        // Continue execution even if count updates fail
+    }
 }
 
 // Add paragraph spacing functionality

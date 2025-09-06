@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Editor</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>">
+    
+    <link rel="stylesheet" href="../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../shared/styles/components.css">
+    <link rel="stylesheet" href="../shared/styles/base.css">
+    <link rel="stylesheet" href="../shared/styles/layout.css">
+    <link rel="stylesheet" href="../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../shared/styles/forms.css">
+    <link rel="stylesheet" href="../shared/styles/status.css">
+    <link rel="stylesheet" href="../shared/styles/notifications.css">
+    <link rel="stylesheet" href="../shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="../shared/styles/missing-layout.css">
+    <link rel="stylesheet" href="../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../shared/styles/sidebar.css">
+    
+    <style>
+        /* Prompt dropdown styling */
+        .prompt-selector {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .prompt-dropdown-label {
+            font-size: 11px;
+            font-family: "Inter", sans-serif;
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .prompt-dropdown {
+            width: 100%;
+            max-width: 500px;
+            padding: 10px 15px;
+            font-size: 16px;
+            font-family: "Tahoma", sans-serif;
+            border: 0.5px solid #5b5a5a;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .prompt-dropdown:focus {
+            outline: none;
+            border-color: #0099ff;
+        }
+    </style>
+</head>
+<body class="has-sidebar">
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
+    
+    <div class="container with-sidebar">
+        <!-- =============================================== -->
+        <!--                 HEADER SECTION                -->
+        <!-- =============================================== -->
+        <div class="header">
+            
+            <!-- Status Indicator -->
+            <div class="status-bar">
+                <div class="status-indicator" id="statusIndicator">Loading</div>
+            </div>
+            
+            <!-- Page Title -->
+            <h1 class="page-title">Prompt Template Editor</h1>
+        </div>
+
+        <!-- =============================================== -->
+        <!--                 MAIN CONTENT                  -->
+        <!-- =============================================== -->
+        <div id="content">
+            <!-- Prompt Selector Dropdown -->
+            <div class="prompt-selector">
+                <label class="prompt-dropdown-label" for="promptSelect">Select Prompt Template:</label>
+                <select class="prompt-dropdown" id="promptSelect" onchange="loadSelectedPrompt()">
+                    <option value="">-- Select a Prompt --</option>
+                </select>
+            </div>
+            
+            <!-- Prompt Sections -->
+            <div class="chapters-section" id="sectionsContainer" style="display: none;">
+                <h2 class="section-title">Sections</h2>
+                <div id="sectionsList"></div>
+            </div>
+        </div>
+
+        <!-- =============================================== -->
+        <!--                 NO PROMPTS MESSAGE            -->
+        <!-- =============================================== -->
+        <div id="noPromptsMessage" class="message" style="display: none;">
+            No prompt templates available - add prompts to the 'prompts' table with active_status_id=1
+        </div>
+
+        <!-- =============================================== -->
+        <!--                BOTTOM CONTROLS                 -->
+        <!-- =============================================== -->
+        <div class="controls-section" id="controlsSection" style="display: none;">
+            <div class="controls-row">
+                <div class="navigation-controls">
+                    <button class="btn btn-secondary" id="prevBtn" onclick="navigatePrompt(-1)">← Previous</button>
+                    <button class="btn btn-secondary" id="nextBtn" onclick="navigatePrompt(1)">Next →</button>
+                </div>
+                <div>
+                    <div class="auto-save-indicator" id="autoSaveStatus">Auto-save: Ready</div>
+                </div>
+                <div>
+                    <button class="btn btn-success" id="saveBtn" onclick="savePrompt()">Save & Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../shared/js/sidebar-component.js"></script>
+    <script src="../shared/js/prompt-app.js"></script>
+</body>
+</html>
