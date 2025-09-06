@@ -18,7 +18,8 @@
     <link rel="stylesheet" href="../shared/styles/sidebar.css">
     
     <style>
-        .quick-job-section {
+        /* Page-specific styles */
+        .job-form-section {
             margin: 20px 0;
             padding: 25px;
             background: white;
@@ -28,7 +29,7 @@
         
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
             margin-bottom: 20px;
         }
@@ -36,10 +37,6 @@
         .form-group {
             display: flex;
             flex-direction: column;
-        }
-        
-        .form-group.full-width {
-            grid-column: 1 / -1;
         }
         
         .form-label {
@@ -69,56 +66,12 @@
             resize: vertical;
         }
         
-        .form-textarea.large {
-            min-height: 200px;
-        }
-        
         .form-input:focus,
         .form-select:focus,
         .form-textarea:focus {
             outline: none;
             border-color: #0099ff;
             box-shadow: 0 0 0 3px rgba(0, 153, 255, 0.2);
-        }
-        
-        .tags-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding: 8px;
-            border: 0.5px solid #5b5a5a;
-            border-radius: 8px;
-            min-height: 45px;
-            background: white;
-            cursor: text;
-        }
-        
-        .tag {
-            background: linear-gradient(135deg, rgba(11, 230, 255, 0.1), rgba(175, 11, 255, 0.1));
-            color: #2c3e50;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            border: 1px solid rgba(175, 11, 255, 0.3);
-        }
-        
-        .tag-remove {
-            cursor: pointer;
-            color: #e74c3c;
-            font-weight: bold;
-            margin-left: 5px;
-        }
-        
-        .tag-input {
-            border: none;
-            outline: none;
-            flex: 1;
-            min-width: 100px;
-            font-size: 14px;
-            font-family: "Tahoma", sans-serif;
         }
         
         .submit-btn {
@@ -138,141 +91,6 @@
         .submit-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(11, 230, 255, 0.4);
-        }
-        
-        .jobs-table-section {
-            margin: 30px 0;
-            padding: 25px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .table-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .search-box {
-            padding: 10px;
-            border: 0.5px solid #5b5a5a;
-            border-radius: 8px;
-            font-size: 14px;
-            width: 300px;
-        }
-        
-        .jobs-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .jobs-table th,
-        .jobs-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        .jobs-table th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-weight: 600;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .jobs-table tr:hover {
-            background-color: #f8f9fa;
-        }
-        
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        
-        .status-pending {
-            background: #ffc107;
-            color: #000;
-        }
-        
-        .status-submitted {
-            background: #28a745;
-            color: white;
-        }
-        
-        .status-processing {
-            background: #17a2b8;
-            color: white;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .view-btn {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .edit-btn {
-            background: #0099ff;
-            color: white;
-        }
-        
-        .delete-btn {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        .action-btn:hover {
-            transform: translateY(-2px);
-            opacity: 0.9;
-        }
-        
-        .questions-section {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-        
-        .question-item {
-            margin-bottom: 15px;
-        }
-        
-        .question-input {
-            width: 100%;
-            margin-bottom: 8px;
-        }
-        
-        .add-question-btn {
-            padding: 8px 16px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .add-question-btn:hover {
-            background: #218838;
         }
     </style>
 </head>
@@ -295,19 +113,18 @@
 
         <!-- Main Content -->
         <div id="content">
-            <!-- Quick Job Form Section -->
-            <div class="quick-job-section">
-                <h2 class="section-title">Quick Job Entry</h2>
+            <div class="job-form-section">
+                <h2 class="section-title">Job Details</h2>
                 
                 <div class="form-grid">
                     <div class="form-group">
-                        <label class="form-label" for="jobTitle">Job Title *</label>
-                        <input type="text" class="form-input" id="jobTitle" placeholder="Enter job title" required>
+                        <label class="form-label" for="jobTitle">Job Title</label>
+                        <input type="text" class="form-input" id="jobTitle" placeholder="Enter job title">
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label" for="connects">Connects Required</label>
-                        <input type="number" class="form-input" id="connects" placeholder="e.g., 15" min="0">
+                        <label class="form-label" for="clientName">Client Name</label>
+                        <input type="text" class="form-input" id="clientName" placeholder="Enter client name">
                     </div>
                     
                     <div class="form-group">
@@ -316,366 +133,35 @@
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label" for="contractType">Contract Type</label>
-                        <select class="form-select" id="contractType">
+                        <label class="form-label" for="jobType">Job Type</label>
+                        <select class="form-select" id="jobType">
                             <option value="">-- Select Type --</option>
                             <option value="fixed">Fixed Price</option>
                             <option value="hourly">Hourly</option>
                         </select>
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="genre">Genre</label>
-                        <select class="form-select" id="genre">
-                            <option value="">-- Select Genre --</option>
-                            <option value="fiction">Fiction</option>
-                            <option value="non-fiction">Non-Fiction</option>
-                            <option value="romance">Romance</option>
-                            <option value="thriller">Thriller</option>
-                            <option value="mystery">Mystery</option>
-                            <option value="sci-fi">Science Fiction</option>
-                            <option value="fantasy">Fantasy</option>
-                            <option value="history">History</option>
-                            <option value="biography">Biography</option>
-                            <option value="self-help">Self-Help</option>
-                            <option value="business">Business</option>
-                            <option value="children">Children's</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="proposalFormat">Proposal Format</label>
-                        <select class="form-select" id="proposalFormat">
-                            <option value="simple">Simple</option>
-                            <option value="medium">Medium Length</option>
-                            <option value="detailed">Detailed</option>
-                            <option value="custom">Custom</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="clientCountry">Client Country</label>
-                        <input type="text" class="form-input" id="clientCountry" placeholder="e.g., United States">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="upworkUrl">Upwork Job URL</label>
-                        <input type="url" class="form-input" id="upworkUrl" placeholder="https://www.upwork.com/jobs/...">
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label class="form-label" for="nicheTags">Niche Tags (press Enter to add)</label>
-                        <div class="tags-container" id="tagsContainer" onclick="focusTagInput()">
-                            <input type="text" class="tag-input" id="tagInput" placeholder="Add tags like 'history', 'military', 'navy'...">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label class="form-label" for="jobSummary">Job Summary *</label>
-                        <textarea class="form-textarea large" id="jobSummary" placeholder="Paste the full job description here..." required></textarea>
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label class="form-label" for="aiNotes">Notes for AI</label>
-                        <textarea class="form-textarea" id="aiNotes" placeholder="Any special instructions or notes for the proposal generation..."></textarea>
-                    </div>
                 </div>
                 
-                <!-- Additional Questions Section -->
-                <div class="questions-section">
-                    <h3 style="margin-bottom: 15px;">Additional Questions</h3>
-                    <div id="questionsContainer">
-                        <!-- Questions will be added dynamically -->
-                    </div>
-                    <button class="add-question-btn" onclick="addQuestion()">+ Add Question</button>
+                <div class="form-group">
+                    <label class="form-label" for="jobDescription">Job Description</label>
+                    <textarea class="form-textarea" id="jobDescription" placeholder="Paste the job description here..."></textarea>
                 </div>
                 
-                <button class="submit-btn" onclick="saveJob()">Save Job & Generate Proposal</button>
-            </div>
-            
-            <!-- Jobs Table Section -->
-            <div class="jobs-table-section">
-                <h2 class="section-title">Applied Jobs</h2>
-                
-                <div class="table-controls">
-                    <input type="text" class="search-box" id="searchBox" placeholder="Search jobs..." onkeyup="filterJobs()">
-                    <div>
-                        <span id="jobCount">0 jobs</span>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label" for="clientRequirements">Key Requirements</label>
+                    <textarea class="form-textarea" id="clientRequirements" placeholder="List the main requirements..."></textarea>
                 </div>
                 
-                <table class="jobs-table">
-                    <thead>
-                        <tr>
-                            <th>Date Applied</th>
-                            <th>Job Title</th>
-                            <th>Genre</th>
-                            <th>Budget</th>
-                            <th>Connects</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="jobsTableBody">
-                        <!-- Jobs will be populated here -->
-                    </tbody>
-                </table>
+                <button class="submit-btn" onclick="saveJob()">Save Job & Create Proposal</button>
             </div>
         </div>
     </div>
 
     <script type="module" src="../shared/js/sidebar-component.js"></script>
     <script>
-        let tags = [];
-        let questions = [];
-        let jobs = [];
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            loadJobs();
-            setupTagInput();
-        });
-        
-        // Tag Management
-        function setupTagInput() {
-            const tagInput = document.getElementById('tagInput');
-            tagInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addTag(this.value.trim());
-                    this.value = '';
-                }
-            });
-        }
-        
-        function addTag(tag) {
-            if (tag && !tags.includes(tag)) {
-                tags.push(tag);
-                renderTags();
-            }
-        }
-        
-        function removeTag(index) {
-            tags.splice(index, 1);
-            renderTags();
-        }
-        
-        function renderTags() {
-            const container = document.getElementById('tagsContainer');
-            const input = document.getElementById('tagInput');
-            
-            // Clear existing tags but keep input
-            const existingTags = container.querySelectorAll('.tag');
-            existingTags.forEach(tag => tag.remove());
-            
-            // Add tags before input
-            tags.forEach((tag, index) => {
-                const tagEl = document.createElement('div');
-                tagEl.className = 'tag';
-                tagEl.innerHTML = `${tag}<span class="tag-remove" onclick="removeTag(${index})">×</span>`;
-                container.insertBefore(tagEl, input);
-            });
-        }
-        
-        function focusTagInput() {
-            document.getElementById('tagInput').focus();
-        }
-        
-        // Question Management
-        function addQuestion() {
-            const container = document.getElementById('questionsContainer');
-            const questionIndex = questions.length;
-            
-            const questionDiv = document.createElement('div');
-            questionDiv.className = 'question-item';
-            questionDiv.innerHTML = `
-                <input type="text" class="form-input question-input" placeholder="Question" id="question_${questionIndex}">
-                <textarea class="form-textarea" placeholder="Answer" id="answer_${questionIndex}"></textarea>
-            `;
-            
-            container.appendChild(questionDiv);
-            questions.push({ question: '', answer: '' });
-        }
-        
-        // Save Job
         function saveJob() {
-            const statusIndicator = document.getElementById('statusIndicator');
-            statusIndicator.textContent = 'Saving...';
-            statusIndicator.style.background = '#ffc107';
-            
-            // Collect question data
-            const collectedQuestions = [];
-            for (let i = 0; i < questions.length; i++) {
-                const q = document.getElementById(`question_${i}`)?.value;
-                const a = document.getElementById(`answer_${i}`)?.value;
-                if (q || a) {
-                    collectedQuestions.push({ question: q, answer: a });
-                }
-            }
-            
-            const jobData = {
-                id: Date.now(),
-                dateApplied: new Date().toISOString(),
-                title: document.getElementById('jobTitle').value,
-                connects: document.getElementById('connects').value,
-                summary: document.getElementById('jobSummary').value,
-                genre: document.getElementById('genre').value,
-                tags: tags,
-                upworkUrl: document.getElementById('upworkUrl').value,
-                proposalFormat: document.getElementById('proposalFormat').value,
-                notes: document.getElementById('aiNotes').value,
-                budget: document.getElementById('budget').value,
-                contractType: document.getElementById('contractType').value,
-                clientCountry: document.getElementById('clientCountry').value,
-                questions: collectedQuestions,
-                status: 'pending'
-            };
-            
-            // Validate required fields
-            if (!jobData.title || !jobData.summary) {
-                alert('Please fill in the required fields (Job Title and Summary)');
-                statusIndicator.textContent = 'Error';
-                statusIndicator.style.background = '#e74c3c';
-                return;
-            }
-            
-            // Save to localStorage (in production, this would be sent to Supabase)
-            jobs.unshift(jobData);
-            localStorage.setItem('upworkJobs', JSON.stringify(jobs));
-            
-            // Clear form
-            clearForm();
-            
-            // Update table
-            loadJobs();
-            
-            // Update status
-            statusIndicator.textContent = 'Job Saved! Triggering n8n workflow...';
-            statusIndicator.style.background = '#28a745';
-            
-            setTimeout(() => {
-                statusIndicator.textContent = 'Ready';
-                statusIndicator.style.background = '#28a745';
-            }, 3000);
-            
-            // Here you would trigger the Supabase update which triggers n8n
-            console.log('Job data to send to Supabase:', jobData);
-        }
-        
-        function clearForm() {
-            document.getElementById('jobTitle').value = '';
-            document.getElementById('connects').value = '';
-            document.getElementById('jobSummary').value = '';
-            document.getElementById('genre').value = '';
-            document.getElementById('upworkUrl').value = '';
-            document.getElementById('proposalFormat').value = 'simple';
-            document.getElementById('aiNotes').value = '';
-            document.getElementById('budget').value = '';
-            document.getElementById('contractType').value = '';
-            document.getElementById('clientCountry').value = '';
-            document.getElementById('questionsContainer').innerHTML = '';
-            tags = [];
-            questions = [];
-            renderTags();
-        }
-        
-        // Load and Display Jobs
-        function loadJobs() {
-            const savedJobs = localStorage.getItem('upworkJobs');
-            if (savedJobs) {
-                jobs = JSON.parse(savedJobs);
-            }
-            displayJobs();
-        }
-        
-        function displayJobs() {
-            const tbody = document.getElementById('jobsTableBody');
-            const jobCount = document.getElementById('jobCount');
-            
-            tbody.innerHTML = '';
-            
-            if (jobs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No jobs added yet</td></tr>';
-                jobCount.textContent = '0 jobs';
-                return;
-            }
-            
-            jobs.forEach(job => {
-                const row = document.createElement('tr');
-                const date = new Date(job.dateApplied);
-                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                
-                row.innerHTML = `
-                    <td>${formattedDate}</td>
-                    <td>${job.title}</td>
-                    <td>${job.genre || '-'}</td>
-                    <td>${job.budget || '-'}</td>
-                    <td>${job.connects || '-'}</td>
-                    <td><span class="status-badge status-${job.status}">${job.status}</span></td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="action-btn view-btn" onclick="viewJob(${job.id})">View</button>
-                            <button class="action-btn edit-btn" onclick="editJob(${job.id})">Edit</button>
-                            <button class="action-btn delete-btn" onclick="deleteJob(${job.id})">Delete</button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-            
-            jobCount.textContent = `${jobs.length} job${jobs.length !== 1 ? 's' : ''}`;
-        }
-        
-        function filterJobs() {
-            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-            const rows = document.querySelectorAll('#jobsTableBody tr');
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
-        }
-        
-        function viewJob(id) {
-            const job = jobs.find(j => j.id === id);
-            if (job) {
-                console.log('Viewing job:', job);
-                // In production, this would open a modal or navigate to a detail page
-                alert(`Job: ${job.title}\nStatus: ${job.status}\nBudget: ${job.budget}\nTags: ${job.tags.join(', ')}`);
-            }
-        }
-        
-        function editJob(id) {
-            const job = jobs.find(j => j.id === id);
-            if (job) {
-                // Populate form with job data
-                document.getElementById('jobTitle').value = job.title;
-                document.getElementById('connects').value = job.connects;
-                document.getElementById('jobSummary').value = job.summary;
-                document.getElementById('genre').value = job.genre;
-                document.getElementById('upworkUrl').value = job.upworkUrl;
-                document.getElementById('proposalFormat').value = job.proposalFormat;
-                document.getElementById('aiNotes').value = job.notes;
-                document.getElementById('budget').value = job.budget;
-                document.getElementById('contractType').value = job.contractType;
-                document.getElementById('clientCountry').value = job.clientCountry;
-                
-                // Set tags
-                tags = job.tags || [];
-                renderTags();
-                
-                // Scroll to form
-                document.querySelector('.quick-job-section').scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-        
-        function deleteJob(id) {
-            if (confirm('Are you sure you want to delete this job?')) {
-                jobs = jobs.filter(j => j.id !== id);
-                localStorage.setItem('upworkJobs', JSON.stringify(jobs));
-                loadJobs();
-            }
+            // Placeholder for save functionality
+            alert('Job saved! Redirecting to proposal creation...');
         }
     </script>
 </body>

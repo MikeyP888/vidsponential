@@ -155,12 +155,14 @@
         // Research fields configuration
         const RESEARCH_FIELDS = [
             { name: 'story_summary', label: 'STORY SUMMARY' },
-            { name: 'research_dossier', label: 'RESEARCH DOSSIER' },
+            { name: 'story_foundation', label: 'STORY FOUNDATION' },
+            { name: 'key_details', label: 'KEY DETAILS' },
+            { name: 'dramatic_elements', label: 'DRAMATIC ELEMENTS' },
             { name: 'timeline', label: 'TIMELINE' },
             { name: 'key_players', label: 'KEY PLAYERS' },
+            { name: 'individual_stories', label: 'INDIVIDUAL STORIES' },
             { name: 'quotes', label: 'QUOTES' },
-            { name: 'dramatic_elements', label: 'DRAMATIC ELEMENTS' },
-            { name: 'sources', label: 'SOURCES' }
+            { name: 'refinement_notes', label: 'REFINEMENT NOTES' }
         ];
 
         // Initialize the application
@@ -323,10 +325,10 @@
                                     <input type="number" 
                                            class="rating-field__input" 
                                            id="rating_${field.name}"
-                                           data-field="${field.name}_rating"
+                                           data-field="${field.name}_mp_rating"
                                            min="1" 
                                            max="100" 
-                                           value="${researchData[field.name + '_rating'] || ''}">
+                                           value="${researchData[field.name + '_mp_rating'] || ''}">
                                 </div>
                             </div>
                         </div>
@@ -337,28 +339,36 @@
             });
         }
 
-        // Save script function
+        // Save script function - UPDATED to change status from 12 to 13
         async function saveScript() {
             if (isLoading) return;
             
             try {
                 isLoading = true;
-                updateStatus('loading', 'Saving research data...');
+                updateStatus('loading', 'Saving research data and updating status...');
                 
                 const scriptId = scriptsToReview[currentScriptIndex].script_id;
                 const researchData = collectResearchData();
                 
-                await saveResearchData(scriptId, researchData);
+                // Save research data AND update script status
+                await saveResearchDataAndUpdateStatus(scriptId, researchData);
                 
-                updateStatus('saved', 'Research saved successfully');
+                updateStatus('saved', 'Research saved and status updated to 13');
                 hasUnsavedChanges = false;
                 
-                // Move to next script or show completion
-                if (currentScriptIndex < scriptsToReview.length - 1) {
-                    currentScriptIndex++;
+                // Remove this script from the review list since it's now status 13
+                scriptsToReview.splice(currentScriptIndex, 1);
+                
+                // Load next script or show completion message
+                if (scriptsToReview.length > 0) {
+                    // Adjust index if we're at the end
+                    if (currentScriptIndex >= scriptsToReview.length) {
+                        currentScriptIndex = 0;
+                    }
                     await loadCurrentScriptData();
                 } else {
                     updateStatus('completed', 'All research completed!');
+                    showNoScriptsMessage();
                 }
                 
             } catch (error) {
@@ -378,13 +388,66 @@
                 const ratingField = document.getElementById(`rating_${field.name}`);
                 
                 if (textField) data[field.name] = textField.value;
-                if (ratingField && ratingField.value) data[field.name + '_rating'] = parseInt(ratingField.value);
+                if (ratingField && ratingField.value) data[field.name + '_mp_rating'] = parseInt(ratingField.value);
             });
             
             return data;
         }
 
-        // Save research data to Supabase
+        // Save research data to Supabase AND update script status to 13
+        async function saveResearchDataAndUpdateStatus(scriptId, data) {
+            const dataWithScript = { ...data, script_id: scriptId };
+            
+            // Save research data first
+            let response = await fetch(`${SUPABASE_URL}/rest/v1/script_research?script_id=eq.${scriptId}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify(dataWithScript)
+            });
+
+            if (!response.ok) {
+                // If update failed, try insert
+                response = await fetch(`${SUPABASE_URL}/rest/v1/script_research`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(dataWithScript)
+                });
+            }
+
+            if (!response.ok) {
+                throw new Error('Failed to save research data');
+            }
+
+            // Now update the script status from 12 to 13
+            const statusResponse = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({ script_status_id: 13 })
+            });
+
+            if (!statusResponse.ok) {
+                throw new Error('Failed to update script status to 13');
+            }
+
+            return await response.json();
+        }
+
+        // Save research data to Supabase (for auto-save - no status change)
         async function saveResearchData(scriptId, data) {
             const dataWithScript = { ...data, script_id: scriptId };
             
