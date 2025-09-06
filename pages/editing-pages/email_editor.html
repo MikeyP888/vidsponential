@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Editor</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✉️</text></svg>">
+    
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/components.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+    <link rel="stylesheet" href="../../shared/styles/layout.css">
+    <link rel="stylesheet" href="../../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../../shared/styles/forms.css">
+    <link rel="stylesheet" href="../../shared/styles/status.css">
+    <link rel="stylesheet" href="../../shared/styles/notifications.css">
+    <link rel="stylesheet" href="../../shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="../../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+</head>
+<body class="has-sidebar">
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
+    
+    <div class="container with-sidebar">
+        <div class="header">
+            
+            <div class="status-bar">
+                <div class="status-indicator" id="statusIndicator">Loading</div>
+            </div>
+            
+            <div class="completed-today-bar">
+                <div class="completed-today-text">Emails Sent Today: <span id="emailsCompletedTodayCount">0</span></div>
+            </div>
+            
+            <h1 class="page-title">Email Newsletter Editor</h1>
+        </div>
+
+        <div id="content">
+            <div class="info-section">
+                <div class="script-info" id="emailInfo" style="display: none;">
+                    <div class="info-item">
+                        <div class="info-label">Email ID</div>
+                        <div class="info-value" id="emailIdValue">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Campaign</div>
+                        <div class="info-value" id="campaignValue">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Audience</div>
+                        <div class="info-value" id="audienceValue">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Send Date</div>
+                        <div class="info-value" id="sendDateValue">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="editor-section" id="emailSection" style="display: none;">
+                <h2>Subject Line</h2>
+                <input type="text" id="subjectLine" class="form-input" style="margin-bottom: 20px;">
+                
+                <h2>Preview Text</h2>
+                <input type="text" id="previewText" class="form-input" style="margin-bottom: 20px;" placeholder="Text that appears in inbox preview">
+                
+                <h2>Email Content</h2>
+                <textarea id="emailContent" class="content-textarea" rows="15"></textarea>
+                
+                <h3 style="margin-top: 20px;">Call to Action</h3>
+                <input type="text" id="ctaText" class="form-input" placeholder="Button text">
+                <input type="url" id="ctaLink" class="form-input" placeholder="https://example.com" style="margin-top: 10px;">
+            </div>
+
+            <div class="button-group" id="actionButtons" style="display: none;">
+                <button class="btn btn-secondary" onclick="skipEmail()">Skip</button>
+                <button class="btn btn-primary" onclick="saveAndContinue()">Save & Continue</button>
+            </div>
+
+            <div id="noEmailsMessage" style="display: none; text-align: center; padding: 40px;">
+                <h2>No Emails to Review</h2>
+                <p>All emails have been reviewed. Check back later for new items.</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../../../../../shared/js/sidebar-component.js"></script>
+    
+    <script>
+        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
+        
+        let currentEmailData = null;
+        let emailsToReview = [];
+        let currentEmailIndex = 0;
+        
+        async function loadEmails() {
+            try {
+                document.getElementById('statusIndicator').textContent = 'Loading Emails...';
+                
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/newsletters?newsletter_status_id=eq.30&select=*`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                        }
+                    }
+                );
+                
+                if (response.ok) {
+                    emailsToReview = await response.json();
+                    
+                    if (emailsToReview.length > 0) {
+                        loadEmail(0);
+                        document.getElementById('statusIndicator').textContent = 'LOADED SUCCESSFULLY';
+                        document.getElementById('statusIndicator').className = 'status-indicator status-success';
+                    } else {
+                        document.getElementById('noEmailsMessage').style.display = 'block';
+                        document.getElementById('statusIndicator').textContent = 'No Items';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading emails:', error);
+                document.getElementById('statusIndicator').textContent = 'Error Loading';
+                document.getElementById('statusIndicator').className = 'status-indicator status-error';
+            }
+        }
+        
+        function loadEmail(index) {
+            if (index >= emailsToReview.length) {
+                document.getElementById('noEmailsMessage').style.display = 'block';
+                document.getElementById('emailInfo').style.display = 'none';
+                document.getElementById('emailSection').style.display = 'none';
+                document.getElementById('actionButtons').style.display = 'none';
+                return;
+            }
+            
+            currentEmailData = emailsToReview[index];
+            currentEmailIndex = index;
+            
+            document.getElementById('emailIdValue').textContent = currentEmailData.newsletter_id || '-';
+            document.getElementById('campaignValue').textContent = currentEmailData.campaign_name || '-';
+            document.getElementById('audienceValue').textContent = currentEmailData.audience_segment || '-';
+            document.getElementById('sendDateValue').textContent = currentEmailData.scheduled_send_date || 'Not scheduled';
+            
+            document.getElementById('subjectLine').value = currentEmailData.subject_line || '';
+            document.getElementById('previewText').value = currentEmailData.preview_text || '';
+            document.getElementById('emailContent').value = currentEmailData.email_content || '';
+            document.getElementById('ctaText').value = currentEmailData.cta_text || '';
+            document.getElementById('ctaLink').value = currentEmailData.cta_link || '';
+            
+            document.getElementById('emailInfo').style.display = 'grid';
+            document.getElementById('emailSection').style.display = 'block';
+            document.getElementById('actionButtons').style.display = 'flex';
+            document.getElementById('noEmailsMessage').style.display = 'none';
+        }
+        
+        async function saveAndContinue() {
+            if (!currentEmailData) return;
+            
+            try {
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/newsletters?newsletter_id=eq.${currentEmailData.newsletter_id}`,
+                    {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            newsletter_status_id: 40,
+                            subject_line: document.getElementById('subjectLine').value,
+                            preview_text: document.getElementById('previewText').value,
+                            email_content: document.getElementById('emailContent').value,
+                            cta_text: document.getElementById('ctaText').value,
+                            cta_link: document.getElementById('ctaLink').value
+                        })
+                    }
+                );
+                
+                if (response.ok) {
+                    await window.refreshNavigationBadges();
+                    currentEmailIndex++;
+                    loadEmail(currentEmailIndex);
+                }
+            } catch (error) {
+                console.error('Error saving:', error);
+            }
+        }
+        
+        function skipEmail() {
+            currentEmailIndex++;
+            loadEmail(currentEmailIndex);
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadEmails();
+        });
+    </script>
+</body>
+</html>

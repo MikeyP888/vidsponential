@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Scripts</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+    
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/components.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+    <link rel="stylesheet" href="../../shared/styles/layout.css">
+    <link rel="stylesheet" href="../../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../../shared/styles/forms.css">
+    <link rel="stylesheet" href="../../shared/styles/status.css">
+    <link rel="stylesheet" href="../../shared/styles/notifications.css">
+    <link rel="stylesheet" href="../../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+    
+    <style>
+        .filters-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .filters-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-label {
+            font-size: 11px;
+            font-family: "Inter", sans-serif;
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 0.5px solid #5b5a5a;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+        
+        .search-input {
+            padding: 8px 12px;
+            border: 0.5px solid #5b5a5a;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 300px;
+        }
+        
+        .scripts-table {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .scripts-table thead {
+            background: linear-gradient(to right, rgba(11, 230, 255, 0.1) 0%, rgba(175, 11, 255, 0.1) 100%);
+        }
+        
+        .scripts-table th {
+            padding: 15px;
+            text-align: left;
+            font-size: 11px;
+            font-family: "Inter", sans-serif;
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .scripts-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            font-family: "Tahoma", sans-serif;
+        }
+        
+        .scripts-table tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-draft {
+            background: #e0e0e0;
+            color: #666;
+        }
+        
+        .status-review {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-published {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-edit {
+            background: #0099ff;
+            color: white;
+        }
+        
+        .btn-delete {
+            background: #ff4757;
+            color: white;
+        }
+        
+        .btn-view {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .page-btn.active {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            border: none;
+        }
+        
+        .page-btn:hover:not(.active) {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body class="has-sidebar">
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
+    
+    <div class="container with-sidebar">
+        <!-- Header Section -->
+        <div class="header">
+            
+            <!-- Status Indicator -->
+            <div class="status-bar">
+                <div class="status-indicator" id="statusIndicator">Ready</div>
+            </div>
+            
+            <!-- Page Title -->
+            <h1 class="page-title">Manage Scripts</h1>
+        </div>
+
+        <!-- Main Content -->
+        <div id="content">
+            <!-- Filters -->
+            <div class="filters-section">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label class="filter-label">Search</label>
+                        <input type="text" class="search-input" placeholder="Search scripts...">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <select class="filter-select">
+                            <option value="">All Status</option>
+                            <option value="draft">Draft</option>
+                            <option value="review">In Review</option>
+                            <option value="published">Published</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Client</label>
+                        <select class="filter-select">
+                            <option value="">All Clients</option>
+                            <option value="1">Client A</option>
+                            <option value="2">Client B</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Date Range</label>
+                        <select class="filter-select">
+                            <option value="">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scripts Table -->
+            <table class="scripts-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Client</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Rating</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#1247</td>
+                        <td>How to Boost YouTube Views in 2024</td>
+                        <td>TechChannel</td>
+                        <td><span class="status-badge status-published">Published</span></td>
+                        <td>2024-01-15</td>
+                        <td>9.2</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn btn-view">View</button>
+                                <button class="action-btn btn-edit">Edit</button>
+                                <button class="action-btn btn-delete">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#1246</td>
+                        <td>AI Tools Every Creator Needs</td>
+                        <td>CreatorHub</td>
+                        <td><span class="status-badge status-review">In Review</span></td>
+                        <td>2024-01-14</td>
+                        <td>8.7</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn btn-view">View</button>
+                                <button class="action-btn btn-edit">Edit</button>
+                                <button class="action-btn btn-delete">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#1245</td>
+                        <td>Content Strategy Masterclass</td>
+                        <td>MarketPro</td>
+                        <td><span class="status-badge status-draft">Draft</span></td>
+                        <td>2024-01-13</td>
+                        <td>-</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn btn-view">View</button>
+                                <button class="action-btn btn-edit">Edit</button>
+                                <button class="action-btn btn-delete">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- Pagination -->
+            <div class="pagination">
+                <button class="page-btn">←</button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <button class="page-btn">...</button>
+                <button class="page-btn">10</button>
+                <button class="page-btn">→</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../../../../../shared/js/sidebar-component.js"></script>
+</body>
+</html>

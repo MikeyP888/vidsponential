@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vidsponential - Professional YouTube Script Writing Services</title>
+    
+    <link rel="stylesheet" href="shared/styles/base.css">
+    <link rel="stylesheet" href="shared/styles/fonts.css">
+    <link rel="stylesheet" href="shared/styles/layout.css">
+    <link rel="stylesheet" href="shared/styles/buttons.css">
+    <link rel="stylesheet" href="shared/styles/notifications.css">
+    
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="shared/assets/vidsponential logo.png" alt="Vidsponential" height="40">
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link active">Home</a></li>
+                <li><a href="portfolio/index.html" class="nav-link">Portfolio</a></li>
+                <li><a href="blog.html" class="nav-link">Blog</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="hero-section">
+            <div class="container">
+                <h1 class="hero-title">Professional YouTube Script Writing</h1>
+                <p class="hero-subtitle">High-converting scripts that turn viewers into subscribers and customers</p>
+                <div class="hero-buttons">
+                    <a href="portfolio/index.html" class="btn btn-primary">View Our Work</a>
+                    <a href="#services" class="btn btn-secondary">Our Services</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="services" class="services-section">
+            <div class="container">
+                <h2 class="section-title">What We Do</h2>
+                <div class="services-grid">
+                    <div class="service-card">
+                        <h3 class="service-title">Script Writing</h3>
+                        <p class="service-description">Engaging, conversion-focused scripts tailored to your audience and goals</p>
+                    </div>
+                    <div class="service-card">
+                        <h3 class="service-title">Content Strategy</h3>
+                        <p class="service-description">Data-driven content planning to maximize reach and engagement</p>
+                    </div>
+                    <div class="service-card">
+                        <h3 class="service-title">Niche Expertise</h3>
+                        <p class="service-description">Specialized knowledge across multiple high-performing niches</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="niches-section">
+            <div class="container">
+                <h2 class="section-title">Our Specialties</h2>
+                <div class="niches-grid" id="nichesGrid">
+                    <!-- Niches will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="container">
+                <h2 class="cta-title">Ready to Grow Your YouTube Channel?</h2>
+                <p class="cta-subtitle">Let's create scripts that convert viewers into loyal subscribers</p>
+                <div class="cta-buttons">
+                    <a href="portfolio/index.html" class="btn btn-primary">See Our Portfolio</a>
+                    <a href="blog.html" class="btn btn-secondary">Learn More</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="recent-articles-section">
+            <div class="container">
+                <h2 class="section-title">Latest Insights</h2>
+                <div class="articles-grid" id="recentArticles">
+                    <!-- Recent articles will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="shared/assets/vidsponential logo.png" alt="Vidsponential" height="30">
+                </div>
+                <p class="footer-text">Professional YouTube script writing services - Updated</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="js/homepage.js"></script>
+</body>
+</html>
