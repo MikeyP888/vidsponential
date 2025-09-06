@@ -227,7 +227,9 @@ window.navigateScript = navigateScript;
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, starting Chapter Editor initialization...');
+    console.log('=== CHAPTER EDITOR DEBUG: DOM listener triggered ===');
     init().catch(error => {
         console.error('Failed to initialize Chapter Editor:', error);
+        console.error('=== CHAPTER EDITOR DEBUG: Initialization failed ===', error);
     });
 });

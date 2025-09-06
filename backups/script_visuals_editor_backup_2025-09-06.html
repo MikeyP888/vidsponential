@@ -6,47 +6,20 @@
     <title>Script Visuals Editor</title>
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍎</text></svg>">
     
-    <!-- Inter Font from Penpot -->
+    <!-- Shared Stylesheets -->
+    <link rel="stylesheet" href="../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../shared/styles/components.css">
+    <link rel="stylesheet" href="../shared/styles/base.css">
+    <link rel="stylesheet" href="../shared/styles/layout.css">
+    <link rel="stylesheet" href="../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../shared/styles/forms.css">
+    <link rel="stylesheet" href="../shared/styles/status.css">
+    <link rel="stylesheet" href="../shared/styles/notifications.css">
+    <link rel="stylesheet" href="../shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="../shared/styles/missing-layout.css">
+    
     <style>
-        /* cyrillic-ext */
-        @font-face {
-          font-family: 'Inter';
-          font-style: normal;
-          font-weight: 600;
-          font-display: block;
-          src: url(https://design.penpot.app/internal/gfonts/font/inter/v19/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZJhiI2B.woff2) format('woff2');
-          unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
-        }
-
-
-        /* latin */
-        @font-face {
-          font-family: 'Inter';
-          font-style: normal;
-          font-weight: 600;
-          font-display: block;
-          src: url(https://design.penpot.app/internal/gfonts/font/inter/v19/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZ9hiA.woff2) format('woff2');
-          unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-        }
-        
-        /* cyrillic-ext */
-        @font-face {
-          font-family: 'Inter';
-          font-style: normal;
-          font-weight: 400;
-          font-display: block;
-          src: url(https://design.penpot.app/internal/gfonts/font/inter/v19/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZJhiI2B.woff2) format('woff2');
-          unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
-        }
-        /* latin */
-        @font-face {
-          font-family: 'Inter';
-          font-style: normal;
-          font-weight: 400;
-          font-display: block;
-          src: url(https://design.penpot.app/internal/gfonts/font/inter/v19/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZ9hiA.woff2) format('woff2');
-          unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FFFD;
-        }
+        /* Page-specific styles - fonts handled by shared/styles/fonts.css */
     </style>
     <style>
         * {
@@ -338,7 +311,7 @@
             margin: 0px 15px 0px 15px !important; /* ENFORCED consistent margin */
             color: rgba(255, 255, 255, 1);
             font-size: 19px;
-            font-family: "Inter";
+            font-family: "Tahoma", sans-serif !important;
             font-style: normal;
             font-weight: 600;
             text-align: center;
@@ -456,7 +429,7 @@
             align-self: start;
             color: rgba(0, 0, 0, 1);
             font-size: 14px;
-            font-family: "Inter";
+            font-family: "Tahoma", sans-serif !important;
             font-style: normal;
             font-weight: 600;
             text-align: left;
@@ -518,7 +491,7 @@
             margin: 0px; /* Remove margin since we're using padding */
             color: rgba(0, 0, 0, 1);
             font-size: 19px;
-            font-family: "Inter";
+            font-family: "Tahoma", sans-serif !important;
             font-style: normal;
             font-weight: 400;
             background: transparent;
@@ -579,26 +552,7 @@
             margin: 0 !important;
         }
 
-        .controls {
-            position: sticky;
-            bottom: 0;
-            background: white;
-            padding: 20px 0;
-            border-top: 2px solid #e0e0e0;
-            margin-top: 30px;
-        }
 
-        .controls-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .navigation {
-            display: flex;
-            gap: 10px;
-        }
 
         .btn {
             padding: 12px 24px;
@@ -610,6 +564,88 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        /* ================================================= */
+        /*              VISUALS EDITOR STYLES               */
+        /* ================================================= */
+
+        /* Chapter Section Styling */
+        .chapter-section {
+            margin-bottom: 30px;
+        }
+
+        .chapter-button {
+            margin-bottom: 15px;
+        }
+
+        /* Column Headers */
+        .beats-headers {
+            display: flex;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .beats-header-left {
+            width: calc(50% - 55px); /* Half width minus half gap and rating width */
+            font-size: 11px;
+            font-family: "Inter", sans-serif;
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding-left: 15px;
+        }
+
+        .beats-header-right {
+            width: calc(50% - 55px); /* Half width minus half gap and rating width */
+            font-size: 11px;
+            font-family: "Inter", sans-serif;
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding-left: 15px;
+        }
+
+        /* Beat Row Layout */
+        .beat-row {
+            margin-bottom: 10px;
+        }
+
+        .beat-columns {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        /* Two-Column Layout */
+        .beat-column-left {
+            width: calc(50% - 55px); /* Half width minus half gap and rating width */
+        }
+
+        .beat-column-right {
+            width: calc(50% - 55px); /* Half width minus half gap and rating width */
+        }
+
+        .beat-rating {
+            width: 100px; /* Same as rating field width */
+        }
+
+        /* Single-line text field styling for beats */
+        .beat-script-input,
+        .beat-visual-input {
+            font-family: "Tahoma", sans-serif !important;
+            font-size: 19px !important;
+            font-weight: 400 !important; /* Not bold, same as multi-line fields */
+            line-height: 1.6 !important;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px;
         }
 
         .btn:hover {
@@ -686,16 +722,11 @@
                 gap: 8px;
             }
 
-            .controls-row {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .navigation {
-                order: 2;
-            }
         }
     </style>
+    
+    <!-- Navigation CSS -->
+    <link rel="stylesheet" href="../shared/styles/navigation.css">
 </head>
 <body>
     <div class="container">
@@ -703,24 +734,8 @@
         <!--                 HEADER SECTION                -->
         <!-- =============================================== -->
         <div class="header">
-            <!-- First horizontal container: Logo and Navigation Buttons -->
-            <div class="top-bar">
-                <img src="vidsponential logo.png" alt="Vidsponential Logo" class="logo">
-                <div class="header-buttons">
-                    <a href="script_outline_editor.html" class="btn btn-secondary header-btn navigation-btn" data-status="22">
-                        Outlines
-                        <span class="notification-badge" id="outlinesBadge" style="display: none;">0</span>
-                    </a>
-                    <a href="script_chapter_editor.html" class="btn btn-secondary header-btn navigation-btn" data-status="40">
-                        Chapters
-                        <span class="notification-badge" id="chaptersBadge" style="display: none;">0</span>
-                    </a>
-                    <a href="script_visuals_editor.html" class="btn btn-primary header-btn navigation-btn" data-status="46">
-                        Visuals
-                        <span class="notification-badge" id="visualsBadge" style="display: none;">0</span>
-                    </a>
-                </div>
-            </div>
+            <!-- Navigation Container -->
+            <div id="navigationContainer"></div>
             
             <!-- Second horizontal container: Status Indicator -->
             <div class="status-bar">
@@ -798,69 +813,9 @@
                     </div>
                 </div>
             </div>
-            <!-- Working Headline and Primary Keyword Fields -->
-            <div class="main-fields">
-                <!-- Working Headline Section -->
-                <div class="headline-options">
-                    <h2 class="section-title">Working Headline</h2>
-                    <div class="chapter-se-7a2807fb2c0d">
-                        <!-- Working Headline Row -->
-                        <div class="ch-title-7a2807fb2c0f">
-                            <!-- Headline Text + Label -->
-                            <div class="title-la-7a2807fb2c1a">
-                                <label class="label-ch-7a2807fb2c1f">Headline:</label>
-                                <div class="title-fiel-7a2807fb2c1e">
-                                    <textarea class="chapter-ti-7a2807fb2c20" id="workingHeadline" placeholder="Enter the working headline..."></textarea>
-                                </div>
-                            </div>
-                            
-                            <!-- Headline Rating + Label -->
-                            <div class="title-rating-l-7a2807fb2c19">
-                                <label class="label-rat-7a2807fb2c1c">Rating / 100:</label>
-                                <div class="rating-fie-7a2807fb2c1b">
-                                    <input type="number" class="rating-7a2807fb2c1d" id="workingHeadlineRating" data-field="script_headline_mp_rating" min="1" max="100" value="">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Primary Keyword Section -->
-                <div class="headline-options">
-                    <h2 class="section-title">Primary Keyword</h2>
-                    <div class="chapter-se-7a2807fb2c0d">
-                        <!-- Primary Keyword Row -->
-                        <div class="ch-title-7a2807fb2c0f">
-                            <!-- Keyword Text + Label -->
-                            <div class="title-la-7a2807fb2c1a">
-                                <label class="label-ch-7a2807fb2c1f">Primary Keyword:</label>
-                                <div class="title-fiel-7a2807fb2c1e">
-                                    <input type="text" class="chapter-ti-7a2807fb2c20" id="primaryKeyword" placeholder="Enter the primary keyword...">
-                                </div>
-                            </div>
-                            
-                            <!-- Keyword Rating + Label -->
-                            <div class="title-rating-l-7a2807fb2c19">
-                                <label class="label-rat-7a2807fb2c1c">Rating / 100:</label>
-                                <div class="rating-fie-7a2807fb2c1b">
-                                    <input type="number" class="rating-7a2807fb2c1d" id="primaryKeywordRating" data-field="primary_keyword_mp_rating" min="1" max="100" value="">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Headline Options Section -->
-            <div class="headline-options">
-                <h2 class="section-title">Headline Options</h2>
-                <div id="headlinesList"></div>
-            </div>
-
-            <!-- Chapter Outlines Section -->
-            <div class="chapters-section">
-                <h2 class="section-title">Chapter Outlines</h2>
-                <div id="chaptersList"></div>
+            <!-- Visual Suggestions Section -->
+            <div class="visuals-section">
+                <div id="visualsList"></div>
             </div>
         </div>
 
@@ -872,11 +827,11 @@
         </div>
 
         <!-- =============================================== -->
-        <!--                 CONTROLS SECTION              -->
+        <!--                BOTTOM CONTROLS                 -->
         <!-- =============================================== -->
-        <div class="controls">
+        <div class="controls-section">
             <div class="controls-row">
-                <div class="navigation">
+                <div class="navigation-controls">
                     <button class="btn btn-secondary" id="prevBtn" onclick="navigateScript(-1)">← Previous</button>
                     <button class="btn btn-secondary" id="nextBtn" onclick="navigateScript(1)">Next →</button>
                 </div>
@@ -890,26 +845,9 @@
         </div>
     </div>
 
+    <!-- Include the visuals app JavaScript -->
+    <script type="module" src="../shared/js/visuals-app.js"></script>
     <script>
-        /* ================================================= */
-        /*              GLOBAL VARIABLES                    */
-        /* ================================================= */
-        
-        // Application state
-        let currentScriptData = null;
-        let scriptsToReview = [];
-        let currentScriptIndex = 0;
-        let hasUnsavedChanges = false;
-        let autoSaveTimer = null;
-        let isLoading = false;
-
-        // Supabase configuration
-        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
-
-        /* ================================================= */
-        /*              SCRIPTS COMPLETED TODAY            */
-        /* ================================================= */
         
         async function loadCompletedTodayCount() {
             try {
@@ -1783,5 +1721,7 @@
             }
         });
     </script>
+    
+    <script src="../shared/js/navigation-component.js"></script>
 </body>
 </html>

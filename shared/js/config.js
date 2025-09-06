@@ -11,8 +11,8 @@ export const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
 export const SCRIPT_STATUS = {
     READY_FOR_OUTLINE: 15,
     OUTLINE_COMPLETED: 20,
-    READY_FOR_CHAPTERS: 40,
-    READY_FOR_VISUALS: 46
+    READY_FOR_CHAPTERS: 25,
+    READY_FOR_VISUALS: 40
 };
 
 // Completion Types

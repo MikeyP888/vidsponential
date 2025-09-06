@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct API Test - Real Data</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 4px; }
+        .success { border-color: #4CAF50; background: #f8fff8; }
+        .error { border-color: #f44336; background: #fff8f8; }
+        .loading { border-color: #2196F3; background: #f8f9ff; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px; max-height: 300px; overflow-y: auto; }
+        button { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #45a049; }
+        .status { font-weight: bold; margin: 10px 0; }
+        .info { background: #e3f2fd; padding: 10px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Direct Supabase API Test</h1>
+        <div class="info">
+            <strong>Expected Results:</strong><br>
+            • Status 15: 3 scripts (including "Hollywood's Nepotism Babies", "Real Madrid", "Pirates")<br>
+            • Status 25: 2 scripts (including "Java", "Enshittification")<br>
+        </div>
+        
+        <div class="test-section" id="directTest">
+            <h3>Direct REST API Test</h3>
+            <button onclick="testDirectAPI()">Test Direct API Calls</button>
+            <div class="status" id="directStatus">Ready to test</div>
+            <pre id="directResult"></pre>
+        </div>
+
+        <div class="test-section" id="corsTest">
+            <h3>CORS Headers Test</h3>
+            <button onclick="testCORSHeaders()">Test CORS Headers</button>
+            <div class="status" id="corsStatus">Ready to test</div>
+            <pre id="corsResult"></pre>
+        </div>
+
+        <div class="test-section" id="specificTest">
+            <h3>Test Specific Script IDs</h3>
+            <button onclick="testSpecificScripts()">Test Known Script IDs</button>
+            <div class="status" id="specificStatus">Ready to test</div>
+            <pre id="specificResult"></pre>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
+
+        function updateTestStatus(sectionId, status, className) {
+            const section = document.getElementById(sectionId);
+            const statusDiv = document.getElementById(sectionId.replace('Test', 'Status'));
+            
+            section.className = `test-section ${className}`;
+            statusDiv.textContent = status;
+        }
+
+        async function testDirectAPI() {
+            updateTestStatus('directTest', 'Testing direct API calls...', 'loading');
+            const resultDiv = document.getElementById('directResult');
+            
+            const tests = [
+                {
+                    name: 'Scripts with Status 15',
+                    url: `${SUPABASE_URL}/rest/v1/scripts?script_status_id=eq.15&select=script_id,script_headline,script_status_id`
+                },
+                {
+                    name: 'Scripts with Status 25', 
+                    url: `${SUPABASE_URL}/rest/v1/scripts?script_status_id=eq.25&select=script_id,script_headline,script_status_id`
+                },
+                {
+                    name: 'All Scripts (limited)',
+                    url: `${SUPABASE_URL}/rest/v1/scripts?select=script_id,script_headline,script_status_id&limit=5`
+                }
+            ];
+
+            let allResults = {};
+
+            for (const test of tests) {
+                try {
+                    console.log(`Testing: ${test.name}`);
+                    console.log(`URL: ${test.url}`);
+                    
+                    const response = await fetch(test.url, {
+                        method: 'GET',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    console.log(`Response status: ${response.status}`);
+                    console.log(`Response headers:`, Object.fromEntries(response.headers.entries()));
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        allResults[test.name] = {
+                            status: response.status,
+                            count: data.length,
+                            data: data,
+                            success: true
+                        };
+                    } else {
+                        const errorText = await response.text();
+                        allResults[test.name] = {
+                            status: response.status,
+                            error: errorText,
+                            success: false
+                        };
+                    }
+                } catch (error) {
+                    allResults[test.name] = {
+                        error: error.message,
+                        success: false
+                    };
+                }
+            }
+
+            resultDiv.textContent = JSON.stringify(allResults, null, 2);
+            
+            const hasSuccessfulResults = Object.values(allResults).some(r => r.success && r.count > 0);
+            if (hasSuccessfulResults) {
+                updateTestStatus('directTest', 'API calls successful! Data found.', 'success');
+            } else {
+                updateTestStatus('directTest', 'API calls failed or no data returned', 'error');
+            }
+        }
+
+        async function testCORSHeaders() {
+            updateTestStatus('corsTest', 'Testing CORS headers...', 'loading');
+            const resultDiv = document.getElementById('corsResult');
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/scripts?limit=1`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const corsInfo = {
+                    status: response.status,
+                    ok: response.ok,
+                    headers: Object.fromEntries(response.headers.entries()),
+                    url: response.url,
+                    type: response.type,
+                    redirected: response.redirected
+                };
+
+                if (response.ok) {
+                    const data = await response.json();
+                    corsInfo.dataLength = data.length;
+                    corsInfo.sampleData = data.slice(0, 1);
+                } else {
+                    corsInfo.errorText = await response.text();
+                }
+
+                resultDiv.textContent = JSON.stringify(corsInfo, null, 2);
+                
+                if (response.ok) {
+                    updateTestStatus('corsTest', 'CORS headers working correctly', 'success');
+                } else {
+                    updateTestStatus('corsTest', 'CORS issues detected', 'error');
+                }
+                
+            } catch (error) {
+                resultDiv.textContent = `CORS Error: ${error.message}`;
+                updateTestStatus('corsTest', 'CORS blocked', 'error');
+            }
+        }
+
+        async function testSpecificScripts() {
+            updateTestStatus('specificTest', 'Testing specific script IDs...', 'loading');
+            const resultDiv = document.getElementById('specificResult');
+            
+            // Test the specific script IDs we know exist
+            const knownScriptIds = [42, 49, 51, 53, 55];
+            
+            const tests = [
+                {
+                    name: 'Direct Script ID Query',
+                    url: `${SUPABASE_URL}/rest/v1/scripts?script_id=in.(${knownScriptIds.join(',')})&select=script_id,script_headline,script_status_id`
+                },
+                {
+                    name: 'Single Script Test (ID 42)',
+                    url: `${SUPABASE_URL}/rest/v1/scripts?script_id=eq.42&select=script_id,script_headline,script_status_id`
+                }
+            ];
+
+            let results = {};
+
+            for (const test of tests) {
+                try {
+                    const response = await fetch(test.url, {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        results[test.name] = {
+                            status: response.status,
+                            count: data.length,
+                            data: data
+                        };
+                    } else {
+                        const errorText = await response.text();
+                        results[test.name] = {
+                            status: response.status,
+                            error: errorText
+                        };
+                    }
+                } catch (error) {
+                    results[test.name] = {
+                        error: error.message
+                    };
+                }
+            }
+
+            resultDiv.textContent = JSON.stringify(results, null, 2);
+            
+            const foundScripts = Object.values(results).some(r => r.count > 0);
+            if (foundScripts) {
+                updateTestStatus('specificTest', 'Found specific scripts!', 'success');
+            } else {
+                updateTestStatus('specificTest', 'Could not find known scripts', 'error');
+            }
+        }
+
+        // Auto-run the first test when page loads
+        window.onload = function() {
+            setTimeout(testDirectAPI, 1000);
+        };
+    </script>
+</body>
+</html>

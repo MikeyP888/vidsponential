@@ -312,14 +312,11 @@ body {
     color: white;
 }
 
-/* Controls */
-.controls {
-    position: sticky;
-    bottom: 0;
+/* Controls - Shared bottom controls component */
+.controls-section {
     background: white;
-    padding: 20px 0;
-    border-top: 2px solid #e0e0e0;
-    margin-top: 30px;
+    padding: 0 0 15px 0;
+    margin-top: 0;
 }
 
 .controls-row {
@@ -329,7 +326,7 @@ body {
     gap: 20px;
 }
 
-.navigation {
+.navigation-controls {
     display: flex;
     gap: 10px;
 }
@@ -378,7 +375,7 @@ body {
         gap: 15px;
     }
 
-    .navigation {
+    .navigation-controls {
         order: 2;
     }
 }

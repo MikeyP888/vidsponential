@@ -336,8 +336,8 @@ export async function loadNotificationCounts() {
             counts.outlines = outlinesData.length;
         }
         
-        // Load count for Chapters (status 40)
-        const chaptersResponse = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_status_id=eq.40&select=script_id`, {
+        // Load count for Chapters (status 25)
+        const chaptersResponse = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_status_id=eq.25&select=script_id`, {
             headers: {
                 'apikey': SUPABASE_ANON_KEY,
                 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`

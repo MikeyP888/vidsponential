@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Script Outline Editor</title>
+    <title>Chapter Editor</title>
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍎</text></svg>">
     
     <link rel="stylesheet" href="../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../shared/styles/components.css">
     <link rel="stylesheet" href="../shared/styles/base.css">
     <link rel="stylesheet" href="../shared/styles/layout.css">
     <link rel="stylesheet" href="../shared/styles/buttons.css">
@@ -15,31 +16,18 @@
     <link rel="stylesheet" href="../shared/styles/notifications.css">
     <link rel="stylesheet" href="../shared/styles/script_editor_styles.css">
     <link rel="stylesheet" href="../shared/styles/missing-layout.css">
+    <link rel="stylesheet" href="../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../shared/styles/sidebar.css">
 </head>
-<body>
-    <div class="container">
+<body class="has-sidebar">
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
+    
+    <div class="container with-sidebar">
         <!-- =============================================== -->
         <!--                 HEADER SECTION                -->
         <!-- =============================================== -->
         <div class="header">
-            <!-- First horizontal container: Logo and Navigation Buttons -->
-            <div class="top-bar">
-                <img src="../shared/assets/vidsponential logo.png" alt="Vidsponential Logo" class="logo">
-                <div class="header-buttons">
-                    <a href="script_outline_editor.html" class="btn btn-primary header-btn navigation-btn" data-status="15">
-                        Outlines
-                        <span class="notification-badge" id="outlinesBadge" style="display: none;">0</span>
-                    </a>
-                    <a href="script_chapter_editor.html" class="btn btn-secondary header-btn navigation-btn" data-status="40">
-                        Chapters
-                        <span class="notification-badge" id="chaptersBadge" style="display: none;">0</span>
-                    </a>
-                    <a href="script_visuals_editor.html" class="btn btn-secondary header-btn navigation-btn" data-status="46">
-                        Visuals
-                        <span class="notification-badge" id="visualsBadge" style="display: none;">0</span>
-                    </a>
-                </div>
-            </div>
             
             <!-- Second horizontal container: Status Indicator -->
             <div class="status-bar">
@@ -48,7 +36,7 @@
             
             <!-- Third horizontal container: Scripts Completed Today -->
             <div class="completed-today-bar">
-                <div class="completed-today-text">Script Outlines Completed Today: <span id="outlinesCompletedTodayCount">0</span></div>
+                <div class="completed-today-text">Script Chapters Completed Today: <span id="chaptersCompletedTodayCount">0</span></div>
             </div>
             
             <!-- Fourth horizontal container: Overall Scripts Completed Today -->
@@ -57,7 +45,7 @@
             </div>
             
             <!-- Page Title -->
-            <h1 class="page-title">Script Outline Editor</h1>
+            <h1 class="page-title">Chapter Editor</h1>
         </div>
 
         <!-- =============================================== -->
@@ -170,15 +158,10 @@
                 </div>
             </div>
 
-            <!-- Headline Options Section -->
-            <div class="headline-options">
-                <h2 class="section-title">Headline Options</h2>
-                <div id="headlinesList"></div>
-            </div>
 
             <!-- Chapter Outlines Section -->
             <div class="chapters-section">
-                <h2 class="section-title">Chapter Outlines</h2>
+                <h2 class="section-title">Chapters</h2>
                 <div id="chaptersList"></div>
             </div>
         </div>
@@ -191,11 +174,11 @@
         </div>
 
         <!-- =============================================== -->
-        <!--                 CONTROLS SECTION              -->
+        <!--                BOTTOM CONTROLS                 -->
         <!-- =============================================== -->
-        <div class="controls">
+        <div class="controls-section">
             <div class="controls-row">
-                <div class="navigation">
+                <div class="navigation-controls">
                     <button class="btn btn-secondary" id="prevBtn" onclick="navigateScript(-1)">← Previous</button>
                     <button class="btn btn-secondary" id="nextBtn" onclick="navigateScript(1)">Next →</button>
                 </div>
@@ -209,6 +192,7 @@
         </div>
     </div>
 
-    <script type="module" src="../shared/js/app.js"></script>
+    <script type="module" src="../shared/js/sidebar-component.js"></script>
+    <script type="module" src="../shared/js/chapter-app.js"></script>
 </body>
 </html>

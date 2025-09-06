@@ -1,0 +1,209 @@
+/* ================================================= */
+/*           NAVIGATION COMPONENT                   */
+/*     Reusable navigation for all pages           */
+/* ================================================= */
+
+// Load configuration
+const loadNavigationConfig = () => {
+    const script = document.createElement('script');
+    script.src = '../shared/js/navigation-config.js';
+    document.head.appendChild(script);
+};
+
+class NavigationComponent {
+    constructor() {
+        this.supabaseUrl = 'https://euzbpslzrimyokzvgbzk.supabase.co';
+        this.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
+        this.currentPage = window.location.pathname.split('/').pop();
+        this.badgeCounts = {};
+        this.updateInterval = null;
+    }
+
+    /**
+     * Initialize the navigation component
+     */
+    async init() {
+        await this.renderNavigation();
+        await this.updateAllBadges();
+        this.startAutoUpdate();
+    }
+
+    /**
+     * Render the navigation HTML
+     */
+    async renderNavigation() {
+        // Wait for config to be loaded
+        if (typeof NAVIGATION_CONFIG === 'undefined') {
+            setTimeout(() => this.renderNavigation(), 100);
+            return;
+        }
+
+        const navContainer = document.getElementById('navigationContainer');
+        if (!navContainer) {
+            console.error('Navigation container not found');
+            return;
+        }
+
+        let navHTML = `
+            <div class="navigation-wrapper">
+                <!-- Top Row of Buttons -->
+                <div class="nav-row nav-row-top">
+        `;
+
+        // Add top row buttons
+        NAVIGATION_CONFIG.topRow.forEach(button => {
+            const isActive = this.currentPage === button.fileName;
+            const buttonClass = isActive ? 'btn-primary' : 'btn-secondary';
+            
+            navHTML += `
+                <a href="${button.fileName}" 
+                   class="btn ${buttonClass} nav-btn" 
+                   data-table="${button.table}"
+                   data-query="${button.queryString}">
+                    ${button.label}
+                    <span class="notification-badge" 
+                          id="${button.badgeId}" 
+                          style="display: none;">0</span>
+                </a>
+            `;
+        });
+
+        navHTML += `
+                </div>
+                <!-- Bottom Row of Buttons -->
+                <div class="nav-row nav-row-bottom">
+        `;
+
+        // Add bottom row buttons
+        NAVIGATION_CONFIG.bottomRow.forEach(button => {
+            const isActive = this.currentPage === button.fileName;
+            const buttonClass = isActive ? 'btn-primary' : 'btn-secondary';
+            
+            navHTML += `
+                <a href="${button.fileName}" 
+                   class="btn ${buttonClass} nav-btn" 
+                   data-table="${button.table}"
+                   data-query="${button.queryString}">
+                    ${button.label}
+                    <span class="notification-badge" 
+                          id="${button.badgeId}" 
+                          style="display: none;">0</span>
+                </a>
+            `;
+        });
+
+        navHTML += `
+                </div>
+                <!-- Logo Section - moved below navigation -->
+                <div class="logo-section-nav">
+                    <img src="../shared/assets/vidsponential logo.png" alt="Vidsponential Logo" class="logo-nav">
+                </div>
+            </div>
+        `;
+
+        navContainer.innerHTML = navHTML;
+    }
+
+    /**
+     * Update all notification badges
+     */
+    async updateAllBadges() {
+        const allButtons = [...NAVIGATION_CONFIG.topRow, ...NAVIGATION_CONFIG.bottomRow];
+        
+        // Create an array of promises for all badge updates
+        const updatePromises = allButtons.map(button => {
+            if (button.showBadge === false || !button.queryString) {
+                return Promise.resolve();
+            }
+            return this.updateBadge(button);
+        });
+
+        // Execute all updates in parallel for better performance
+        await Promise.all(updatePromises);
+    }
+
+    /**
+     * Update a single badge
+     */
+    async updateBadge(button) {
+        try {
+            const response = await fetch(
+                `${this.supabaseUrl}/rest/v1/${button.table}?${button.queryString}&select=*`,
+                {
+                    headers: {
+                        'apikey': this.supabaseKey,
+                        'Authorization': `Bearer ${this.supabaseKey}`,
+                        'Range': '0-999' // Get up to 1000 records for count
+                    }
+                }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                const count = data.length;
+                const badge = document.getElementById(button.badgeId);
+                
+                if (badge) {
+                    if (count > 0) {
+                        badge.textContent = count;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                    
+                    // Store count for tracking changes
+                    this.badgeCounts[button.badgeId] = count;
+                }
+            }
+        } catch (error) {
+            console.error(`Error updating badge for ${button.label}:`, error);
+        }
+    }
+
+    /**
+     * Start auto-updating badges every 30 seconds
+     */
+    startAutoUpdate() {
+        this.updateInterval = setInterval(() => {
+            this.updateAllBadges();
+        }, 30000); // Update every 30 seconds
+    }
+
+    /**
+     * Stop auto-updating (cleanup)
+     */
+    stopAutoUpdate() {
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
+        }
+    }
+
+    /**
+     * Manually refresh badges (call after save operations)
+     */
+    async refreshBadges() {
+        await this.updateAllBadges();
+    }
+}
+
+// Initialize navigation when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Load configuration first
+    loadNavigationConfig();
+    
+    // Initialize navigation component
+    window.navigationComponent = new NavigationComponent();
+    
+    // Wait a bit for config to load, then initialize
+    setTimeout(() => {
+        window.navigationComponent.init();
+    }, 200);
+});
+
+// Export function to refresh badges after save operations
+window.refreshNavigationBadges = async function() {
+    if (window.navigationComponent) {
+        await window.navigationComponent.refreshBadges();
+    }
+};

@@ -68,7 +68,7 @@ document.getElementById('logo-container').appendChild(logo);
 
 ### 2. Tab Navigation
 
-**Purpose**: Navigation between editor pages with notification badges
+**Purpose**: Navigation between editing pages with notification badges
 **Features**: Active/inactive states, notification badges, hover effects
 
 ```javascript

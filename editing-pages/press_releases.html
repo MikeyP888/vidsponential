@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Press Releases</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📰</text></svg>">
+    
+    <link rel="stylesheet" href="../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../shared/styles/components.css">
+    <link rel="stylesheet" href="../shared/styles/base.css">
+    <link rel="stylesheet" href="../shared/styles/layout.css">
+    <link rel="stylesheet" href="../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../shared/styles/forms.css">
+    <link rel="stylesheet" href="../shared/styles/status.css">
+    <link rel="stylesheet" href="../shared/styles/notifications.css">
+    <link rel="stylesheet" href="../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../shared/styles/sidebar.css">
+    
+    <style>
+        .press-releases-section {
+            margin: 20px 0;
+            padding: 25px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .new-release-btn {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: "Inter", sans-serif;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .new-release-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(11, 230, 255, 0.4);
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 0.5px solid #5b5a5a;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 120px;
+        }
+        
+        .releases-grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .release-card {
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid #e0e0e0;
+        }
+        
+        .release-card.published {
+            border-left-color: #28a745;
+        }
+        
+        .release-card.draft {
+            border-left-color: #ffc107;
+        }
+        
+        .release-card.scheduled {
+            border-left-color: #007bff;
+        }
+        
+        .release-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .release-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        
+        .release-title {
+            font-size: 18px;
+            font-family: "Inter", sans-serif;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .release-date {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .release-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-published {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-draft {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-scheduled {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .release-excerpt {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .release-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 15px;
+        }
+        
+        .release-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .btn-edit {
+            background: #0099ff;
+            color: white;
+        }
+        
+        .btn-publish {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-schedule {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .press-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            font-family: "Inter", sans-serif;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-family: "Tahoma", sans-serif;
+            font-weight: bold;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="has-sidebar">
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
+    
+    <div class="container with-sidebar">
+        <!-- Header Section -->
+        <div class="header">
+            <!-- Status Indicator -->
+            <div class="status-bar">
+                <div class="status-indicator" id="statusIndicator">Ready</div>
+            </div>
+            
+            <!-- Page Title -->
+            <h1 class="page-title">Press Releases</h1>
+        </div>
+
+        <!-- Main Content -->
+        <div id="content">
+            <div class="press-releases-section">
+                <!-- Stats -->
+                <div class="press-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Releases</div>
+                        <div class="stat-value">23</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Published</div>
+                        <div class="stat-value">18</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Scheduled</div>
+                        <div class="stat-value">3</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Draft</div>
+                        <div class="stat-value">2</div>
+                    </div>
+                </div>
+                
+                <!-- Action Bar -->
+                <div class="action-bar">
+                    <button class="new-release-btn" onclick="createNewRelease()">+ New Press Release</button>
+                    
+                    <div class="filter-group">
+                        <select class="filter-select">
+                            <option value="">All Status</option>
+                            <option value="published">Published</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="draft">Draft</option>
+                        </select>
+                        
+                        <select class="filter-select">
+                            <option value="">All Dates</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Press Releases List -->
+                <div class="releases-grid">
+                    <div class="release-card published">
+                        <div class="release-header">
+                            <div>
+                                <div class="release-title">ScriptMaster Launches AI-Powered Script Generation</div>
+                                <div class="release-date">Published: January 15, 2025</div>
+                            </div>
+                            <span class="release-status status-published">Published</span>
+                        </div>
+                        
+                        <div class="release-excerpt">
+                            Revolutionary new platform helps content creators generate high-quality scripts in minutes using advanced AI technology...
+                        </div>
+                        
+                        <div class="release-meta">
+                            <span>📰 TechCrunch</span>
+                            <span>👀 2,847 views</span>
+                            <span>🔗 12 pickups</span>
+                        </div>
+                        
+                        <div class="release-actions">
+                            <button class="action-btn btn-edit">Edit</button>
+                            <button class="action-btn btn-schedule">Re-schedule</button>
+                            <button class="action-btn btn-delete">Delete</button>
+                        </div>
+                    </div>
+                    
+                    <div class="release-card scheduled">
+                        <div class="release-header">
+                            <div>
+                                <div class="release-title">New Partnership with Leading YouTube Creators</div>
+                                <div class="release-date">Scheduled: January 25, 2025</div>
+                            </div>
+                            <span class="release-status status-scheduled">Scheduled</span>
+                        </div>
+                        
+                        <div class="release-excerpt">
+                            ScriptMaster announces strategic partnerships with top YouTube creators to enhance content quality and reach...
+                        </div>
+                        
+                        <div class="release-meta">
+                            <span>📅 Scheduled for 9:00 AM EST</span>
+                            <span>📧 Media list: 47 contacts</span>
+                        </div>
+                        
+                        <div class="release-actions">
+                            <button class="action-btn btn-edit">Edit</button>
+                            <button class="action-btn btn-publish">Publish Now</button>
+                            <button class="action-btn btn-delete">Delete</button>
+                        </div>
+                    </div>
+                    
+                    <div class="release-card draft">
+                        <div class="release-header">
+                            <div>
+                                <div class="release-title">Q1 2025 Product Updates and Features</div>
+                                <div class="release-date">Draft saved: 2 hours ago</div>
+                            </div>
+                            <span class="release-status status-draft">Draft</span>
+                        </div>
+                        
+                        <div class="release-excerpt">
+                            Comprehensive overview of new features and improvements coming to ScriptMaster in Q1 2025...
+                        </div>
+                        
+                        <div class="release-meta">
+                            <span>✏️ Last edited by Admin</span>
+                            <span>💾 Auto-saved</span>
+                        </div>
+                        
+                        <div class="release-actions">
+                            <button class="action-btn btn-edit">Continue Editing</button>
+                            <button class="action-btn btn-schedule">Schedule</button>
+                            <button class="action-btn btn-delete">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../shared/js/sidebar-component.js"></script>
+    <script>
+        function createNewRelease() {
+            alert('Redirecting to press release editor...');
+        }
+    </script>
+</body>
+</html>

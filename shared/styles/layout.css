@@ -17,6 +17,11 @@
     border-bottom: 2px solid #e0e0e0;
 }
 
+/* Prevent flashing during page load */
+#navigationContainer {
+    min-height: 200px; /* Reserve space for navigation component */
+}
+
 .top-bar {
     display: flex;
     justify-content: space-between;

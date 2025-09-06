@@ -34,10 +34,26 @@ let isLoading = false;
 // Main initialization function
 export async function init() {
     try {
-        console.log('Starting initialization...');
+        console.log('=== OUTLINE EDITOR DEBUG: Starting initialization ===');
         updateStatus('loading', 'Loading scripts...');
         
-        console.log('Loading initial data...');
+        console.log('=== OUTLINE EDITOR DEBUG: About to load initial data ===');
+        
+        // Direct API test
+        console.log('=== OUTLINE EDITOR DEBUG: Testing direct API call ===');
+        try {
+            const testResponse = await fetch('https://euzbpslzrimyokzvgbzk.supabase.co/rest/v1/scripts?script_status_id=eq.15&select=script_id,script_headline', {
+                headers: {
+                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI',
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI'
+                }
+            });
+            const testData = await testResponse.json();
+            console.log('=== OUTLINE EDITOR DEBUG: Direct API result ===', testData);
+        } catch (testError) {
+            console.error('=== OUTLINE EDITOR DEBUG: Direct API failed ===', testError);
+        }
+        
         // Load initial data
         const [notificationCounts, completionCounts, scripts] = await Promise.all([
             loadNotificationCounts(),
@@ -46,6 +62,7 @@ export async function init() {
         ]);
         
         console.log('Loaded data:', { notificationCounts, completionCounts, scriptsCount: scripts.length });
+        console.log('Scripts data:', scripts);
         
         // Update UI with counts
         updateNotificationBadges(notificationCounts);
@@ -55,8 +72,9 @@ export async function init() {
         scriptsToReview = scripts;
         
         if (scripts.length > 0) {
-            console.log('Loading first script...');
+            console.log('Loading first script with ID:', scripts[0].script_id);
             await loadCurrentScriptData();
+            console.log('Successfully loaded script data');
             setupEventListeners(saveScript);
             startAutoSave();
         } else {
@@ -87,16 +105,24 @@ function handleInitializationError(error) {
 // Load current script data and display it
 async function loadCurrentScriptData() {
     if (scriptsToReview.length === 0) {
+        console.log('No scripts to review, showing message...');
         showNoScriptsMessage();
         return;
     }
 
     const scriptId = scriptsToReview[currentScriptIndex].script_id;
+    console.log('Loading script data for ID:', scriptId);
     
     try {
         updateStatus('loading', 'Loading script data...');
+        console.log('Calling loadCurrentScript API...');
         currentScriptData = await loadCurrentScript(scriptId);
+        console.log('Received script data:', currentScriptData);
+        
+        console.log('Calling displayScriptData...');
         displayScriptData(currentScriptData);
+        console.log('Script data displayed successfully');
+        
         updateNavigationButtons(currentScriptIndex, scriptsToReview);
         updateStatus('saved', 'Loaded successfully');
         setHasUnsavedChanges(false);
@@ -227,7 +253,9 @@ window.navigateScript = navigateScript;
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, starting initialization...');
+    console.log('=== OUTLINE EDITOR DEBUG: DOM listener triggered ===');
     init().catch(error => {
         console.error('Failed to initialize app:', error);
+        console.error('=== OUTLINE EDITOR DEBUG: Initialization failed ===', error);
     });
 });

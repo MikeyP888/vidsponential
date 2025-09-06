@@ -187,10 +187,12 @@
     font-style: italic;
 }
 
-/* Chapter Text Paragraph Spacing - 10px after each paragraph */
+/* Chapter Text Paragraph Spacing - Proper line and paragraph spacing */
 .chapter-ou-7a2807fb2c18 {
-    line-height: 2.2 !important; /* Increased line height to create more space between paragraphs */
+    /* line-height now handled by centralized rule in fonts.css */
     white-space: pre-wrap !important;
-    font-family: Georgia, "Times New Roman", serif !important;
-    font-size: 16px !important;
+    /* Use letter-spacing and word-spacing to fine-tune text appearance */
+    letter-spacing: 0.01em;
+    /* The paragraph spacing is created by empty lines in the text content itself */
+    /* Users should press Enter twice to create paragraph breaks */
 }

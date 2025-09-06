@@ -1,0 +1,151 @@
+/* ================================================= */
+/*           NAVIGATION COMPONENT STYLES            */
+/*     Styles for the centralized navigation        */
+/* ================================================= */
+
+/* Navigation Container */
+.navigation-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Same spacing between rows as horizontal spacing between buttons */
+    padding: 20px;
+    background: white; /* Changed from purple gradient to white */
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Navigation Rows */
+.nav-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Removed border-bottom and padding from nav-row-top */
+.nav-row-top {
+    /* No special styling needed */
+}
+
+/* Removed padding-top from nav-row-bottom */
+.nav-row-bottom {
+    /* No special styling needed */
+}
+
+/* Navigation Buttons */
+.nav-btn {
+    position: relative;
+    padding: 10px 20px;
+    min-width: 120px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 8px; /* Consistent radius for all buttons */
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 2px solid transparent; /* Consistent border for sizing */
+}
+
+/* Button States - Selected/Active */
+.nav-btn.btn-primary {
+    background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%) !important; /* Gradient from script_outline_editor */
+    background-image: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%) !important;
+    color: white !important;
+    border: 2px solid transparent !important; /* Same border to maintain size */
+    border-left: none !important; /* Remove any left border */
+    border-right: none !important; /* Remove any right border */
+    border-radius: 8px !important; /* Explicit radius to ensure it's not square */
+    background-clip: padding-box; /* Ensure gradient fills entire button */
+    box-shadow: none !important; /* Remove any box-shadow that might create border appearance */
+}
+
+/* Button States - Non-selected */
+.nav-btn.btn-secondary {
+    background: #e2e6e6; /* 25% lighter gray for non-selected buttons */
+    color: white;
+    border: 2px solid transparent; /* Same border to maintain size */
+    border-radius: 8px; /* Explicit radius to ensure consistency */
+}
+
+/* Hover effects */
+.nav-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.nav-btn.btn-primary:hover {
+    background: linear-gradient(to right, rgba(11, 230, 255, 0.9) 0%, rgba(175, 11, 255, 0.9) 100%); /* Slightly darker on hover */
+}
+
+.nav-btn.btn-secondary:hover {
+    background: #d8dcdc; /* Slightly darker than the new lighter gray on hover */
+}
+
+/* Notification Badge */
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ff4757;
+    color: white;
+    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 0 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 71, 87, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 71, 87, 0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navigation-wrapper {
+        padding: 15px;
+    }
+    
+    .nav-row {
+        gap: 8px;
+    }
+    
+    .nav-btn {
+        min-width: 100px;
+        padding: 8px 15px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-btn {
+        min-width: 80px;
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .notification-badge {
+        min-width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+}

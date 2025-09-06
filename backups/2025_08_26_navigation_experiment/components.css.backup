@@ -293,23 +293,24 @@
 /* 6. GRADIENT BUTTON COMPONENT */
 .gradient-button {
     position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     width: auto;
-    min-width: 140px;
-    max-width: fit-content;
     height: auto;
-    min-height: 29px;
     background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
     border-radius: 8px;
-    border: none;
-    margin: 0px 0px 10px 0px;
-    padding: 0;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    align-content: stretch;
+    justify-content: center;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    margin: 0px 0px 10px 0px;
+    min-height: 29px;
+    min-width: 140px;
+    align-self: start;
+    border: none;
     cursor: pointer;
     transition: all 0.3s ease;
-    align-self: flex-start;
 }
 
 .gradient-button:hover {

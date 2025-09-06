@@ -17,7 +17,9 @@
       "Bash(git fetch:*)",
       "Bash(git ls-tree:*)",
       "Bash(git push:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(git remote set-url:*)",
+      "WebFetch(domain:vidsponential.vercel.app)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
