@@ -230,8 +230,8 @@
         <!-- Bottom navigation will be added by JavaScript -->
     </div>
 
-    <script type="module" src="../../../../../shared/js/sidebar-component.js"></script>
-    <script type="module" src="../../../../../shared/js/textarea-autosize.js"></script>
+    <script type="module" src="../../shared/js/sidebar-component.js"></script>
+    <script type="module" src="../../shared/js/textarea-autosize.js"></script>
     <script>
         // Visual Editor Application - Loads scripts with status_id=40, updates to 45
         
@@ -242,6 +242,16 @@
         let currentScriptIndex = 0;
         let hasUnsavedChanges = false;
         let isLoading = false;
+
+        // Visual fields configuration
+        const VISUAL_FIELDS = [
+            { name: 'opening_visuals', label: 'OPENING VISUALS' },
+            { name: 'main_story_visuals', label: 'MAIN STORY VISUALS' },
+            { name: 'supporting_visuals', label: 'SUPPORTING VISUALS' },
+            { name: 'b_roll_footage', label: 'B-ROLL FOOTAGE' },
+            { name: 'graphics_animations', label: 'GRAPHICS & ANIMATIONS' },
+            { name: 'closing_visuals', label: 'CLOSING VISUALS' }
+        ];
 
         async function init() {
             try {
@@ -257,6 +267,8 @@
                 
                 if (scripts.length > 0) {
                     await loadCurrentScriptData();
+                    setupEventListeners();
+                    startAutoSave();
                 } else {
                     showNoScriptsMessage('There are no scripts ready for visuals (status_id = 40) at this time.');
                 }
@@ -276,13 +288,47 @@
                     headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
                 }).then(r => r.json()).then(data => data[0]);
                 
-                displayScriptData({ script: scriptInfo });
+                const beatsData = await loadBeatsData(scriptId);
+                
+                displayScriptData({ script: scriptInfo, beats: beatsData });
                 updateNavigationButtons();
                 updateStatus('saved', 'Loaded successfully');
             } catch (error) {
                 console.error('Error loading script:', error);
                 updateStatus('error', 'Failed to load script data');
             }
+        }
+
+        // Load beats data from the beats table
+        async function loadBeatsData(scriptId) {
+            console.log('Loading beats for script ID:', scriptId);
+            
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/beats?script_id=eq.${scriptId}&select=*`, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
+            });
+
+            console.log('Beats response status:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Beats fetch failed:', response.status, errorText);
+                return [];
+            }
+
+            const data = await response.json();
+            console.log('Beats data received:', data);
+            console.log('Number of beats found:', data ? data.length : 0);
+            
+            // Log first few beats for debugging
+            if (data && data.length > 0) {
+                console.log('First beat sample:', data[0]);
+                console.log('Available beat fields:', Object.keys(data[0]));
+            }
+            
+            return data || [];
         }
 
         function displayScriptData(data) {
@@ -296,6 +342,173 @@
             document.getElementById('channelValue').textContent = data.script.channel_name || '-';
             document.getElementById('typeValue').textContent = data.script.script_type || '-';
             document.getElementById('genreValue').textContent = data.script.genre || '-';
+
+            // Display beats by chapter
+            displayBeats(data.beats);
+        }
+
+        // Display beats grouped by chapters
+        function displayBeats(beats) {
+            console.log('displayBeats called with:', beats);
+            const container = document.getElementById('visualsList');
+            container.innerHTML = '';
+
+            if (!beats || beats.length === 0) {
+                console.log('No beats to display, beats array:', beats);
+                container.innerHTML = `
+                    <div class="message info">
+                        <strong>No beats found</strong><br>
+                        No beats are available for this script in the database.
+                    </div>
+                `;
+                return;
+            }
+
+            console.log('Displaying', beats.length, 'beats');
+
+            // Group beats by chapter_number
+            const beatsByChapter = {};
+            beats.forEach(beat => {
+                const chapterNum = beat.chapter_number || 1;
+                if (!beatsByChapter[chapterNum]) {
+                    beatsByChapter[chapterNum] = [];
+                }
+                beatsByChapter[chapterNum].push(beat);
+            });
+
+            // Display each chapter with its beats
+            Object.keys(beatsByChapter).sort((a, b) => parseInt(a) - parseInt(b)).forEach(chapterNum => {
+                const chapterBeats = beatsByChapter[chapterNum];
+                
+                // Create chapter section
+                const chapterSection = document.createElement('div');
+                chapterSection.className = 'chapter-se-7a2807fb2c0d';
+                
+                // Chapter header
+                const chapterHeader = document.createElement('button');
+                chapterHeader.className = 'gradient-button';
+                chapterHeader.innerHTML = `<span class="gradient-button__text">Chapter ${chapterNum} (${chapterBeats.length} beats)</span>`;
+                chapterSection.appendChild(chapterHeader);
+                
+                // Add each beat as a row
+                chapterBeats.forEach((beat, beatIndex) => {
+                    const beatRow = document.createElement('div');
+                    beatRow.className = 'form-row';
+                    beatRow.style.marginBottom = '20px';
+                    
+                    beatRow.innerHTML = `
+                        <!-- Beat Content (Two Column Layout) -->
+                        <div class="form-row__text-field" style="display: flex; gap: 20px;">
+                            <!-- Left Column: Script Beat -->
+                            <div style="flex: 1;">
+                                <label class="rating-field__label" style="display: block; margin-bottom: 8px;">Script Beat:</label>
+                                <div class="text-field-multi">
+                                    <div class="text-field-multi__container">
+                                        <textarea class="text-field-multi__input auto-height-sync" 
+                                                 id="script_beat_${beat.id}" 
+                                                 data-beat-id="${beat.id}"
+                                                 data-field="script_beat"
+                                                 data-sync-group="beat_${beat.id}"
+                                                 style="min-height: 38px; height: 38px; resize: none; overflow: hidden;"
+                                                 placeholder="Enter script beat text...">${beat.script_beat || ''}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column: Visual Suggestion -->
+                            <div style="flex: 1;">
+                                <label class="rating-field__label" style="display: block; margin-bottom: 8px;">Visual Suggestion:</label>
+                                <div class="text-field-multi">
+                                    <div class="text-field-multi__container">
+                                        <textarea class="text-field-multi__input auto-height-sync" 
+                                                 id="visual_suggestion_${beat.id}" 
+                                                 data-beat-id="${beat.id}"
+                                                 data-field="visual_suggestion"
+                                                 data-sync-group="beat_${beat.id}"
+                                                 style="min-height: 38px; height: 38px; resize: none; overflow: hidden;"
+                                                 placeholder="Enter visual suggestion...">${beat.visual_suggestion || ''}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Rating Field -->
+                        <div class="form-row__rating-field">
+                            <div class="rating-field">
+                                <label class="rating-field__label">Rating / 100:</label>
+                                <div class="rating-field__container">
+                                    <input type="number" 
+                                           class="rating-field__input" 
+                                           id="visual_rating_${beat.id}"
+                                           data-beat-id="${beat.id}"
+                                           data-field="visual_suggestion_mp_rating"
+                                           min="1" 
+                                           max="100" 
+                                           value="${beat.visual_suggestion_mp_rating || ''}">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    chapterSection.appendChild(beatRow);
+                });
+                
+                container.appendChild(chapterSection);
+            });
+            
+            // Initialize auto-height functionality for all textareas
+            initAutoHeightSync();
+        }
+
+        // Initialize auto-height sync functionality
+        function initAutoHeightSync() {
+            const textareas = document.querySelectorAll('.auto-height-sync');
+            
+            textareas.forEach(textarea => {
+                // Set initial height based on content
+                autoResize(textarea);
+                
+                // Add input event listener
+                textarea.addEventListener('input', function() {
+                    const syncGroup = this.dataset.syncGroup;
+                    const groupTextareas = document.querySelectorAll(`[data-sync-group="${syncGroup}"]`);
+                    
+                    // Calculate the required height for each textarea in the group
+                    let maxHeight = 38; // Minimum height (single line)
+                    
+                    groupTextareas.forEach(ta => {
+                        const requiredHeight = getRequiredHeight(ta);
+                        maxHeight = Math.max(maxHeight, requiredHeight);
+                    });
+                    
+                    // Apply the maximum height to all textareas in the group
+                    groupTextareas.forEach(ta => {
+                        ta.style.height = maxHeight + 'px';
+                    });
+                });
+            });
+        }
+
+        // Calculate the required height for a textarea
+        function getRequiredHeight(textarea) {
+            // Reset height to auto to measure content
+            const originalHeight = textarea.style.height;
+            textarea.style.height = 'auto';
+            
+            // Get the scroll height (content height)
+            const scrollHeight = textarea.scrollHeight;
+            
+            // Restore original height
+            textarea.style.height = originalHeight;
+            
+            // Return at least minimum height
+            return Math.max(38, scrollHeight);
+        }
+
+        // Auto-resize a single textarea
+        function autoResize(textarea) {
+            const requiredHeight = getRequiredHeight(textarea);
+            textarea.style.height = requiredHeight + 'px';
         }
 
         async function saveScript() {
@@ -307,13 +520,22 @@
                 
                 const scriptId = scriptsToReview[currentScriptIndex].script_id;
                 
+                // Save beats data
+                await saveBeatsData(scriptId);
+                
+                // Update script status from 40 to 41
                 await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`, {
                     method: 'PATCH',
                     headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ script_status_id: 45 })
+                    body: JSON.stringify({ script_status_id: 41 })
                 });
                 
-                updateStatus('saved', 'Visuals completed and status updated to 45');
+                updateStatus('saved', 'Visuals completed and status updated to 41');
+                hasUnsavedChanges = false;
+                if (window.setUnsavedChanges) {
+                    window.setUnsavedChanges(false);
+                }
+                
                 scriptsToReview.splice(currentScriptIndex, 1);
                 
                 if (scriptsToReview.length > 0) {
@@ -328,6 +550,51 @@
                 updateStatus('error', 'Failed to save visuals');
             } finally {
                 isLoading = false;
+            }
+        }
+
+        // Save beats data
+        async function saveBeatsData(scriptId) {
+            const beatFields = document.querySelectorAll('[data-beat-id]');
+            const updatesByBeat = {};
+            
+            // Collect all updates by beat ID
+            beatFields.forEach(field => {
+                const beatId = field.dataset.beatId;
+                const fieldType = field.dataset.field;
+                
+                if (!updatesByBeat[beatId]) {
+                    updatesByBeat[beatId] = { id: parseInt(beatId) };
+                }
+                
+                if (fieldType === 'script_beat') {
+                    updatesByBeat[beatId].script_beat = field.value;
+                } else if (fieldType === 'visual_suggestion') {
+                    updatesByBeat[beatId].visual_suggestion = field.value;
+                } else if (fieldType === 'visual_suggestion_mp_rating') {
+                    updatesByBeat[beatId].visual_suggestion_mp_rating = parseInt(field.value) || null;
+                }
+            });
+            
+            // Save each beat individually
+            for (const beatId in updatesByBeat) {
+                const update = updatesByBeat[beatId];
+                const { id, ...updateData } = update;
+                
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/beats?id=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to save beat ${id}`);
+                }
             }
         }
 
@@ -361,6 +628,39 @@
             document.getElementById('noScriptsMessage').style.display = 'block';
         }
 
+        // Set up event listeners
+        function setupEventListeners() {
+            // Add change listeners to mark unsaved changes
+            document.addEventListener('input', (e) => {
+                if (e.target.dataset.field && e.target.dataset.beatId) {
+                    hasUnsavedChanges = true;
+                    if (window.setUnsavedChanges) {
+                        window.setUnsavedChanges(true);
+                    }
+                    updateStatus('editing', 'Editing visual suggestions...');
+                }
+            });
+        }
+
+        // Auto-save functionality
+        function startAutoSave() {
+            if (window.bottomNav) {
+                window.bottomNav.startAutoSave(async () => {
+                    if (hasUnsavedChanges && scriptsToReview.length > 0) {
+                        try {
+                            const scriptId = scriptsToReview[currentScriptIndex].script_id;
+                            await saveBeatsData(scriptId);
+                            hasUnsavedChanges = false;
+                            updateStatus('saved', 'Auto-saved');
+                        } catch (error) {
+                            console.error('Auto-save failed:', error);
+                            updateStatus('error', 'Auto-save failed');
+                        }
+                    }
+                });
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             console.log('DOM loaded, starting Visual Editor...');
             init();
@@ -371,7 +671,7 @@
     </script>
     
     <script type="module">
-        import BottomNavigation from '../../../../../shared/js/bottom-navigation.js';
+        import BottomNavigation from '../../shared/js/bottom-navigation.js';
         window.bottomNav = new BottomNavigation({
             onSave: () => window.saveScript(),
             onNavigate: (direction) => window.navigateScript(direction),
@@ -380,6 +680,12 @@
         
         window.updateBottomNavigation = (currentIndex, totalItems) => {
             if (window.bottomNav) window.bottomNav.updateNavigation(currentIndex, totalItems);
+        };
+        
+        window.setUnsavedChanges = (hasChanges) => {
+            if (window.bottomNav) {
+                window.bottomNav.setUnsavedChanges(hasChanges);
+            }
         };
     </script>
 </body>

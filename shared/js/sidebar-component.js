@@ -144,3 +144,4 @@ document.addEventListener('DOMContentLoaded', function() {
 // Export for manual initialization if needed
 window.SidebarNavigation = SidebarNavigation;
 window.navigateToPage = navigateToPage;
+

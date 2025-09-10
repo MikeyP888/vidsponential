@@ -177,8 +177,8 @@
         <!-- Bottom navigation will be added by JavaScript -->
     </div>
 
-    <script type="module" src="../../../../../shared/js/sidebar-component.js"></script>
-    <script type="module" src="../../../../../shared/js/textarea-autosize.js"></script>
+    <script type="module" src="../../shared/js/sidebar-component.js"></script>
+    <script type="module" src="../../shared/js/textarea-autosize.js"></script>
     <script>
         // Chapter Editor Application - Loads scripts with status_id=25, updates to 35
         
@@ -189,6 +189,18 @@
         let currentScriptIndex = 0;
         let hasUnsavedChanges = false;
         let isLoading = false;
+
+        // Chapter fields configuration
+        const CHAPTER_FIELDS = [
+            { name: 'chapter_1', label: 'CHAPTER 1' },
+            { name: 'chapter_2', label: 'CHAPTER 2' },
+            { name: 'chapter_3', label: 'CHAPTER 3' },
+            { name: 'chapter_4', label: 'CHAPTER 4' },
+            { name: 'chapter_5', label: 'CHAPTER 5' },
+            { name: 'chapter_6', label: 'CHAPTER 6' },
+            { name: 'chapter_7', label: 'CHAPTER 7' },
+            { name: 'chapter_8', label: 'CHAPTER 8' }
+        ];
 
         async function init() {
             try {
@@ -204,6 +216,8 @@
                 
                 if (scripts.length > 0) {
                     await loadCurrentScriptData();
+                    setupEventListeners();
+                    startAutoSave();
                 } else {
                     showNoScriptsMessage('There are no scripts ready for chapters (status_id = 25) at this time.');
                 }
@@ -223,13 +237,38 @@
                     headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
                 }).then(r => r.json()).then(data => data[0]);
                 
-                displayScriptData({ script: scriptInfo });
+                const chapterData = await loadChapterData(scriptId);
+                
+                displayScriptData({ script: scriptInfo, chapters: chapterData });
                 updateNavigationButtons();
                 updateStatus('saved', 'Loaded successfully');
             } catch (error) {
                 console.error('Error loading script:', error);
                 updateStatus('error', 'Failed to load script data');
             }
+        }
+
+        // Load chapter data from the chapters table
+        async function loadChapterData(scriptId) {
+            console.log('Loading chapters for script ID:', scriptId);
+            
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/chapters?script_id=eq.${scriptId}&select=*&order=chapter_number.asc`, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
+            });
+
+            console.log('Chapters response status:', response.status);
+
+            if (!response.ok) {
+                console.warn('No chapters data found');
+                return [];
+            }
+
+            const data = await response.json();
+            console.log('Chapters data received:', data);
+            return data || [];
         }
 
         function displayScriptData(data) {
@@ -241,6 +280,114 @@
             document.getElementById('wordsValue').textContent = data.script.target_word_count || '-';
             document.getElementById('clientValue').textContent = data.script.client_name || '-';
             document.getElementById('channelValue').textContent = data.script.channel_name || '-';
+            document.getElementById('typeValue').textContent = data.script.script_type || '-';
+            document.getElementById('genreValue').textContent = data.script.genre || '-';
+            document.getElementById('subgenreValue').textContent = data.script.subgenre || '-';
+            document.getElementById('formatValue').textContent = data.script.format || '-';
+            document.getElementById('structureValue').textContent = data.script.structure || '-';
+            document.getElementById('researchValue').textContent = data.script.research_depth || '-';
+            document.getElementById('toneValue').textContent = data.script.tone || '-';
+            document.getElementById('angleValue').textContent = data.script.angle || '-';
+
+            // Display chapters
+            displayChapters(data.chapters);
+        }
+
+        // Display chapters from the chapters table
+        function displayChapters(chapters) {
+            console.log('displayChapters called with:', chapters);
+            const container = document.getElementById('chaptersList');
+            container.innerHTML = '';
+
+            if (!chapters || chapters.length === 0) {
+                console.log('No chapters to display, chapters array:', chapters);
+                container.innerHTML = `
+                    <div class="message info">
+                        <strong>No chapters found</strong><br>
+                        No chapters are available for this script in the database.
+                    </div>
+                `;
+                return;
+            }
+
+            console.log('Displaying', chapters.length, 'chapters');
+
+            chapters.forEach(chapter => {
+                const chapterSection = document.createElement('div');
+                chapterSection.className = 'chapter-se-7a2807fb2c0d';
+                
+                chapterSection.innerHTML = `
+                    <!-- Chapter Header Button -->
+                    <button class="gradient-button">
+                        <span class="gradient-button__text">Chapter ${chapter.chapter_number || 'N/A'}</span>
+                    </button>
+                    
+                    <!-- Chapter Headline Row -->
+                    <div class="ch-title-7a2807fb2c0f">
+                        <!-- Chapter Headline Text + Label -->
+                        <div class="form-row__text-field">
+                            <label class="label-ch-7a2807fb2c1f">Chapter Headline:</label>
+                            <div class="title-fiel-7a2807fb2c1e">
+                                <input type="text" class="chapter-ti-7a2807fb2c20" 
+                                       id="chapter_headline_${chapter.id}" 
+                                       data-chapter-id="${chapter.id}"
+                                       data-field="chapter_headline"
+                                       placeholder="Enter chapter headline..."
+                                       value="${chapter.chapter_headline || ''}">
+                            </div>
+                        </div>
+                        
+                        <!-- Chapter Headline Rating + Label -->
+                        <div class="form-row__rating-field">
+                            <div class="rating-field">
+                                <label class="rating-field__label">Rating / 100:</label>
+                                <div class="rating-field__container">
+                                    <input type="number" 
+                                           class="rating-field__input" 
+                                           id="chapter_headline_rating_${chapter.id}"
+                                           data-chapter-id="${chapter.id}"
+                                           data-field="chapter_headline_mp_rating" 
+                                           min="1" max="100" 
+                                           value="${chapter.chapter_headline_mp_rating || ''}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chapter Text Content Row -->
+                    <div class="form-row">
+                        <div class="form-row__text-field">
+                            <div class="text-field-multi">
+                                <div class="text-field-multi__container">
+                                    <textarea class="text-field-multi__input" 
+                                             id="chapter_text_${chapter.id}" 
+                                             data-chapter-id="${chapter.id}"
+                                             data-field="chapter_text"
+                                             style="min-height: 500px; height: 500px;"
+                                             placeholder="Enter chapter content...">${chapter.chapter_text || ''}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row__rating-field">
+                            <div class="rating-field">
+                                <label class="rating-field__label">Rating / 100:</label>
+                                <div class="rating-field__container">
+                                    <input type="number" 
+                                           class="rating-field__input" 
+                                           id="chapter_text_rating_${chapter.id}"
+                                           data-chapter-id="${chapter.id}"
+                                           data-field="chapter_text_mp_rating"
+                                           min="1" 
+                                           max="100" 
+                                           value="${chapter.chapter_text_mp_rating || ''}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(chapterSection);
+            });
         }
 
         async function saveScript() {
@@ -252,6 +399,10 @@
                 
                 const scriptId = scriptsToReview[currentScriptIndex].script_id;
                 
+                // Save chapter data
+                await saveChaptersData(scriptId);
+                
+                // Update script status from 25 to 35
                 await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`, {
                     method: 'PATCH',
                     headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
@@ -259,6 +410,11 @@
                 });
                 
                 updateStatus('saved', 'Chapters completed and status updated to 35');
+                hasUnsavedChanges = false;
+                if (window.setUnsavedChanges) {
+                    window.setUnsavedChanges(false);
+                }
+                
                 scriptsToReview.splice(currentScriptIndex, 1);
                 
                 if (scriptsToReview.length > 0) {
@@ -273,6 +429,53 @@
                 updateStatus('error', 'Failed to save chapters');
             } finally {
                 isLoading = false;
+            }
+        }
+
+        // Save chapters data
+        async function saveChaptersData(scriptId) {
+            const chapterFields = document.querySelectorAll('[data-chapter-id]');
+            const updatesByChapter = {};
+            
+            // Collect all updates by chapter ID
+            chapterFields.forEach(field => {
+                const chapterId = field.dataset.chapterId;
+                const fieldType = field.dataset.field;
+                
+                if (!updatesByChapter[chapterId]) {
+                    updatesByChapter[chapterId] = { id: parseInt(chapterId) };
+                }
+                
+                if (fieldType === 'chapter_headline') {
+                    updatesByChapter[chapterId].chapter_headline = field.value;
+                } else if (fieldType === 'chapter_headline_mp_rating') {
+                    updatesByChapter[chapterId].chapter_headline_mp_rating = parseInt(field.value) || null;
+                } else if (fieldType === 'chapter_text') {
+                    updatesByChapter[chapterId].chapter_text = field.value;
+                } else if (fieldType === 'chapter_text_mp_rating') {
+                    updatesByChapter[chapterId].chapter_text_mp_rating = parseInt(field.value) || null;
+                }
+            });
+            
+            // Save each chapter individually
+            for (const chapterId in updatesByChapter) {
+                const update = updatesByChapter[chapterId];
+                const { id, ...updateData } = update;
+                
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/chapters?id=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to save chapter ${id}`);
+                }
             }
         }
 
@@ -306,6 +509,39 @@
             document.getElementById('noScriptsMessage').style.display = 'block';
         }
 
+        // Set up event listeners
+        function setupEventListeners() {
+            // Add change listeners to mark unsaved changes
+            document.addEventListener('input', (e) => {
+                if (e.target.dataset.field && e.target.dataset.chapterId) {
+                    hasUnsavedChanges = true;
+                    if (window.setUnsavedChanges) {
+                        window.setUnsavedChanges(true);
+                    }
+                    updateStatus('editing', 'Editing chapter data...');
+                }
+            });
+        }
+
+        // Auto-save functionality
+        function startAutoSave() {
+            if (window.bottomNav) {
+                window.bottomNav.startAutoSave(async () => {
+                    if (hasUnsavedChanges && scriptsToReview.length > 0) {
+                        try {
+                            const scriptId = scriptsToReview[currentScriptIndex].script_id;
+                            await saveChaptersData(scriptId);
+                            hasUnsavedChanges = false;
+                            updateStatus('saved', 'Auto-saved');
+                        } catch (error) {
+                            console.error('Auto-save failed:', error);
+                            updateStatus('error', 'Auto-save failed');
+                        }
+                    }
+                });
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             console.log('DOM loaded, starting Chapter Editor...');
             init();
@@ -316,7 +552,7 @@
     </script>
     
     <script type="module">
-        import BottomNavigation from '../../../../../shared/js/bottom-navigation.js';
+        import BottomNavigation from '../../shared/js/bottom-navigation.js';
         window.bottomNav = new BottomNavigation({
             onSave: () => window.saveScript(),
             onNavigate: (direction) => window.navigateScript(direction),
@@ -325,6 +561,12 @@
         
         window.updateBottomNavigation = (currentIndex, totalItems) => {
             if (window.bottomNav) window.bottomNav.updateNavigation(currentIndex, totalItems);
+        };
+        
+        window.setUnsavedChanges = (hasChanges) => {
+            if (window.bottomNav) {
+                window.bottomNav.setUnsavedChanges(hasChanges);
+            }
         };
     </script>
 </body>
