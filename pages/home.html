@@ -151,8 +151,8 @@
             color: white;
         }
 
-        .stat-card.revenue {
-            background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+        .stat-card.clients {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
         }
 
@@ -175,8 +175,6 @@
         .stat-comparison {
             font-size: 12px;
             opacity: 0.85;
-            padding-top: 12px;
-            border-top: 1px solid rgba(255,255,255,0.2);
         }
 
         /* Hours Worked Section */
@@ -199,7 +197,7 @@
 
         .hours-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 16px;
         }
 
@@ -308,24 +306,6 @@
             color: #2c3e50;
         }
 
-        .mini-stat-breakdown {
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid #e0e0e0;
-            font-size: 11px;
-            color: #888;
-        }
-
-        .platform-tag {
-            display: inline-block;
-            background: #f0f8ff;
-            color: #3498db;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin: 2px;
-            font-weight: 500;
-        }
-
         /* Total Stats Grid */
         .total-stats-grid {
             display: grid;
@@ -364,13 +344,27 @@
             -webkit-text-fill-color: transparent;
         }
 
+        .status-breakdown {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+
         @media (max-width: 1024px) {
             .main-stats {
                 grid-template-columns: 1fr;
             }
 
             .hours-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -395,6 +389,10 @@
             .hours-value {
                 font-size: 36px;
             }
+
+            .hours-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -410,7 +408,7 @@
         <!-- Date Controls -->
         <div class="date-controls">
             <div class="period-selector">
-                <button class="period-btn" data-period="today">Today</button>
+                <button class="period-btn" data-period="day">Today</button>
                 <button class="period-btn active" data-period="week">This Week</button>
                 <button class="period-btn" data-period="month">This Month</button>
                 <button class="period-btn" data-period="quarter">This Quarter</button>
@@ -436,14 +434,14 @@
         <div class="main-stats">
             <div class="stat-card scripts">
                 <div class="stat-label">Scripts Completed</div>
-                <div class="stat-value" id="scriptsValue">12</div>
-                <div class="stat-comparison" id="scriptsComparison">Last week: 8 scripts</div>
+                <div class="stat-value" id="scriptsValue">--</div>
+                <div class="stat-comparison" id="scriptsComparison">Loading...</div>
             </div>
 
-            <div class="stat-card revenue">
-                <div class="stat-label">Revenue Received</div>
-                <div class="stat-value" id="revenueValue">$4,320</div>
-                <div class="stat-comparison" id="revenueComparison">Last week: $2,850</div>
+            <div class="stat-card clients">
+                <div class="stat-label">New Clients</div>
+                <div class="stat-value" id="clientsValue">--</div>
+                <div class="stat-comparison" id="clientsComparison">Loading...</div>
             </div>
         </div>
 
@@ -453,75 +451,65 @@
             <div class="hours-grid">
                 <div class="hours-card">
                     <div class="hours-category">Getting & Doing Jobs</div>
-                    <div class="hours-value" id="hoursJobs">24.5</div>
+                    <div class="hours-value" id="hoursJobs">--</div>
                     <div class="hours-label">hours</div>
                 </div>
 
                 <div class="hours-card">
                     <div class="hours-category">Automating</div>
-                    <div class="hours-value" id="hoursAutomating">12.0</div>
+                    <div class="hours-value" id="hoursAutomating">--</div>
                     <div class="hours-label">hours</div>
                 </div>
 
                 <div class="hours-card">
                     <div class="hours-category">Misc Work</div>
-                    <div class="hours-value" id="hoursMisc">6.5</div>
+                    <div class="hours-value" id="hoursMisc">--</div>
+                    <div class="hours-label">hours</div>
+                </div>
+
+                <div class="hours-card">
+                    <div class="hours-category">Claude Code</div>
+                    <div class="hours-value" id="hoursClaudeCode">--</div>
                     <div class="hours-label">hours</div>
                 </div>
             </div>
 
             <div class="total-hours">
                 <div class="total-hours-label">TOTAL HOURS</div>
-                <div class="total-hours-value" id="totalHours">43.0</div>
+                <div class="total-hours-value" id="totalHours">--</div>
             </div>
         </div>
 
-        <!-- Financials Section -->
-        <h2 class="section-title-header" id="financialsTitle">Financials - This Week</h2>
-        <div class="period-stats-grid">
-            <div class="mini-stat-card">
-                <div class="mini-stat-label">Revenue</div>
-                <div class="mini-stat-value" id="financialRevenue">$4,320</div>
-            </div>
-
-            <div class="mini-stat-card">
-                <div class="mini-stat-label">Costs</div>
-                <div class="mini-stat-value" id="financialCosts">$1,240</div>
-            </div>
-
-            <div class="mini-stat-card">
-                <div class="mini-stat-label">Profit</div>
-                <div class="mini-stat-value" id="financialProfit">$3,080</div>
-            </div>
-
-            <div class="mini-stat-card">
-                <div class="mini-stat-label">New Clients</div>
-                <div class="mini-stat-value" id="newClients">3</div>
-            </div>
-        </div>
-
-        <!-- Marketing Section -->
-        <h2 class="section-title-header" id="marketingTitle">Marketing - This Week</h2>
+        <!-- Content Section -->
+        <h2 class="section-title-header" id="contentTitle">Content - This Week</h2>
         <div class="period-stats-grid">
             <div class="mini-stat-card">
                 <div class="mini-stat-label">Social Posts</div>
-                <div class="mini-stat-value" id="socialPosts">24</div>
-                <div class="mini-stat-breakdown">
-                    <span class="platform-tag">Twitter: 8</span>
-                    <span class="platform-tag">LinkedIn: 7</span>
-                    <span class="platform-tag">Instagram: 5</span>
-                    <span class="platform-tag">Facebook: 4</span>
-                </div>
+                <div class="mini-stat-value" id="socialPosts">--</div>
+            </div>
+
+            <div class="mini-stat-card">
+                <div class="mini-stat-label">Tweets</div>
+                <div class="mini-stat-value" id="tweets">--</div>
             </div>
 
             <div class="mini-stat-card">
                 <div class="mini-stat-label">Articles Published</div>
-                <div class="mini-stat-value" id="articlesPublished">5</div>
+                <div class="mini-stat-value" id="articlesPublished">--</div>
             </div>
 
             <div class="mini-stat-card">
-                <div class="mini-stat-label">Press Releases</div>
-                <div class="mini-stat-value" id="pressReleases">2</div>
+                <div class="mini-stat-label">Book Sections</div>
+                <div class="mini-stat-value" id="bookSections">--</div>
+            </div>
+        </div>
+
+        <!-- Scripts Due Section -->
+        <h2 class="section-title-header" id="scriptsTitle">Scripts Due - This Week</h2>
+        <div class="period-stats-grid">
+            <div class="mini-stat-card">
+                <div class="mini-stat-label">Scripts Due</div>
+                <div class="mini-stat-value" id="scriptsDue">--</div>
             </div>
         </div>
 
@@ -530,167 +518,166 @@
         <div class="total-stats-grid">
             <div class="total-stat-card">
                 <div class="total-stat-label">Active Clients</div>
-                <div class="total-stat-value" id="activeClients">47</div>
+                <div class="total-stat-value" id="activeClients">--</div>
             </div>
 
             <div class="total-stat-card">
-                <div class="total-stat-label">Coming Soon</div>
-                <div class="total-stat-value">--</div>
-            </div>
-
-            <div class="total-stat-card">
-                <div class="total-stat-label">Coming Soon</div>
-                <div class="total-stat-value">--</div>
+                <div class="total-stat-label">Scripts by Status</div>
+                <div class="total-stat-value" id="totalScripts">--</div>
+                <div class="status-breakdown" id="statusBreakdown"></div>
             </div>
         </div>
     </main>
 
     <script src="../shared/js/theme-manager.js"></script>
     <script type="module" src="../shared/js/sidebar-component.js"></script>
-    <script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../shared/js/config.js';
+
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         // Dashboard State
         let currentPeriodType = 'week';
         let currentOffset = 0; // 0 = current period, -1 = previous, 1 = next
 
         // Period definitions
         const periods = {
-            today: { label: 'Today', comparison: 'Yesterday' },
+            day: { label: 'Day', comparison: 'Yesterday' },
             week: { label: 'Week', comparison: 'Last week' },
             month: { label: 'Month', comparison: 'Last month' },
             quarter: { label: 'Quarter', comparison: 'Last quarter' },
             year: { label: 'Year', comparison: 'Last year' }
         };
 
-        // Get date range for current period
-        function getDateRange(periodType, offset = 0) {
+        // Format date range for display
+        function formatDateRange(periodType, offset = 0) {
             const now = new Date();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
             let start, end;
 
             switch(periodType) {
-                case 'today':
+                case 'day':
                     start = new Date(now);
                     start.setDate(start.getDate() + offset);
-                    start.setHours(0, 0, 0, 0);
-                    end = new Date(start);
-                    end.setHours(23, 59, 59, 999);
-                    break;
-
-                case 'week':
-                    // Get Monday of the current week (or offset week)
-                    start = new Date(now);
-                    const dayOfWeek = start.getDay();
-                    const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-                    start.setDate(start.getDate() + daysToMonday + (offset * 7));
-                    start.setHours(0, 0, 0, 0);
-                    end = new Date(start);
-                    end.setDate(end.getDate() + 6);
-                    end.setHours(23, 59, 59, 999);
-                    break;
-
-                case 'month':
-                    start = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-                    start.setHours(0, 0, 0, 0);
-                    end = new Date(now.getFullYear(), now.getMonth() + offset + 1, 0);
-                    end.setHours(23, 59, 59, 999);
-                    break;
-
-                case 'quarter':
-                    const quarterMonth = Math.floor(now.getMonth() / 3) * 3;
-                    start = new Date(now.getFullYear(), quarterMonth + (offset * 3), 1);
-                    start.setHours(0, 0, 0, 0);
-                    end = new Date(now.getFullYear(), quarterMonth + (offset * 3) + 3, 0);
-                    end.setHours(23, 59, 59, 999);
-                    break;
-
-                case 'year':
-                    start = new Date(now.getFullYear() + offset, 0, 1);
-                    start.setHours(0, 0, 0, 0);
-                    end = new Date(now.getFullYear() + offset, 11, 31);
-                    end.setHours(23, 59, 59, 999);
-                    break;
-            }
-
-            return { start, end };
-        }
-
-        // Format date range for display
-        function formatDateRange(periodType, offset = 0) {
-            const { start, end } = getDateRange(periodType, offset);
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-            switch(periodType) {
-                case 'today':
                     if (offset === 0) return 'Today';
                     if (offset === -1) return 'Yesterday';
                     return `${months[start.getMonth()]} ${start.getDate()}, ${start.getFullYear()}`;
 
                 case 'week':
+                    start = new Date(now);
+                    const dayOfWeek = start.getDay();
+                    const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                    start.setDate(start.getDate() + daysToMonday + (offset * 7));
+                    end = new Date(start);
+                    end.setDate(end.getDate() + 6);
                     if (offset === 0) {
                         return `Week of ${months[start.getMonth()]} ${start.getDate()} - ${months[end.getMonth()]} ${end.getDate()}`;
                     }
                     return `Week of ${months[start.getMonth()]} ${start.getDate()} - ${months[end.getMonth()]} ${end.getDate()}, ${start.getFullYear()}`;
 
                 case 'month':
-                    if (offset === 0) return `${months[start.getMonth()]} ${start.getFullYear()}`;
+                    start = new Date(now.getFullYear(), now.getMonth() + offset, 1);
                     return `${months[start.getMonth()]} ${start.getFullYear()}`;
 
                 case 'quarter':
+                    const quarterMonth = Math.floor(now.getMonth() / 3) * 3 + (offset * 3);
+                    start = new Date(now.getFullYear(), quarterMonth, 1);
                     const quarter = Math.floor(start.getMonth() / 3) + 1;
-                    if (offset === 0) return `Q${quarter} ${start.getFullYear()}`;
                     return `Q${quarter} ${start.getFullYear()}`;
 
                 case 'year':
-                    if (offset === 0) return `${start.getFullYear()}`;
-                    return `${start.getFullYear()}`;
+                    return `${now.getFullYear() + offset}`;
             }
         }
 
-        // Update dashboard data
-        function updateDashboard() {
+        // Fetch dashboard data from Supabase
+        async function fetchDashboardData() {
+            try {
+                const { data, error } = await supabase.rpc('get_dashboard_metrics', {
+                    period_type: currentPeriodType,
+                    period_offset: currentOffset,
+                    num_periods_for_graph: 10
+                });
+
+                if (error) throw error;
+
+                return data;
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+                return null;
+            }
+        }
+
+        // Update dashboard with data
+        async function updateDashboard() {
             const period = periods[currentPeriodType];
 
             // Update period label
             document.getElementById('currentPeriod').textContent = formatDateRange(currentPeriodType, currentOffset);
 
-            // Update section titles for period stats
+            // Update section titles
             const periodTitles = {
-                today: 'Today',
+                day: 'Today',
                 week: 'This Week',
                 month: 'This Month',
                 quarter: 'This Quarter',
                 year: 'This Year'
             };
-            document.getElementById('financialsTitle').textContent = `Financials - ${periodTitles[currentPeriodType]}`;
-            document.getElementById('marketingTitle').textContent = `Marketing - ${periodTitles[currentPeriodType]}`;
+            document.getElementById('contentTitle').textContent = `Content - ${periodTitles[currentPeriodType]}`;
+            document.getElementById('scriptsTitle').textContent = `Scripts Due - ${periodTitles[currentPeriodType]}`;
 
-            // Update comparison labels
-            document.getElementById('scriptsComparison').textContent = `${period.comparison}: 8 scripts`;
-            document.getElementById('revenueComparison').textContent = `${period.comparison}: $2,850`;
+            // Fetch data from Supabase
+            const data = await fetchDashboardData();
 
-            // TODO: Fetch real data from Supabase
-            // For now, using dummy data
-            updateStats();
-        }
+            if (data && data.current_period) {
+                const current = data.current_period;
 
-        // Update stats with dummy data
-        function updateStats() {
-            // Dummy data - this will be replaced with Supabase data
-            const dummyData = {
-                scripts: Math.floor(Math.random() * 20) + 5,
-                revenue: Math.floor(Math.random() * 5000) + 2000,
-                hoursJobs: (Math.random() * 30 + 10).toFixed(1),
-                hoursAutomating: (Math.random() * 15 + 5).toFixed(1),
-                hoursMisc: (Math.random() * 10 + 3).toFixed(1)
-            };
+                // Update scripts completed
+                document.getElementById('scriptsValue').textContent = current.scripts_completed || 0;
+                document.getElementById('scriptsComparison').textContent = `${period.comparison}: --`;
 
-            document.getElementById('scriptsValue').textContent = dummyData.scripts;
-            document.getElementById('revenueValue').textContent = `$${dummyData.revenue.toLocaleString()}`;
-            document.getElementById('hoursJobs').textContent = dummyData.hoursJobs;
-            document.getElementById('hoursAutomating').textContent = dummyData.hoursAutomating;
-            document.getElementById('hoursMisc').textContent = dummyData.hoursMisc;
+                // Update new clients
+                document.getElementById('clientsValue').textContent = current.new_clients || 0;
+                document.getElementById('clientsComparison').textContent = `${period.comparison}: --`;
 
-            const totalHours = parseFloat(dummyData.hoursJobs) + parseFloat(dummyData.hoursAutomating) + parseFloat(dummyData.hoursMisc);
-            document.getElementById('totalHours').textContent = totalHours.toFixed(1);
+                // Update hours worked
+                if (current.hours) {
+                    document.getElementById('hoursJobs').textContent = current.hours.getting_doing_jobs.toFixed(1);
+                    document.getElementById('hoursAutomating').textContent = current.hours.automating.toFixed(1);
+                    document.getElementById('hoursMisc').textContent = current.hours.misc_work.toFixed(1);
+                    document.getElementById('hoursClaudeCode').textContent = current.hours.claude_code.toFixed(1);
+                    document.getElementById('totalHours').textContent = current.hours.total.toFixed(1);
+                }
+
+                // Update content metrics
+                document.getElementById('socialPosts').textContent = current.social_posts || 0;
+                document.getElementById('tweets').textContent = current.tweets || 0;
+                document.getElementById('articlesPublished').textContent = current.articles || 0;
+                document.getElementById('bookSections').textContent = current.book_sections || 0;
+
+                // Update scripts due
+                document.getElementById('scriptsDue').textContent = current.scripts_due || 0;
+
+                // Update total stats
+                document.getElementById('activeClients').textContent = current.active_clients_count || 0;
+
+                // Update scripts by status
+                if (current.scripts_by_status && current.scripts_by_status.length > 0) {
+                    const totalScripts = current.scripts_by_status.reduce((sum, item) => sum + item.count, 0);
+                    document.getElementById('totalScripts').textContent = totalScripts;
+
+                    const statusHtml = current.scripts_by_status
+                        .map(item => `<div class="status-item"><span>${item.status}</span><span>${item.count}</span></div>`)
+                        .join('');
+                    document.getElementById('statusBreakdown').innerHTML = statusHtml;
+                } else {
+                    document.getElementById('totalScripts').textContent = '0';
+                    document.getElementById('statusBreakdown').innerHTML = '';
+                }
+            }
         }
 
         // Period button handlers
