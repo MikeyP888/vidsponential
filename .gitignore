@@ -24,6 +24,7 @@ fix_rating_fields.py
 # Documentation (keep out of Vercel)
 *.md
 !README.md
+!CLAUDE_INSTRUCTIONS.md
 
 # Test files
 insert_dummy_data.html
