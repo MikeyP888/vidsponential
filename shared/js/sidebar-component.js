@@ -169,7 +169,9 @@ class SidebarNavigation {
                 </button>
                 <div class="sidebar-header">
                     <div class="sidebar-logo">
-                        <img src="../../shared/assets/vidsponential logo.png" alt="Vidsponential" class="logo-image">
+                        <a href="/">
+                            <img src="../../shared/assets/vidsponential logo.png" alt="Vidsponential" class="logo-image">
+                        </a>
                     </div>
                     ${createScriptButton}
                 </div>
