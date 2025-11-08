@@ -276,7 +276,7 @@
                 <div class="form-grid" style="margin-bottom: 30px;">
                     <div class="form-group">
                         <label class="form-label" for="clientSelect">Client</label>
-                        <select class="form-select" id="clientSelect" onchange="if(this.value) { loadYouTubeChannels(); updateClientStats(); prefillFromLastScript(); }">
+                        <select class="form-select" id="clientSelect" onchange="if(this.value) { loadYouTubeChannels(); }">
                             <option value="">Select a client...</option>
                         </select>
                     </div>
@@ -609,6 +609,27 @@
                         channelSelect.appendChild(option);
                     });
                     console.log(`${channels.length} YouTube channel options added to dropdown`);
+
+                    // Auto-select the YouTube channel from the last script for this client
+                    try {
+                        const { data: lastScript, error: scriptError } = await supabase
+                            .from('scripts')
+                            .select('youtube_channel_id')
+                            .eq('client_id', clientIdNum)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .single();
+
+                        if (!scriptError && lastScript && lastScript.youtube_channel_id) {
+                            console.log('Auto-selecting YouTube channel from last script:', lastScript.youtube_channel_id);
+                            channelSelect.value = lastScript.youtube_channel_id;
+                            // Trigger the update and prefill functions
+                            updateClientStats();
+                            prefillFromLastScript();
+                        }
+                    } catch (error) {
+                        console.log('No previous script found for auto-selecting channel');
+                    }
                 } else {
                     console.log('No YouTube channels found for client ID:', clientIdNum);
                     channelSelect.innerHTML = '<option value="">No channels for this client</option>';
@@ -848,11 +869,6 @@
                     // Pre-fill visual suggestion style
                     if (lastScript.visual_suggestion_style_id) {
                         document.getElementById('visualStyleSelect').value = lastScript.visual_suggestion_style_id;
-                    }
-
-                    // Pre-fill niches
-                    if (lastScript.niches && Array.isArray(lastScript.niches)) {
-                        document.getElementById('niches').value = lastScript.niches.join(', ');
                     }
 
                     console.log('Form pre-filled successfully');
