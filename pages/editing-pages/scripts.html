@@ -1229,6 +1229,8 @@
                 }
 
                 // Clear form
+                document.getElementById('clientSelect').value = '';
+                document.getElementById('youtubeChannelSelect').innerHTML = '<option value="">Select a YouTube channel...</option>';
                 document.getElementById('scriptTitle').value = '';
                 document.getElementById('genreSelect').value = '';
                 document.getElementById('subgenreSelect').value = '';
@@ -1241,6 +1243,12 @@
                 document.getElementById('scriptStatusSelect').value = 10; // Reset to default status
                 document.getElementById('niches').value = '';
                 document.getElementById('clientNotes').value = '';
+
+                // Reset stats display
+                document.getElementById('totalScripts').textContent = '0';
+                document.getElementById('scriptsWeek').textContent = '0';
+                document.getElementById('scriptsMonth').textContent = '0';
+                document.getElementById('scriptsList').innerHTML = '<p style="text-align: center; color: #999;">Select a client to view scripts</p>';
                 
                 // Update status
                 document.getElementById('statusIndicator').textContent = 'Script added successfully!';
