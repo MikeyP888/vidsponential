@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upwork Proposals Editor</title>
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💼</text></svg>">
-    
-    <!-- Shared Styles -->
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
     <link rel="stylesheet" href="../../shared/styles/fonts.css">
     <link rel="stylesheet" href="../../shared/styles/components.css">
     <link rel="stylesheet" href="../../shared/styles/base.css">
@@ -16,197 +19,787 @@
     <link rel="stylesheet" href="../../shared/styles/status.css">
     <link rel="stylesheet" href="../../shared/styles/notifications.css">
     <link rel="stylesheet" href="../../shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="../../shared/styles/missing-layout.css">
     <link rel="stylesheet" href="../../shared/styles/navigation.css">
     <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+    <link rel="stylesheet" href="../../shared/styles/bottom-navigation.css">
+
+    <style>
+        .job-post-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 25px 20px 20px 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .job-post-content {
+            font-family: "Tahoma", sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #212529;
+            white-space: pre-wrap;
+        }
+
+        /* Reduce spacing between section titles and content boxes */
+        .section-title {
+            margin-bottom: 5px !important;
+        }
+
+        /* Special styling ONLY for the Job URL section */
+        #jobUrlSection {
+            padding: 0 !important;
+            font-size: 19px !important;
+            line-height: 1.6 !important;
+            display: inline-block !important;
+        }
+
+        /* Keep job URL section container minimal - single line height */
+        .headline-options:last-of-type .job-post-section {
+            padding: 10px 12px !important;
+            min-height: auto !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        /* Fix info box width to match research editor */
+        #scriptInfoBox .section-container {
+            max-width: none !important;
+            width: 100% !important;
+            justify-content: flex-start !important;
+            align-items: stretch !important;
+            padding: 0 !important;
+            background: transparent !important;
+        }
+
+        #scriptInfoBox .script-info-box {
+            width: 100% !important;
+            max-width: none !important;
+        }
+    </style>
 </head>
 <body class="has-sidebar">
+    <!-- Sticky Top Status Bar -->
+    <div id="stickyStatusBar" style="
+        position: fixed;
+        top: 0;
+        left: 280px;
+        right: 0;
+        background: transparent;
+        padding: 4px 20px;
+        z-index: 999;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+    ">
+        <!-- Proposal Info Pill (Left) -->
+        <div id="stickyScriptInfo" style="
+            background: white;
+            padding: 3.6px 10.8px;
+            border-radius: 18px;
+            font-size: 10.8px;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            pointer-events: auto;
+            display: none;
+        ">-</div>
+
+        <!-- Status Indicator Pill (Right) -->
+        <div class="status-indicator" id="stickyStatusIndicator" style="pointer-events: auto;">Loading</div>
+    </div>
+
     <!-- Sidebar Container -->
     <div id="sidebarContainer"></div>
-    
-    <div class="container with-sidebar">
+
+    <div class="container with-sidebar" style="padding-top: 30px;">
         <!-- =============================================== -->
-        <!--                 HEADER SECTION                  -->
+        <!--                 HEADER SECTION                -->
         <!-- =============================================== -->
         <div class="header">
-            
-            <!-- Status Indicator -->
-            <div class="status-bar">
-                <div class="status-indicator" id="statusIndicator">Loading</div>
-            </div>
-            
-            <!-- Proposals Completed Today -->
+
+            <!-- Status bar removed - now in sticky top bar -->
+
+            <!-- Jobs Applied For Today -->
             <div class="completed-today-bar">
-                <div class="completed-today-text">Proposals Sent Today: <span id="proposalsCompletedTodayCount">0</span></div>
+                <div class="completed-today-text">Jobs Applied For Today: <span id="chaptersCompletedTodayCount">0</span></div>
             </div>
-            
+
+            <!-- Jobs Applied For This Week -->
+            <div class="completed-today-bar">
+                <div class="completed-today-text">Jobs Applied For This Week: <span id="scriptsCompletedTodayCount">0</span></div>
+            </div>
+
             <!-- Page Title -->
             <h1 class="page-title">Upwork Proposals Editor</h1>
         </div>
 
         <!-- =============================================== -->
-        <!--                 MAIN CONTENT                   -->
+        <!--                 MAIN CONTENT                  -->
         <!-- =============================================== -->
         <div id="content">
             <!-- Proposal Info Section -->
-            <div class="info-section">
-                <div class="script-info" id="proposalInfo" style="display: none;">
-                    <div class="info-item">
-                        <div class="info-label">Proposal ID</div>
-                        <div class="info-value" id="proposalIdValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Job Title</div>
-                        <div class="info-value" id="jobTitleValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Client</div>
-                        <div class="info-value" id="clientValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Budget</div>
-                        <div class="info-value" id="budgetValue">-</div>
+            <div id="scriptInfoBox"></div>
+
+            <!-- Job Post Section -->
+            <div class="headline-options">
+                <h2 class="section-title">Job Post</h2>
+                <div class="job-post-section">
+                    <div class="job-post-content" id="jobPostSummary">
+                        <!-- Job post summary will be displayed here -->
                     </div>
                 </div>
             </div>
 
-            <!-- Proposal Content Area -->
-            <div class="editor-section" id="proposalSection" style="display: none;">
-                <h2>Cover Letter</h2>
-                <textarea id="coverLetterContent" class="content-textarea" rows="15"></textarea>
+            <!-- Job URL Section -->
+            <div class="headline-options">
+                <h2 class="section-title">Job URL</h2>
+                <div class="job-post-section">
+                    <div class="job-post-content" id="jobUrlSection">
+                        <!-- Job URL will be displayed here -->
+                    </div>
+                </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="button-group" id="actionButtons" style="display: none;">
-                <button class="btn btn-secondary" onclick="skipProposal()">Skip</button>
-                <button class="btn btn-primary" onclick="saveAndContinue()">Save & Continue</button>
-            </div>
-
-            <!-- No Proposals Message -->
-            <div id="noProposalsMessage" style="display: none; text-align: center; padding: 40px;">
-                <h2>No Proposals to Review</h2>
-                <p>All proposals have been reviewed. Check back later for new items.</p>
+            <!-- Proposal Section -->
+            <div class="chapters-section">
+                <h2 class="section-title">Proposal</h2>
+                <div id="chaptersList"></div>
             </div>
         </div>
+
+        <!-- =============================================== -->
+        <!--                 NO PROPOSALS MESSAGE          -->
+        <!-- =============================================== -->
+        <div id="noScriptsMessage" class="message" style="display: none;">
+            No proposals to review - everything checked ✓
+        </div>
+
+        <!-- Bottom navigation will be added by JavaScript -->
     </div>
 
-    <!-- Load Navigation Component -->
-    <script type="module" src="../../../../../shared/js/sidebar-component.js"></script>
-    
-    <!-- Page-specific Scripts -->
-    <script>
-        // Supabase Configuration
-        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
-        
-        let currentProposalData = null;
+        <script src="../../shared/js/theme-manager.js"></script>
+    <script type="module" src="../../shared/js/sidebar-component.js"></script>
+    <script type="module" src="../../shared/js/textarea-autosize.js"></script>
+    <script type="module">
+        // Upwork Proposals Editor Application - Configuration-driven editor
+
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+        import { updateStatus, showNoScriptsMessage, fetchWithErrorHandling } from '../../shared/js/editor-utils.js';
+        import { loadRatings, saveRatings, collectRatingValues, populateRatingFields } from '../../shared/js/rating-utils.js';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         let proposalsToReview = [];
         let currentProposalIndex = 0;
-        
-        // Load proposals on page load
-        async function loadProposals() {
+        let hasUnsavedChanges = false;
+        let isLoading = false;
+        let pageConfig = null;
+        let currentData = null;
+
+        async function init() {
             try {
-                document.getElementById('statusIndicator').textContent = 'Loading Proposals...';
-                
-                const response = await fetch(
-                    `${SUPABASE_URL}/rest/v1/cover_letters?cover_letter_status_id=eq.10&select=*`,
-                    {
-                        headers: {
-                            'apikey': SUPABASE_ANON_KEY,
-                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                        }
-                    }
-                );
-                
-                if (response.ok) {
-                    proposalsToReview = await response.json();
-                    
-                    if (proposalsToReview.length > 0) {
-                        loadProposal(0);
-                        document.getElementById('statusIndicator').textContent = 'LOADED SUCCESSFULLY';
-                        document.getElementById('statusIndicator').className = 'status-indicator status-success';
-                    } else {
-                        document.getElementById('noProposalsMessage').style.display = 'block';
-                        document.getElementById('statusIndicator').textContent = 'No Items';
-                    }
+                updateStatus('loading', 'Loading page configuration...');
+
+                // Get page configuration
+                const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+
+                const { data: config, error: configError } = await supabase
+                    .from('html_page_config')
+                    .select('*')
+                    .eq('page_name', pageName)
+                    .single();
+
+                if (configError || !config) {
+                    throw new Error(`Page configuration not found for: ${pageName}`);
+                }
+
+                pageConfig = config;
+
+                // Set page title dynamically
+                document.title = pageConfig.page_title;
+                const h1Element = document.querySelector('h1.page-title');
+                if (h1Element) {
+                    h1Element.textContent = pageConfig.page_title;
+                }
+
+                updateStatus('loading', `Loading ${pageConfig.page_title.toLowerCase()}...`);
+
+                // Filter records using config
+                const url = `${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.status_field_name}=eq.${pageConfig.display_status_id}&select=${pageConfig.id_field_name},cover_letter`;
+                const proposals = await fetchWithErrorHandling(url);
+                proposalsToReview = proposals;
+
+                if (proposals.length > 0) {
+                    await loadCurrentProposalData();
+                    setupEventListeners();
+                    startAutoSave();
+                } else {
+                    showNoScriptsMessage('There are no proposals ready for editing at this time.');
                 }
             } catch (error) {
-                console.error('Error loading proposals:', error);
-                document.getElementById('statusIndicator').textContent = 'Error Loading';
-                document.getElementById('statusIndicator').className = 'status-indicator status-error';
+                console.error('Upwork Proposals Editor initialization error:', error);
+                updateStatus('error', `Failed to load proposals: ${error.message}`);
             }
         }
-        
-        function loadProposal(index) {
-            if (index >= proposalsToReview.length) {
-                document.getElementById('noProposalsMessage').style.display = 'block';
-                document.getElementById('proposalInfo').style.display = 'none';
-                document.getElementById('proposalSection').style.display = 'none';
-                document.getElementById('actionButtons').style.display = 'none';
+
+        async function loadCurrentProposalData() {
+            if (proposalsToReview.length === 0) return;
+
+            const recordId = proposalsToReview[currentProposalIndex][pageConfig.id_field_name];
+
+            try {
+                const recordInfo = await loadRecordInfo(recordId);
+
+                // Load job data if proposal has upwork_job_id
+                let jobInfo = null;
+                if (recordInfo && recordInfo.upwork_job_id) {
+                    jobInfo = await loadJobInfo(recordInfo.upwork_job_id);
+                }
+
+                // Load centralized ratings
+                const ratings = await loadRatings('upwork_cover_letters', recordId, [
+                    'cover_letter'
+                ]);
+
+                currentData = { proposal: recordInfo, job: jobInfo, ratings: ratings };
+
+                displayProposalData(currentData);
+                updateNavigationButtons();
+                updateStatus('saved', 'Loaded successfully');
+            } catch (error) {
+                console.error(`Error loading ${pageConfig.status_table_name}:`, error);
+                updateStatus('error', `Failed to load ${pageConfig.status_table_name} data`);
+            }
+        }
+
+        // Load record data from configured table
+        async function loadRecordInfo(recordId) {
+            console.log(`Loading ${pageConfig.status_table_name} data for ID:`, recordId);
+
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.id_field_name}=eq.${recordId}&select=*`, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
+            });
+
+            console.log(`${pageConfig.status_table_name} response status:`, response.status);
+
+            if (!response.ok) {
+                console.warn(`No ${pageConfig.status_table_name} data found`);
+                return null;
+            }
+
+            const data = await response.json();
+            console.log(`${pageConfig.status_table_name} data received:`, data);
+            return data && data.length > 0 ? data[0] : null;
+        }
+
+        // Load job data from upwork_jobs table
+        async function loadJobInfo(upworkJobId) {
+            console.log('Loading job data for upwork_job_id:', upworkJobId);
+
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/upwork_jobs?upwork_job_id=eq.${upworkJobId}&select=*`, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
+            });
+
+            console.log('Job response status:', response.status);
+
+            if (!response.ok) {
+                console.warn('No job data found');
+                return null;
+            }
+
+            const data = await response.json();
+            console.log('Job data received:', data);
+            return data && data.length > 0 ? data[0] : null;
+        }
+
+        async function displayProposalData(data) {
+            if (!data) return;
+            document.getElementById('content').style.display = 'block';
+
+            // Display job info box
+            await displayJobInfoBox(data.job);
+
+            // Update sticky proposal info pill
+            const stickyScriptInfo = document.getElementById('stickyScriptInfo');
+            if (stickyScriptInfo && data.proposal) {
+                const proposalId = data.proposal.upwork_cover_letter_id || '-';
+                const jobPost = data.proposal.cover_letter || 'Untitled Cover Letter';
+                const shortJobPost = jobPost.length > 50 ? jobPost.substring(0, 50) + '...' : jobPost;
+                stickyScriptInfo.textContent = `Proposal ID: ${proposalId} | ${shortJobPost}`;
+                stickyScriptInfo.style.display = 'block';
+            }
+
+            displayJobPost(data.proposal);
+            displayJobUrl(data.job);
+            displayProposal(data.proposal);
+        }
+
+        // Display job info box with all related data
+        async function displayJobInfoBox(job) {
+            const container = document.getElementById('scriptInfoBox');
+            if (!container) return;
+
+            if (!job) {
+                container.innerHTML = '<div class="script-info-box"><p>No job information available</p></div>';
                 return;
             }
-            
-            currentProposalData = proposalsToReview[index];
-            currentProposalIndex = index;
-            
-            // Display proposal info
-            document.getElementById('proposalIdValue').textContent = currentProposalData.cover_letter_id || '-';
-            document.getElementById('jobTitleValue').textContent = currentProposalData.job_title || '-';
-            document.getElementById('clientValue').textContent = currentProposalData.client_name || '-';
-            document.getElementById('budgetValue').textContent = currentProposalData.budget || '-';
-            
-            // Display cover letter content
-            document.getElementById('coverLetterContent').value = currentProposalData.cover_letter_text || '';
-            
-            // Show sections
-            document.getElementById('proposalInfo').style.display = 'grid';
-            document.getElementById('proposalSection').style.display = 'block';
-            document.getElementById('actionButtons').style.display = 'flex';
-            document.getElementById('noProposalsMessage').style.display = 'none';
+
+            // Fetch related data
+            const [genre, subgenre, jobType] = await Promise.all([
+                job.genre_id ? fetchRelatedData('genres', 'genre_id', job.genre_id, 'genre') : Promise.resolve(null),
+                job.subgenre_id ? fetchRelatedData('subgenres', 'subgenre_id', job.subgenre_id, 'subgenre') : Promise.resolve(null),
+                job.upwork_job_type_id ? fetchRelatedData('upwork_job_types', 'upwork_job_type_id', job.upwork_job_type_id, 'upwork_job_type') : Promise.resolve(null)
+            ]);
+
+            // Build the info items (2-column grid)
+            const fields = [
+                { label: 'Job ID', value: job.upwork_job_id },
+                { label: 'Connects', value: job.connects },
+                { label: 'Client Location', value: job.client_location },
+                { label: 'Client Name', value: job.client_first_name },
+                { label: 'Genre', value: genre },
+                { label: 'Subgenre', value: subgenre },
+                { label: 'Job Type', value: jobType }
+            ];
+
+            const items = fields.map(field => {
+                const value = field.value || '-';
+                return `
+                    <div class="info-item">
+                        <span class="info-label">${field.label}:</span>
+                        <span class="info-value" title="${value}">${value}</span>
+                    </div>
+                `;
+            }).join('');
+
+            // Extra notes section (full width at bottom)
+            const extraNotes = job.extra_notes ? `
+                <div class="info-notes">
+                    <span class="info-label">Notes:</span>
+                    <span class="info-value">${job.extra_notes}</span>
+                </div>
+            ` : '';
+
+            const jobTitle = job.job_title || 'Untitled Job';
+
+            container.innerHTML = `
+                <div class="section-container">
+                    <div class="script-info-box">
+                        <h2 class="script-info-title">${jobTitle}</h2>
+                        <div class="script-info-grid">
+                            ${items}
+                        </div>
+                        ${extraNotes}
+                    </div>
+                </div>
+            `;
+
+            addInfoBoxStyles();
         }
-        
-        async function saveAndContinue() {
-            if (!currentProposalData) return;
-            
+
+        // Fetch related data from lookup tables
+        async function fetchRelatedData(table, idField, idValue, valueField) {
             try {
-                // Update proposal status
-                const response = await fetch(
-                    `${SUPABASE_URL}/rest/v1/cover_letters?cover_letter_id=eq.${currentProposalData.cover_letter_id}`,
-                    {
-                        method: 'PATCH',
-                        headers: {
-                            'apikey': SUPABASE_ANON_KEY,
-                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            cover_letter_status_id: 20, // Mark as reviewed
-                            cover_letter_text: document.getElementById('coverLetterContent').value
-                        })
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${idField}=eq.${idValue}&select=${valueField}`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
                     }
-                );
-                
-                if (response.ok) {
-                    // Refresh navigation badges
-                    await window.refreshNavigationBadges();
-                    
-                    // Load next proposal
-                    currentProposalIndex++;
-                    loadProposal(currentProposalIndex);
-                }
+                });
+
+                if (!response.ok) return null;
+
+                const data = await response.json();
+                return data && data.length > 0 ? data[0][valueField] : null;
             } catch (error) {
-                console.error('Error saving:', error);
+                console.error(`Error fetching ${table}:`, error);
+                return null;
             }
         }
-        
-        function skipProposal() {
-            currentProposalIndex++;
-            loadProposal(currentProposalIndex);
+
+        // Add info box styles (matching script-info-box.js styles)
+        function addInfoBoxStyles() {
+            if (document.getElementById('job-info-box-styles')) return;
+
+            const styles = `
+                <style id="job-info-box-styles">
+                    .script-info-box {
+                        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+                        border: 1px solid #dee2e6 !important;
+                        border-radius: 12px !important;
+                        padding: 25px 20px 20px 20px !important;
+                        margin: 0 0 20px 0 !important;
+                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+                    }
+
+                    .script-info-title {
+                        font-size: 1.5rem !important;
+                        font-weight: 600 !important;
+                        color: #333 !important;
+                        margin: 0 0 20px 0 !important;
+                        line-height: 1.2 !important;
+                    }
+
+                    .script-info-grid {
+                        display: grid !important;
+                        grid-template-columns: 1fr 1fr !important;
+                        gap: 8px 20px !important;
+                    }
+
+                    .info-item {
+                        display: block !important;
+                        font-size: 12px !important;
+                        line-height: 1.3 !important;
+                        min-height: 18px !important;
+                        padding: 2px 0 !important;
+                        text-align: left !important;
+                    }
+
+                    .info-label {
+                        font-weight: 600 !important;
+                        color: #495057 !important;
+                        white-space: nowrap !important;
+                        margin-right: 0 !important;
+                        display: inline !important;
+                    }
+
+                    .info-value {
+                        color: #212529 !important;
+                        font-weight: 600 !important;
+                        display: inline !important;
+                        white-space: nowrap !important;
+                    }
+
+                    .info-notes {
+                        grid-column: 1 / -1 !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        gap: 6px !important;
+                        margin-top: 12px !important;
+                        padding-top: 12px !important;
+                        border-top: 1px solid #dee2e6 !important;
+                        font-size: 12px !important;
+                    }
+
+                    .info-notes .info-label {
+                        display: block !important;
+                    }
+
+                    .info-notes .info-value {
+                        display: block !important;
+                        white-space: normal !important;
+                        line-height: 1.5 !important;
+                    }
+                </style>
+            `;
+
+            document.head.insertAdjacentHTML('beforeend', styles);
         }
-        
-        // Initialize on page load
+
+        // Display job post summary
+        function displayJobPost(proposal) {
+            const jobPostSummary = document.getElementById('jobPostSummary');
+            if (proposal && proposal.summary) {
+                jobPostSummary.textContent = proposal.summary;
+            } else {
+                jobPostSummary.textContent = 'No job post summary available';
+            }
+        }
+
+        // Display job URL
+        function displayJobUrl(job) {
+            const jobUrlSection = document.getElementById('jobUrlSection');
+            if (job && job.job_url) {
+                jobUrlSection.innerHTML = `<a href="${job.job_url}" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline; display: inline;">${job.job_url}</a>`;
+            } else {
+                jobUrlSection.textContent = 'No job URL available';
+            }
+        }
+
+        // Display proposal from the upwork_proposals table
+        function displayProposal(proposal) {
+            console.log('displayProposal called with:', proposal);
+            const container = document.getElementById('chaptersList');
+            container.innerHTML = '';
+
+            if (!proposal) {
+                console.log('No proposal to display');
+                container.innerHTML = `
+                    <div class="message info">
+                        <strong>No proposal found</strong><br>
+                        No proposal data is available.
+                    </div>
+                `;
+                return;
+            }
+
+            console.log('Displaying proposal');
+
+            const proposalSection = document.createElement('div');
+            proposalSection.className = 'chapter-se-7a2807fb2c0d';
+
+            proposalSection.innerHTML = `
+                <!-- Cover Letter Header Button -->
+                <button class="gradient-button">
+                    <span class="gradient-button__text">Cover Letter ID: ${proposal.upwork_cover_letter_id || 'N/A'}</span>
+                </button>
+
+                <!-- Cover Letter Text Content Row -->
+                <div class="form-row">
+                    <div class="form-row__text-field">
+                        <div class="text-field-multi">
+                            <div class="text-field-multi__container">
+                                <textarea class="text-field-multi__input"
+                                         id="cover_letter_text_${proposal.upwork_cover_letter_id}"
+                                         data-proposal-id="${proposal.upwork_cover_letter_id}"
+                                         data-field="cover_letter"
+                                         style="min-height: 500px; height: 500px;"
+                                         placeholder="Enter cover letter content...">${proposal.cover_letter || ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row__rating-field">
+                        <div class="rating-field">
+                            <label class="rating-field__label">Rating / 100:</label>
+                            <div class="rating-field__container">
+                                <input type="number"
+                                       class="rating-field__input"
+                                       id="rating_cover_letter_${proposal.upwork_cover_letter_id}"
+                                       data-proposal-id="${proposal.upwork_cover_letter_id}"
+                                       data-field="cover_letter_rating"
+                                       min="1"
+                                       max="100"
+                                       value="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(proposalSection);
+
+            // Populate rating from centralized system
+            if (currentData && currentData.ratings && currentData.ratings.cover_letter) {
+                const ratingEl = document.getElementById(`rating_cover_letter_${proposal.upwork_cover_letter_id}`);
+                if (ratingEl) {
+                    ratingEl.value = currentData.ratings.cover_letter;
+                }
+            }
+        }
+
+        // Display basic proposal info
+        function displayProposalInfo(proposal) {
+            if (!proposal) return;
+
+            // Update script info area with proposal information
+            const scriptInfo = document.getElementById('scriptInfo');
+            if (scriptInfo) {
+                scriptInfo.innerHTML = `
+                    <div class="info-card">
+                        <h3>Upwork Proposal Information</h3>
+                        <p><strong>Cover Letter ID:</strong> ${proposal.upwork_cover_letter_id || 'N/A'}</p>
+                        <p><strong>Job ID:</strong> ${proposal.upwork_job_id || 'No Job'}</p>
+                        <p><strong>Status ID:</strong> ${proposal.upwork_cover_letter_status_id || 'N/A'}</p>
+                    </div>
+                `;
+                scriptInfo.style.display = 'block';
+            }
+        }
+
+        async function saveScript() {
+            if (isLoading) return;
+
+            try {
+                isLoading = true;
+                updateStatus('loading', 'Saving proposal data...');
+
+                const recordId = proposalsToReview[currentProposalIndex][pageConfig.id_field_name];
+
+                // Save record data
+                await saveProposalData(recordId);
+
+                updateStatus('saved', 'Proposal saved successfully');
+                hasUnsavedChanges = false;
+                if (window.setUnsavedChanges) {
+                    window.setUnsavedChanges(false);
+                }
+
+                proposalsToReview.splice(currentProposalIndex, 1);
+
+                if (proposalsToReview.length > 0) {
+                    if (currentProposalIndex >= proposalsToReview.length) currentProposalIndex = 0;
+                    await loadCurrentProposalData();
+                } else {
+                    showNoScriptsMessage('All proposals completed!');
+                }
+
+            } catch (error) {
+                console.error('Save error:', error);
+                updateStatus('error', `Failed to save proposal: ${error.message}`);
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // Save record data using configuration
+        async function saveProposalData(recordId) {
+            const recordFields = document.querySelectorAll('[data-proposal-id]');
+            const updateData = {};
+            const ratingData = {};
+
+            // Collect all updates for this record
+            recordFields.forEach(field => {
+                const fieldType = field.dataset.field;
+
+                if (fieldType === 'cover_letter') {
+                    updateData.cover_letter = field.value;
+                } else if (fieldType === 'cover_letter_rating') {
+                    // Collect rating separately for centralized system
+                    if (field.value) {
+                        ratingData.cover_letter = parseInt(field.value);
+                    }
+                }
+            });
+
+            // Update status using configuration
+            if (pageConfig && pageConfig.next_status_id) {
+                updateData[pageConfig.status_field_name] = pageConfig.next_status_id;
+            }
+
+            console.log(`Saving ${pageConfig ? pageConfig.status_table_name : 'record'} ${recordId} with data:`, updateData);
+
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.id_field_name}=eq.${recordId}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`Failed to save ${pageConfig.status_table_name} ${recordId}. Response:`, response.status, errorText);
+                throw new Error(`Failed to save ${pageConfig.status_table_name} ${recordId}: ${response.status} - ${errorText}`);
+            }
+
+            // Save ratings to centralized system (no script_id for upwork content)
+            if (Object.keys(ratingData).length > 0) {
+                await saveRatings('upwork_cover_letters', recordId, ratingData, null);
+            }
+        }
+
+        async function navigateScript(direction) {
+            if (hasUnsavedChanges && !confirm('You have unsaved changes. Continue?')) return;
+
+            const newIndex = currentProposalIndex + direction;
+            if (newIndex >= 0 && newIndex < proposalsToReview.length) {
+                currentProposalIndex = newIndex;
+                await loadCurrentProposalData();
+            }
+        }
+
+        function updateNavigationButtons() {
+            if (window.updateBottomNavigation) {
+                window.updateBottomNavigation(currentProposalIndex, proposalsToReview.length);
+            }
+        }
+
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Add change listeners to mark unsaved changes
+            document.addEventListener('input', (e) => {
+                if (e.target.dataset.field && e.target.dataset.proposalId) {
+                    hasUnsavedChanges = true;
+                    if (window.setUnsavedChanges) {
+                        window.setUnsavedChanges(true);
+                    }
+                    updateStatus('editing', 'Editing proposal data...');
+                }
+            });
+        }
+
+        // Auto-save functionality
+        function startAutoSave() {
+            if (window.bottomNav) {
+                window.bottomNav.startAutoSave(async () => {
+                    if (hasUnsavedChanges && proposalsToReview.length > 0) {
+                        try {
+                            const recordId = proposalsToReview[currentProposalIndex][pageConfig.id_field_name];
+                            await saveProposalData(recordId);
+                            hasUnsavedChanges = false;
+                            if (window.setUnsavedChanges) {
+                                window.setUnsavedChanges(false);
+                            }
+                            updateStatus('saved', 'Auto-saved');
+                        } catch (error) {
+                            console.error('Auto-save failed:', error);
+                            updateStatus('error', 'Auto-save failed');
+                        }
+                    }
+                });
+            }
+        }
+
+        // Copy job URL to clipboard
+        function copyJobUrl(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                // Show temporary success message
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#28a745';
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#007bff';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy URL:', err);
+                alert('Failed to copy URL to clipboard');
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            loadProposals();
+            console.log('DOM loaded, starting Upwork Proposals Editor...');
+            init();
         });
+
+        // Make functions available globally
+        window.saveScript = saveScript;
+        window.navigateScript = navigateScript;
+        window.copyJobUrl = copyJobUrl;
+    </script>
+
+    <script type="module">
+        import BottomNavigation from '../../shared/js/bottom-navigation.js';
+        window.bottomNav = new BottomNavigation({
+            onSave: () => window.saveScript(),
+            onNavigate: (direction) => window.navigateScript(direction),
+            showAutoSave: true
+        });
+
+        window.updateBottomNavigation = (currentIndex, totalItems) => {
+            if (window.bottomNav) window.bottomNav.updateNavigation(currentIndex, totalItems);
+        };
+
+        window.setUnsavedChanges = (hasChanges) => {
+            if (window.bottomNav) {
+                window.bottomNav.setUnsavedChanges(hasChanges);
+            }
+        };
     </script>
 </body>
 </html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsletter Signup - Vidsponential</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>">
+
+    <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 15px;
+            padding-top: calc(25vh - 15px);
+        }
+
+        .newsletter-container {
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo-container {
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .logo {
+            height: 26px;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        .newsletter-title {
+            font-size: 47px;
+            font-weight: 800;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-top: 15px;
+            margin-bottom: 17px;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        .newsletter-subtitle {
+            font-size: 20px;
+            color: #64748b;
+            margin-bottom: 32px;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .message {
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-size: 15px;
+            font-weight: 500;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+            display: block;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+            display: block;
+        }
+
+        .signup-form {
+            margin-bottom: 24px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .email-input {
+            flex: 1;
+            padding: 18px 24px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-family: "Inter", sans-serif;
+            background: white;
+        }
+
+        .email-input:focus {
+            outline: none;
+            border-color: #0be6ff;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(11, 230, 255, 0.1);
+        }
+
+        .email-input::placeholder {
+            color: #94a3b8;
+        }
+
+        .submit-btn {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            padding: 18px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: "Inter", sans-serif;
+            white-space: nowrap;
+            min-width: 140px;
+            box-shadow: 0 4px 14px rgba(11, 230, 255, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(11, 230, 255, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .privacy-text {
+            font-size: 14px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .privacy-text a {
+            color: #0be6ff;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .privacy-text a:hover {
+            color: #af0bff;
+        }
+
+        @media (max-width: 768px) {
+            .newsletter-title {
+                font-size: 36px;
+            }
+
+            .newsletter-subtitle {
+                font-size: 18px;
+            }
+
+            .logo {
+                height: 24px;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+
+            .submit-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="newsletter-container">
+        <div class="logo-container">
+            <img src="../../shared/assets/vidsponential logo.png" alt="Vidsponential" class="logo">
+        </div>
+
+        <h1 class="newsletter-title">The Million Views Club</h1>
+        <p class="newsletter-subtitle">This newsletter teaches you how to get 1 million views on YouTube. Weekly insights on viral growth, scriptwriting, and strategy.</p>
+
+        <div id="messageContainer"></div>
+
+        <form class="signup-form" id="newsletterForm">
+            <div class="form-row">
+                <input
+                    type="email"
+                    class="email-input"
+                    id="emailInput"
+                    placeholder="Enter your email"
+                    required
+                    autocomplete="email"
+                >
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Subscribe
+                </button>
+            </div>
+        </form>
+
+        <p class="privacy-text">
+            No spam. Unsubscribe anytime.
+        </p>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="../../shared/js/theme-manager.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const form = document.getElementById('newsletterForm');
+        const emailInput = document.getElementById('emailInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const messageContainer = document.getElementById('messageContainer');
+
+        function showMessage(text, type) {
+            messageContainer.innerHTML = `<div class="message ${type}">${text}</div>`;
+
+            // Auto-hide success message after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageContainer.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            const email = emailInput.value.trim();
+
+            // Validate email
+            if (!email) {
+                showMessage('Please enter your email address.', 'error');
+                return;
+            }
+
+            if (!validateEmail(email)) {
+                showMessage('Please enter a valid email address.', 'error');
+                return;
+            }
+
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Subscribing...';
+
+            try {
+                // Check if email already exists
+                const { data: existingSubscriber, error: checkError } = await supabase
+                    .from('newsletter_subscribers')
+                    .select('email_address')
+                    .eq('email_address', email)
+                    .maybeSingle();
+
+                if (checkError && checkError.code !== 'PGRST116') {
+                    throw checkError;
+                }
+
+                if (existingSubscriber) {
+                    showMessage('This email is already subscribed!', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Subscribe';
+                    return;
+                }
+
+                // Insert new subscriber
+                const { error: insertError } = await supabase
+                    .from('newsletter_subscribers')
+                    .insert([
+                        { email_address: email }
+                    ]);
+
+                if (insertError) throw insertError;
+
+                // Success!
+                showMessage('🎉 Welcome! Check your inbox for a confirmation email.', 'success');
+                emailInput.value = '';
+
+            } catch (error) {
+                console.error('Error subscribing:', error);
+                showMessage('Something went wrong. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Subscribe';
+            }
+        }
+
+        form.addEventListener('submit', handleSubmit);
+
+        // Clear error message when user starts typing
+        emailInput.addEventListener('input', () => {
+            if (messageContainer.querySelector('.error')) {
+                messageContainer.innerHTML = '';
+            }
+        });
+    </script>
+</body>
+</html>

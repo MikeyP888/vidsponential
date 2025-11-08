@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Details - Vidsponential</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+
+    <!-- Supabase CDN -->
+    <script src="../../shared/js/theme-manager.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #fefefe 0%, #fdfdfd 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            margin-top: 40px;
+            position: relative;
+        }
+
+        .logo {
+            height: 29px;
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            margin: 0;
+            z-index: 1000;
+        }
+
+        .page-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            font-size: 18px;
+            color: #666;
+        }
+
+        /* Main Form Card */
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.025);
+            border: 0.5px solid #e0e0e0;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid;
+            border-image: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%) 1;
+        }
+
+        /* Script Selector */
+        .script-selector {
+            margin-bottom: 30px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .script-select {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: "Inter", sans-serif;
+            transition: all 0.3s ease;
+            background: white;
+            cursor: pointer;
+        }
+
+        .script-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Script Info */
+        .script-info {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .script-info.visible {
+            display: block;
+        }
+
+        .script-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        /* Field Section */
+        .field-section {
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .field-section.visible {
+            display: block;
+        }
+
+        .field-label {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .field-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 16px;
+            font-size: 15px;
+            line-height: 1.6;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: "Inter", sans-serif;
+            transition: all 0.3s ease;
+            resize: vertical;
+        }
+
+        .field-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Save Button */
+        .save-btn {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            padding: 14px 32px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: "Inter", sans-serif;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .save-btn:active {
+            transform: translateY(0);
+        }
+
+        .save-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.saved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.saving {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        /* Message */
+        .message {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-card {
+                padding: 24px;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+
+            .script-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <img src="../../shared/assets/vidsponential logo.png" alt="Vidsponential" class="logo">
+            <h1 class="page-title">Story Details</h1>
+            <p class="page-subtitle">View and edit your script story elements</p>
+        </div>
+
+        <!-- Main Form -->
+        <div class="form-card">
+            <div id="messageContainer"></div>
+
+            <!-- Script Selection -->
+            <div class="script-selector">
+                <label class="form-label">Select Script</label>
+                <select class="script-select" id="scriptSelect">
+                    <option value="">Choose a script...</option>
+                </select>
+            </div>
+
+            <!-- Script Info -->
+            <div class="script-info" id="scriptInfo">
+                <div class="script-info-grid" id="scriptInfoGrid">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Story Details Fields -->
+            <div id="fieldsContainer" style="display: none;">
+                <h2 class="section-title">Story Elements</h2>
+
+                <div class="field-section" id="field-logline">
+                    <div class="field-label">
+                        <span>Logline</span>
+                        <span class="status-badge saved" id="status-logline">Saved</span>
+                    </div>
+                    <textarea class="field-textarea" id="textarea-logline" data-field="logline"></textarea>
+                    <button class="save-btn" onclick="saveField('logline')">Save Logline</button>
+                </div>
+
+                <div class="field-section" id="field-script_basic_outline">
+                    <div class="field-label">
+                        <span>Basic Outline</span>
+                        <span class="status-badge saved" id="status-script_basic_outline">Saved</span>
+                    </div>
+                    <textarea class="field-textarea" id="textarea-script_basic_outline" data-field="script_basic_outline"></textarea>
+                    <button class="save-btn" onclick="saveField('script_basic_outline')">Save Basic Outline</button>
+                </div>
+
+                <div class="field-section" id="field-script_outline">
+                    <div class="field-label">
+                        <span>Outline</span>
+                        <span class="status-badge saved" id="status-script_outline">Saved</span>
+                    </div>
+                    <textarea class="field-textarea" id="textarea-script_outline" data-field="script_outline"></textarea>
+                    <button class="save-btn" onclick="saveField('script_outline')">Save Outline</button>
+                </div>
+
+                <div class="field-section" id="field-synopsis">
+                    <div class="field-label">
+                        <span>Synopsis</span>
+                        <span class="status-badge saved" id="status-synopsis">Saved</span>
+                    </div>
+                    <textarea class="field-textarea" id="textarea-synopsis" data-field="synopsis"></textarea>
+                    <button class="save-btn" onclick="saveField('synopsis')">Save Synopsis</button>
+                </div>
+
+                <div class="field-section" id="field-primary_keyword">
+                    <div class="field-label">
+                        <span>Primary Keyword</span>
+                        <span class="status-badge saved" id="status-primary_keyword">Saved</span>
+                    </div>
+                    <textarea class="field-textarea" id="textarea-primary_keyword" data-field="primary_keyword" style="min-height: 80px;"></textarea>
+                    <button class="save-btn" onclick="saveField('primary_keyword')">Save Primary Keyword</button>
+                </div>
+
+                <div class="field-section" id="field-script_summary">
+                    <div class="field-label">
+                        <span>Script Summary</span>
+                        <span class="status-badge saved" id="status-script_summary">Saved</span>
+                    </div>
+                    <textarea class="field-textarea" id="textarea-script_summary" data-field="script_summary"></textarea>
+                    <button class="save-btn" onclick="saveField('script_summary')">Save Script Summary</button>
+                </div>
+
+                <div class="field-section" id="field-video_description">
+                    <div class="field-label">
+                        <span>Video Description</span>
+                        <span class="status-badge saved" id="status-video_description">Saved</span>
+                    </div>
+                    <textarea class="field-textarea" id="textarea-video_description" data-field="video_description"></textarea>
+                    <button class="save-btn" onclick="saveField('video_description')">Save Video Description</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentScriptId = null;
+        const CLIENT_ID = 3; // Miguel's scripts
+
+        const FIELDS = [
+            { name: 'logline', label: 'Logline' },
+            { name: 'script_basic_outline', label: 'Basic Outline' },
+            { name: 'script_outline', label: 'Outline' },
+            { name: 'synopsis', label: 'Synopsis' },
+            { name: 'primary_keyword', label: 'Primary Keyword' },
+            { name: 'script_summary', label: 'Script Summary' },
+            { name: 'video_description', label: 'Video Description' }
+        ];
+
+        // Initialize page
+        async function init() {
+            await loadScripts();
+            setupEventListeners();
+        }
+
+        // Load scripts for the dropdown
+        async function loadScripts() {
+            try {
+                const { data, error } = await supabase
+                    .from('scripts')
+                    .select('script_id, script_headline, primary_keyword, clients(client_full_name)')
+                    .eq('client_id', CLIENT_ID)
+                    .order('script_id', { ascending: false });
+
+                if (error) throw error;
+
+                const scriptSelect = document.getElementById('scriptSelect');
+                scriptSelect.innerHTML = '<option value="">Choose a script...</option>';
+
+                if (!data || data.length === 0) {
+                    showMessage('No scripts found for this client.', 'error');
+                    return;
+                }
+
+                data.forEach(script => {
+                    const option = document.createElement('option');
+                    option.value = script.script_id;
+                    option.textContent = `#${script.script_id} - ${script.script_headline || 'Untitled Script'}`;
+                    option.dataset.scriptData = JSON.stringify(script);
+                    scriptSelect.appendChild(option);
+                });
+
+                // Auto-select the first (most recent) script
+                if (data.length > 0) {
+                    scriptSelect.value = data[0].script_id;
+                    scriptSelect.dispatchEvent(new Event('change'));
+                }
+            } catch (error) {
+                console.error('Error loading scripts:', error);
+                showMessage(`Error loading scripts: ${error.message}`, 'error');
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('scriptSelect').addEventListener('change', handleScriptSelection);
+        }
+
+        // Handle script selection
+        function handleScriptSelection(e) {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            if (!selectedOption.value) {
+                document.getElementById('scriptInfo').classList.remove('visible');
+                document.getElementById('fieldsContainer').style.display = 'none';
+                return;
+            }
+
+            currentScriptId = parseInt(selectedOption.value);
+            const scriptData = JSON.parse(selectedOption.dataset.scriptData);
+
+            displayScriptInfo(scriptData);
+            loadStoryDetails(currentScriptId);
+        }
+
+        // Display script info
+        function displayScriptInfo(script) {
+            const infoGrid = document.getElementById('scriptInfoGrid');
+            const clientName = script.clients?.client_full_name || 'Miguel';
+
+            infoGrid.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">Script ID</div>
+                    <div class="info-value">#${script.script_id}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Title</div>
+                    <div class="info-value">${script.script_headline || 'Untitled'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Client</div>
+                    <div class="info-value">${clientName}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Keyword</div>
+                    <div class="info-value">${script.primary_keyword || 'N/A'}</div>
+                </div>
+            `;
+
+            document.getElementById('scriptInfo').classList.add('visible');
+        }
+
+        // Load story details
+        async function loadStoryDetails(scriptId) {
+            try {
+                const fieldNames = FIELDS.map(f => f.name).join(',');
+                const { data, error } = await supabase
+                    .from('scripts')
+                    .select(fieldNames)
+                    .eq('script_id', scriptId)
+                    .single();
+
+                if (error) throw error;
+
+                // Populate textareas
+                FIELDS.forEach(field => {
+                    const textarea = document.getElementById(`textarea-${field.name}`);
+                    if (textarea) {
+                        textarea.value = data[field.name] || '';
+                    }
+                    // Show field section
+                    const fieldSection = document.getElementById(`field-${field.name}`);
+                    if (fieldSection) {
+                        fieldSection.classList.add('visible');
+                    }
+                });
+
+                document.getElementById('fieldsContainer').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading story details:', error);
+                showMessage(`Error loading story details: ${error.message}`, 'error');
+            }
+        }
+
+        // Save field
+        window.saveField = async function(fieldName) {
+            if (!currentScriptId) {
+                showMessage('Please select a script first.', 'error');
+                return;
+            }
+
+            const textarea = document.getElementById(`textarea-${fieldName}`);
+            const statusBadge = document.getElementById(`status-${fieldName}`);
+            const value = textarea.value;
+
+            // Update status to saving
+            statusBadge.textContent = 'Saving...';
+            statusBadge.className = 'status-badge saving';
+
+            try {
+                const { error } = await supabase
+                    .from('scripts')
+                    .update({ [fieldName]: value })
+                    .eq('script_id', currentScriptId);
+
+                if (error) throw error;
+
+                // Update status to saved
+                statusBadge.textContent = 'Saved';
+                statusBadge.className = 'status-badge saved';
+
+                showMessage(`${FIELDS.find(f => f.name === fieldName).label} saved successfully!`, 'success');
+            } catch (error) {
+                console.error('Error saving field:', error);
+                statusBadge.textContent = 'Error';
+                statusBadge.className = 'status-badge';
+                showMessage(`Error saving: ${error.message}`, 'error');
+            }
+        };
+
+        // Show message
+        function showMessage(text, type) {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.innerHTML = `<div class="message ${type}">${text}</div>`;
+
+            // Auto-hide success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageContainer.innerHTML = '';
+                }, 3000);
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refined Chapter Editor</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍎</text></svg>">
+    
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/components.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+    <link rel="stylesheet" href="../../shared/styles/layout.css">
+    <link rel="stylesheet" href="../../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../../shared/styles/forms.css">
+    <link rel="stylesheet" href="../../shared/styles/status.css">
+    <link rel="stylesheet" href="../../shared/styles/notifications.css">
+    <link rel="stylesheet" href="../../shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="../../shared/styles/missing-layout.css">
+    <link rel="stylesheet" href="../../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+    <link rel="stylesheet" href="../../shared/styles/bottom-navigation.css">
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="has-sidebar">
+    <!-- Sticky Top Status Bar -->
+    <div id="stickyStatusBar" style="
+        position: fixed;
+        top: 0;
+        left: 280px;
+        right: 0;
+        background: transparent;
+        padding: 4px 20px;
+        z-index: 999;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+    ">
+        <!-- Script Info Pill (Left) -->
+        <div id="stickyScriptInfo" style="
+            background: white;
+            padding: 3.6px 10.8px;
+            border-radius: 18px;
+            font-size: 10.8px;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            pointer-events: auto;
+            display: none;
+        ">-</div>
+
+        <!-- Status Indicator Pill (Right) -->
+        <div class="status-indicator" id="stickyStatusIndicator" style="pointer-events: auto;">Loading</div>
+    </div>
+
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
+
+    <div class="container with-sidebar" style="padding-top: 30px;">
+        <!-- =============================================== -->
+        <!--                 HEADER SECTION                -->
+        <!-- =============================================== -->
+        <div class="header">
+            
+            <!-- Status bar removed - now in sticky top bar -->
+
+            <!-- Scripts Completed Today -->
+            <div class="completed-today-bar">
+                <div class="completed-today-text">Script Chapters Completed Today: <span id="chaptersCompletedTodayCount">0</span></div>
+            </div>
+            
+            <!-- Fourth horizontal container: Overall Scripts Completed Today -->
+            <div class="completed-today-bar">
+                <div class="completed-today-text">Scripts Completed Today: <span id="scriptsCompletedTodayCount">0</span></div>
+            </div>
+            
+            <!-- Page Title -->
+            <h1 class="page-title">Refined Chapter Editor</h1>
+        </div>
+
+        <!-- =============================================== -->
+        <!--                 MAIN CONTENT                  -->
+        <!-- =============================================== -->
+        <div id="content">
+            <!-- Script Info Section -->
+            <div id="scriptInfoBox"></div>
+            <!-- Working Headline and Primary Keyword Fields -->
+            <div class="main-fields">
+                <!-- Working Headline Section -->
+                <div class="headline-options">
+                    <h2 class="section-title">Headline</h2>
+                    <div class="chapter-se-7a2807fb2c0d">
+                        <!-- Working Headline Row -->
+                        <div class="ch-title-7a2807fb2c0f">
+                            <!-- Headline Text + Label -->
+                            <div class="title-la-7a2807fb2c1a">
+                                <label class="label-ch-7a2807fb2c1f">Headline:</label>
+                                <div class="title-fiel-7a2807fb2c1e">
+                                    <textarea class="chapter-ti-7a2807fb2c20" id="workingHeadline" placeholder="Enter the working headline..."></textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Headline Rating + Label -->
+                            <div class="title-rating-l-7a2807fb2c19">
+                                <label class="label-rat-7a2807fb2c1c">Rating / 100:</label>
+                                <div class="rating-fie-7a2807fb2c1b">
+                                    <input type="number" class="rating-7a2807fb2c1d" id="workingHeadlineRating" data-field="script_headline_rating" min="1" max="100" value="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Primary Keyword Section -->
+                <div class="headline-options">
+                    <h2 class="section-title">Primary Keyword</h2>
+                    <div class="chapter-se-7a2807fb2c0d">
+                        <!-- Primary Keyword Row -->
+                        <div class="ch-title-7a2807fb2c0f">
+                            <!-- Keyword Text + Label -->
+                            <div class="title-la-7a2807fb2c1a">
+                                <label class="label-ch-7a2807fb2c1f">Primary Keyword:</label>
+                                <div class="title-fiel-7a2807fb2c1e">
+                                    <input type="text" class="chapter-ti-7a2807fb2c20" id="primaryKeyword" placeholder="Enter the primary keyword...">
+                                </div>
+                            </div>
+                            
+                            <!-- Keyword Rating + Label -->
+                            <div class="title-rating-l-7a2807fb2c19">
+                                <label class="label-rat-7a2807fb2c1c">Rating / 100:</label>
+                                <div class="rating-fie-7a2807fb2c1b">
+                                    <input type="number" class="rating-7a2807fb2c1d" id="primaryKeywordRating" data-field="primary_keyword_rating" min="1" max="100" value="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Chapter Outlines Section -->
+            <div class="chapters-section">
+                <h2 class="section-title">Chapters</h2>
+                <div id="chaptersList"></div>
+            </div>
+        </div>
+
+        <!-- =============================================== -->
+        <!--                 NO SCRIPTS MESSAGE            -->
+        <!-- =============================================== -->
+        <div id="noScriptsMessage" class="message" style="display: none;">
+            No script outlines to display - everything checked ✓
+        </div>
+
+        <!-- Bottom navigation will be added by JavaScript -->
+    </div>
+
+        <script src="../../shared/js/theme-manager.js"></script>
+    <script type="module" src="../../shared/js/sidebar-component.js"></script>
+    <script type="module" src="../../shared/js/textarea-autosize.js"></script>
+    <script type="module">
+        // Refined Chapter Editor Application - Loads scripts with status_id=32, updates to 35
+        
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+        import { updateStatus, displayScriptInfo, loadScriptInfo, updateScriptStatus, showNoScriptsMessage, fetchWithErrorHandling } from '../../shared/js/editor-utils.js';
+        import { loadRatings, saveRatings, collectRatingValues, populateRatingFields } from '../../shared/js/rating-utils.js';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let pageConfig = null;
+        let recordsToReview = [];
+        let currentScriptIndex = 0;
+        let hasUnsavedChanges = false;
+        let isLoading = false;
+        let currentScriptData = null;
+
+        async function init() {
+            try {
+                updateStatus('loading', 'Loading page configuration...');
+
+                // Get page configuration
+                const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+
+                const { data: config, error: configError } = await supabase
+                    .from('html_page_config')
+                    .select('*')
+                    .eq('page_name', pageName)
+                    .single();
+
+                if (configError || !config) {
+                    throw new Error(`Page configuration not found for: ${pageName}`);
+                }
+
+                pageConfig = config;
+
+                // Set page title dynamically
+                document.title = pageConfig.page_title;
+                const h1Element = document.querySelector('h1.page-title');
+                if (h1Element) {
+                    h1Element.textContent = pageConfig.page_title;
+                }
+
+                updateStatus('loading', `Loading ${pageConfig.page_title.toLowerCase()}...`);
+
+                // Filter records using config
+                const url = `${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.status_field_name}=eq.${pageConfig.display_status_id}&select=${pageConfig.id_field_name},script_headline`;
+                const records = await fetchWithErrorHandling(url);
+                recordsToReview = records;
+
+                if (records.length > 0) {
+                    await loadCurrentScriptData();
+                    setupEventListeners();
+                    startAutoSave();
+                } else {
+                    showNoScriptsMessage('There are no scripts ready for refined chapters at this time.');
+                }
+            } catch (error) {
+                console.error('Chapter Editor initialization error:', error);
+                updateStatus('error', `Failed to load: ${error.message}`);
+            }
+        }
+
+        async function loadCurrentScriptData() {
+            if (recordsToReview.length === 0 || !pageConfig) return;
+
+            const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
+
+            try {
+                const scriptInfo = await loadScriptInfo(scriptId);
+                const chapterData = await loadChapterData(scriptId);
+
+                // Load centralized ratings for scripts table
+                const scriptRatings = await loadRatings('scripts', scriptId, [
+                    'script_headline',
+                    'primary_keyword'
+                ]);
+
+                // Load ratings for each chapter
+                const chapterRatings = {};
+                for (const chapter of chapterData) {
+                    const ratings = await loadRatings('chapters', chapter.chapter_id, [
+                        'chapter_headline',
+                        'chapter_text'
+                    ]);
+                    chapterRatings[chapter.chapter_id] = ratings;
+                }
+
+                currentScriptData = {
+                    script: scriptInfo,
+                    chapters: chapterData,
+                    scriptRatings: scriptRatings,
+                    chapterRatings: chapterRatings
+                };
+
+                displayScriptData(currentScriptData);
+                updateNavigationButtons();
+                updateStatus('saved', 'Loaded successfully');
+            } catch (error) {
+                console.error('Error loading script:', error);
+                updateStatus('error', 'Failed to load script data');
+            }
+        }
+
+        // Load chapter data from the chapters table
+        async function loadChapterData(scriptId) {
+            console.log('Loading chapters for script ID:', scriptId);
+            
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/chapters?script_id=eq.${scriptId}&select=*&order=chapter_number.asc`, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
+            });
+
+            console.log('Chapters response status:', response.status);
+
+            if (!response.ok) {
+                console.warn('No chapters data found');
+                return [];
+            }
+
+            const data = await response.json();
+            console.log('Chapters data received:', data);
+            return data || [];
+        }
+
+        function displayScriptData(data) {
+            if (!data) return;
+            document.getElementById('content').style.display = 'block';
+
+            // Use utility function to display script info
+            displayScriptInfo(data.script);
+
+            // Try to initialize enhanced script info box (non-blocking)
+            initializeScriptInfoBox(data.script.script_id);
+
+
+            // Update sticky script info pill
+            const stickyScriptInfo = document.getElementById('stickyScriptInfo');
+            if (stickyScriptInfo && data.script && pageConfig) {
+                const scriptId = data.script[pageConfig.id_field_name] || '-';
+                const scriptHeadline = data.script.script_headline || 'Untitled';
+                stickyScriptInfo.textContent = `Script ID: ${scriptId} | ${scriptHeadline}`;
+                stickyScriptInfo.style.display = 'block';
+            }
+
+            // Populate script headline and keyword fields
+            const workingHeadlineEl = document.getElementById('workingHeadline');
+            const primaryKeywordEl = document.getElementById('primaryKeyword');
+            if (workingHeadlineEl) workingHeadlineEl.value = data.script.script_headline || '';
+            if (primaryKeywordEl) primaryKeywordEl.value = data.script.primary_keyword || '';
+
+            // Populate script ratings
+            if (data.scriptRatings) {
+                const headlineRatingEl = document.getElementById('workingHeadlineRating');
+                const keywordRatingEl = document.getElementById('primaryKeywordRating');
+                if (headlineRatingEl && data.scriptRatings.script_headline) {
+                    headlineRatingEl.value = data.scriptRatings.script_headline;
+                }
+                if (keywordRatingEl && data.scriptRatings.primary_keyword) {
+                    keywordRatingEl.value = data.scriptRatings.primary_keyword;
+                }
+            }
+
+            displayChapters(data.chapters, data.chapterRatings);
+        }
+
+        // Display chapters from the chapters table
+        function displayChapters(chapters, chapterRatings) {
+            console.log('displayChapters called with:', chapters);
+            const container = document.getElementById('chaptersList');
+            container.innerHTML = '';
+
+            if (!chapters || chapters.length === 0) {
+                console.log('No chapters to display, chapters array:', chapters);
+                container.innerHTML = `
+                    <div class="message info">
+                        <strong>No chapters found</strong><br>
+                        No chapters are available for this script in the database.
+                    </div>
+                `;
+                return;
+            }
+
+            console.log('Displaying', chapters.length, 'chapters');
+
+            chapters.forEach(chapter => {
+                const chapterSection = document.createElement('div');
+                chapterSection.className = 'chapter-se-7a2807fb2c0d';
+
+                chapterSection.innerHTML = `
+                    <!-- Chapter Header Button -->
+                    <button class="gradient-button">
+                        <span class="gradient-button__text">Chapter ${chapter.chapter_number || 'N/A'}</span>
+                    </button>
+
+                    <!-- Chapter Headline Row -->
+                    <div class="ch-title-7a2807fb2c0f">
+                        <!-- Chapter Headline Text + Label -->
+                        <div class="form-row__text-field">
+                            <label class="label-ch-7a2807fb2c1f">Chapter Headline:</label>
+                            <div class="title-fiel-7a2807fb2c1e">
+                                <input type="text" class="chapter-ti-7a2807fb2c20"
+                                       id="chapter_headline_${chapter.chapter_id}"
+                                       data-chapter-id="${chapter.chapter_id}"
+                                       data-field="chapter_headline"
+                                       placeholder="Enter chapter headline..."
+                                       value="${chapter.chapter_headline || ''}">
+                            </div>
+                        </div>
+
+                        <!-- Chapter Headline Rating + Label -->
+                        <div class="form-row__rating-field">
+                            <div class="rating-field">
+                                <label class="rating-field__label">Rating / 100:</label>
+                                <div class="rating-field__container">
+                                    <input type="number"
+                                           class="rating-field__input"
+                                           id="chapter_headline_rating_${chapter.chapter_id}"
+                                           data-chapter-id="${chapter.chapter_id}"
+                                           data-field="chapter_headline_rating"
+                                           min="1" max="100"
+                                           value="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chapter Text Content Row -->
+                    <div class="form-row">
+                        <div class="form-row__text-field">
+                            <div class="text-field-multi">
+                                <div class="text-field-multi__container">
+                                    <textarea class="text-field-multi__input"
+                                             id="chapter_text_${chapter.chapter_id}"
+                                             data-chapter-id="${chapter.chapter_id}"
+                                             data-field="chapter_text"
+                                             style="min-height: 500px; height: 500px;"
+                                             placeholder="Enter chapter content...">${chapter.chapter_text || ''}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row__rating-field">
+                            <div class="rating-field">
+                                <label class="rating-field__label">Rating / 100:</label>
+                                <div class="rating-field__container">
+                                    <input type="number"
+                                           class="rating-field__input"
+                                           id="chapter_text_rating_${chapter.chapter_id}"
+                                           data-chapter-id="${chapter.chapter_id}"
+                                           data-field="chapter_text_rating"
+                                           min="1"
+                                           max="100"
+                                           value="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(chapterSection);
+
+                // Populate chapter ratings from centralized system
+                if (chapterRatings && chapterRatings[chapter.chapter_id]) {
+                    const ratings = chapterRatings[chapter.chapter_id];
+                    const headlineRatingEl = document.getElementById(`chapter_headline_rating_${chapter.chapter_id}`);
+                    const textRatingEl = document.getElementById(`chapter_text_rating_${chapter.chapter_id}`);
+
+                    if (headlineRatingEl && ratings.chapter_headline) {
+                        headlineRatingEl.value = ratings.chapter_headline;
+                    }
+                    if (textRatingEl && ratings.chapter_text) {
+                        textRatingEl.value = ratings.chapter_text;
+                    }
+                }
+            });
+        }
+
+        // Safely initialize enhanced script info box
+        async function initializeScriptInfoBox(scriptId) {
+            try {
+                // Dynamically import the ScriptInfoBox component
+                const { default: ScriptInfoBox } = await import('../../shared/js/script-info-box.js');
+
+                const scriptInfoBox = new ScriptInfoBox('scriptInfoBox');
+                await scriptInfoBox.init(scriptId, {
+                    autoRefresh: false,
+                    refreshRate: 30000
+                });
+
+                // Hide the old info box and show the new one
+                const oldInfoBox = document.getElementById('scriptInfo');
+                if (oldInfoBox) {
+                    oldInfoBox.style.display = 'none';
+                }
+
+                console.log('Enhanced script info box loaded successfully');
+            } catch (error) {
+                console.log('Enhanced script info box not available, using standard version:', error);
+                // Fallback: ensure the old info box is visible
+                const oldInfoBox = document.getElementById('scriptInfo');
+                if (oldInfoBox) {
+                    oldInfoBox.style.display = 'block';
+                }
+            }
+        }
+
+        async function saveScript() {
+            if (isLoading || !pageConfig) return;
+
+            try {
+                isLoading = true;
+                updateStatus('loading', 'Saving chapters and updating status...');
+
+                const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
+
+                // Save chapter data
+                await saveChaptersData(scriptId);
+
+                // Update script status using pageConfig
+                if (pageConfig.next_status_id) {
+                    await updateScriptStatus(scriptId, pageConfig.next_status_id);
+                }
+
+                updateStatus('saved', 'Refined chapters completed and status updated');
+                hasUnsavedChanges = false;
+                if (window.setUnsavedChanges) {
+                    window.setUnsavedChanges(false);
+                }
+
+                recordsToReview.splice(currentScriptIndex, 1);
+
+                if (recordsToReview.length > 0) {
+                    if (currentScriptIndex >= recordsToReview.length) currentScriptIndex = 0;
+                    await loadCurrentScriptData();
+                } else {
+                    showNoScriptsMessage('All chapters completed!');
+                }
+
+            } catch (error) {
+                console.error('Save error:', error);
+                updateStatus('error', `Failed to save chapters: ${error.message}`);
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // Save chapters data
+        async function saveChaptersData(scriptId) {
+            // First, save script-level fields (headline and keyword)
+            const workingHeadline = document.getElementById('workingHeadline').value;
+            const primaryKeyword = document.getElementById('primaryKeyword').value;
+
+            const scriptResponse = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    script_headline: workingHeadline,
+                    primary_keyword: primaryKeyword
+                })
+            });
+
+            if (!scriptResponse.ok) {
+                const errorText = await scriptResponse.text();
+                throw new Error(`Failed to save script data: ${scriptResponse.status} - ${errorText}`);
+            }
+
+            // Save script ratings to centralized system
+            const headlineRating = document.getElementById('workingHeadlineRating').value;
+            const keywordRating = document.getElementById('primaryKeywordRating').value;
+            const scriptRatings = {};
+            if (headlineRating) scriptRatings.script_headline = parseInt(headlineRating);
+            if (keywordRating) scriptRatings.primary_keyword = parseInt(keywordRating);
+
+            if (Object.keys(scriptRatings).length > 0) {
+                await saveRatings('scripts', scriptId, scriptRatings, scriptId);
+            }
+
+            // Now save chapter data
+            const chapterFields = document.querySelectorAll('[data-chapter-id]');
+            const updatesByChapter = {};
+            const ratingsByChapter = {};
+
+            // Collect all updates by chapter ID
+            chapterFields.forEach(field => {
+                const chapterId = field.dataset.chapterId;
+                const fieldType = field.dataset.field;
+
+                if (!updatesByChapter[chapterId]) {
+                    updatesByChapter[chapterId] = { id: parseInt(chapterId) };
+                    ratingsByChapter[chapterId] = {};
+                }
+
+                if (fieldType === 'chapter_headline') {
+                    updatesByChapter[chapterId].chapter_headline = field.value;
+                } else if (fieldType === 'chapter_headline_rating') {
+                    // Collect rating separately
+                    if (field.value) {
+                        ratingsByChapter[chapterId].chapter_headline = parseInt(field.value);
+                    }
+                } else if (fieldType === 'chapter_text') {
+                    updatesByChapter[chapterId].chapter_text = field.value;
+                } else if (fieldType === 'chapter_text_rating') {
+                    // Collect rating separately (this is for chapter_text content)
+                    if (field.value) {
+                        ratingsByChapter[chapterId].chapter_text = parseInt(field.value);
+                    }
+                }
+            });
+
+            // Save each chapter individually
+            for (const chapterId in updatesByChapter) {
+                const update = updatesByChapter[chapterId];
+                const { id, ...updateData } = update;
+
+                console.log(`Saving chapter ${id} with data:`, updateData);
+
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/chapters?chapter_id=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`Failed to save chapter ${id}. Response:`, response.status, errorText);
+                    throw new Error(`Failed to save chapter ${id}: ${response.status} - ${errorText}`);
+                }
+
+                // Save chapter ratings to centralized system
+                if (ratingsByChapter[chapterId] && Object.keys(ratingsByChapter[chapterId]).length > 0) {
+                    await saveRatings('chapters', id, ratingsByChapter[chapterId], scriptId);
+                }
+            }
+        }
+
+        async function navigateScript(direction) {
+            if (hasUnsavedChanges && !confirm('You have unsaved changes. Continue?')) return;
+
+            const newIndex = currentScriptIndex + direction;
+            if (newIndex >= 0 && newIndex < recordsToReview.length) {
+                currentScriptIndex = newIndex;
+                await loadCurrentScriptData();
+            }
+        }
+
+        function updateNavigationButtons() {
+            if (window.updateBottomNavigation) {
+                window.updateBottomNavigation(currentScriptIndex, recordsToReview.length);
+            }
+        }
+
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Add change listeners to mark unsaved changes
+            document.addEventListener('input', (e) => {
+                if (e.target.dataset.field && e.target.dataset.chapterId) {
+                    hasUnsavedChanges = true;
+                    if (window.setUnsavedChanges) {
+                        window.setUnsavedChanges(true);
+                    }
+                    updateStatus('editing', 'Editing chapter data...');
+                }
+            });
+        }
+
+        // Auto-save functionality
+        function startAutoSave() {
+            if (window.bottomNav) {
+                window.bottomNav.startAutoSave(async () => {
+                    if (hasUnsavedChanges && recordsToReview.length > 0 && pageConfig) {
+                        try {
+                            const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
+                            await saveChaptersData(scriptId);
+                            hasUnsavedChanges = false;
+                            if (window.setUnsavedChanges) {
+                                window.setUnsavedChanges(false);
+                            }
+                            updateStatus('saved', 'Auto-saved');
+                        } catch (error) {
+                            console.error('Auto-save failed:', error);
+                            updateStatus('error', 'Auto-save failed');
+                        }
+                    }
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, starting Chapter Editor...');
+            init();
+        });
+
+        window.saveScript = saveScript;
+        window.navigateScript = navigateScript;
+    </script>
+    
+    <script type="module">
+        import BottomNavigation from '../../shared/js/bottom-navigation.js';
+        window.bottomNav = new BottomNavigation({
+            onSave: () => window.saveScript(),
+            onNavigate: (direction) => window.navigateScript(direction),
+            showAutoSave: true
+        });
+        
+        window.updateBottomNavigation = (currentIndex, totalItems) => {
+            if (window.bottomNav) window.bottomNav.updateNavigation(currentIndex, totalItems);
+        };
+        
+        window.setUnsavedChanges = (hasChanges) => {
+            if (window.bottomNav) {
+                window.bottomNav.setUnsavedChanges(hasChanges);
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Script Writing Services - Transform Your Ideas Into Viral Content</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/components.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+    <link rel="stylesheet" href="../../shared/styles/layout.css">
+    <link rel="stylesheet" href="../../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../../shared/styles/forms.css">
+    <link rel="stylesheet" href="../../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+
+    <style>
+        /* Landing Page Specific Styles */
+        .landing-container {
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0be6ff 0%, #af0bff 100%);
+            min-height: 100vh;
+        }
+
+        .hero-section {
+            padding: 80px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #0be6ff 0%, #af0bff 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            font-weight: 300;
+            opacity: 0.95;
+        }
+
+        .hero-cta {
+            background: white;
+            color: #af0bff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .section {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 50px;
+            color: #2c3e50;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .feature-description {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .pricing-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 80px 20px;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .pricing-card.featured {
+            background: linear-gradient(135deg, #0be6ff 0%, #af0bff 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured:hover {
+            transform: scale(1.05) translateY(-5px);
+        }
+
+        .pricing-card.featured .pricing-title,
+        .pricing-card.featured .pricing-price,
+        .pricing-card.featured .pricing-feature {
+            color: white;
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff6b6b;
+            color: white;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .pricing-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .pricing-price {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #af0bff;
+            margin-bottom: 20px;
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+
+        .pricing-feature {
+            padding: 10px 0;
+            color: #666;
+            border-bottom: 1px solid #eee;
+        }
+
+        .pricing-feature:last-child {
+            border-bottom: none;
+        }
+
+        .pricing-cta {
+            background: linear-gradient(135deg, #0be6ff 0%, #af0bff 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card.featured .pricing-cta {
+            background: white;
+            color: #af0bff;
+        }
+
+        .pricing-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .testimonials-section {
+            background: white;
+            padding: 80px 20px;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .testimonial-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .testimonial-quote {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-style: italic;
+            color: #2c3e50;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: #af0bff;
+        }
+
+        .stats-section {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 60px 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #0be6ff;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #0be6ff 0%, #af0bff 100%);
+            color: white;
+            padding: 80px 20px 30px 20px;
+            text-align: center;
+        }
+
+        .cta-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .cta-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            background: white;
+            color: #af0bff;
+            font-size: 1.3rem;
+            font-weight: 700;
+            padding: 20px 50px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .process-section {
+            background: white;
+            padding: 80px 20px;
+        }
+
+        .process-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .process-step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #0be6ff 0%, #af0bff 100%);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 20px;
+        }
+
+        .step-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .step-description {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .contact-info {
+            background: #f8f9fa;
+            padding: 40px;
+            border-radius: 15px;
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .contact-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .contact-details {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .section {
+                padding: 40px 20px;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card.featured {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Include sidebar -->
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+        <div class="landing-container">
+            <!-- Hero Section -->
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h1 class="hero-title">Transform Your Ideas Into Viral YouTube Scripts</h1>
+                    <p class="hero-subtitle">Professional script writing that converts viewers into subscribers and drives real engagement</p>
+                    <button class="hero-cta" onclick="scrollToSection('pricing')">Get a Free Sample Script Today</button>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="section">
+                <h2 class="section-title">Why Choose Professional Script Writing?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <span class="feature-icon">🎯</span>
+                        <h3 class="feature-title">Research-Driven Content</h3>
+                        <p class="feature-description">Every script is backed by thorough research, ensuring accuracy, relevance, and maximum audience engagement.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">📈</span>
+                        <h3 class="feature-title">Proven to Increase Views</h3>
+                        <p class="feature-description">My scripts use proven storytelling techniques and psychological triggers that keep viewers watching until the end.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">⚡</span>
+                        <h3 class="feature-title">Fast Turnaround</h3>
+                        <p class="feature-description">Get high-quality, ready-to-record scripts delivered within 2-5 business days, keeping your content calendar on track.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🎬</span>
+                        <h3 class="feature-title">Multiple Formats</h3>
+                        <p class="feature-description">From educational content to entertainment, I craft scripts tailored to your specific niche and audience.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🔄</span>
+                        <h3 class="feature-title">Unlimited Revisions</h3>
+                        <p class="feature-description">Your satisfaction is guaranteed. I'll work with you until the script is exactly what you envisioned.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">💎</span>
+                        <h3 class="feature-title">SEO Optimized</h3>
+                        <p class="feature-description">Scripts include strategic keyword placement to help your videos rank higher in YouTube search results.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Section -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-number">200+</div>
+                        <div class="stat-label">Scripts Written</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">20M+</div>
+                        <div class="stat-label">Total Views Generated</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">24-48hr</div>
+                        <div class="stat-label">Average Delivery</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Process Section -->
+            <section class="process-section">
+                <h2 class="section-title">My Proven 3-Step Process</h2>
+                <div class="process-steps">
+                    <div class="process-step">
+                        <div class="step-number">1</div>
+                        <h3 class="step-title">Research & Analysis</h3>
+                        <p class="step-description">I dive deep into your niche, analyzing trending topics and competitor content to find the perfect angle.</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">2</div>
+                        <h3 class="step-title">Script Writing</h3>
+                        <p class="step-description">The full script is written with your unique voice, including visual cues and engagement triggers.</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">3</div>
+                        <h3 class="step-title">Final Delivery</h3>
+                        <p class="step-description">You receive a polished, ready-to-record script with bonus visual suggestions and SEO recommendations.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pricing Section -->
+            <section class="pricing-section" id="pricing">
+                <h2 class="section-title">Prices</h2>
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <h3 class="pricing-title">Sample Script</h3>
+                        <div class="pricing-price">Free</div>
+                        <ul class="pricing-features">
+                            <li class="pricing-feature">6-8 minute script</li>
+                            <li class="pricing-feature">Full research included</li>
+                            <li class="pricing-feature">2 rounds of revisions</li>
+                            <li class="pricing-feature">24-48 hour delivery</li>
+                            <li class="pricing-feature">SEO keyword integration</li>
+                        </ul>
+                        <button class="pricing-cta">Order Now</button>
+                    </div>
+
+                    <div class="pricing-card">
+                        <h3 class="pricing-title">1 Script</h3>
+                        <div class="pricing-price">$29</div>
+                        <ul class="pricing-features">
+                            <li class="pricing-feature">12-15 minute script</li>
+                            <li class="pricing-feature">In-depth research & analysis</li>
+                            <li class="pricing-feature">Unlimited revisions</li>
+                            <li class="pricing-feature">24-48 hour delivery</li>
+                            <li class="pricing-feature">Visual suggestions included</li>
+                            <li class="pricing-feature">SEO keyword integration</li>
+                            <li class="pricing-feature">Hook optimization</li>
+                        </ul>
+                        <button class="pricing-cta">Order Now</button>
+                    </div>
+
+                    <div class="pricing-card featured">
+                        <div class="pricing-badge">Most Popular - Best Value!</div>
+                        <h3 class="pricing-title">5 Scripts + 1 FREE</h3>
+                        <div class="pricing-price">$145</div>
+                        <div style="font-size: 1rem; margin-top: -15px; margin-bottom: 15px; font-weight: 600; opacity: 0.95;">Order 5, Get 6 Scripts Total!</div>
+                        <ul class="pricing-features">
+                            <li class="pricing-feature">15-18 minute scripts</li>
+                            <li class="pricing-feature">In-depth research & analysis</li>
+                            <li class="pricing-feature">Unlimited revisions</li>
+                            <li class="pricing-feature">3-5 days delivery</li>
+                            <li class="pricing-feature">Visual suggestions</li>
+                            <li class="pricing-feature">SEO keyword integration</li>
+                            <li class="pricing-feature">Hook optimization</li>
+                            <li class="pricing-feature">Title optimization</li>
+                            <li class="pricing-feature" style="font-weight: 700; color: #ffe066; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">🎁 +1 Bonus Script FREE</li>
+                        </ul>
+                        <button class="pricing-cta">Order Now</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Testimonials Section -->
+            <section class="testimonials-section">
+                <h2 class="section-title">What My Clients Say</h2>
+                <div class="testimonials-grid">
+                    <div class="testimonial-card">
+                        <p class="testimonial-quote">"The script quality is outstanding! My video retention rate increased by 40% and I gained 10K subscribers in just one month."</p>
+                        <div class="testimonial-author">- Sarah Johnson, Tech Channel</div>
+                    </div>
+                    <div class="testimonial-card">
+                        <p class="testimonial-quote">"Professional, fast, and results-driven. The scripts feel authentic to my voice while being incredibly engaging."</p>
+                        <div class="testimonial-author">- Mike Rodriguez, Gaming Channel</div>
+                    </div>
+                    <div class="testimonial-card">
+                        <p class="testimonial-quote">"I've tried other scriptwriters, but none deliver the quality and speed like this. My views have tripled!"</p>
+                        <div class="testimonial-author">- Emma Chen, Lifestyle Channel</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contact Info -->
+            <section class="section">
+                <div class="contact-info">
+                    <h3 class="contact-title">Ready to Get Started?</h3>
+                    <div class="contact-details">
+                        <p>Email: scripts@yourservice.com</p>
+                        <p>Response time: Within 2 hours</p>
+                        <p>Payment: Secure PayPal or Stripe</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Final CTA Section -->
+            <section class="cta-section">
+                <h2 class="cta-title">Transform Your Content Today</h2>
+                <p class="cta-subtitle">Join hundreds of successful YouTubers who trust me with their scripts</p>
+                <button class="cta-button">Start Your Order Now</button>
+                <p style="margin: 60px 0 0 0; font-size: 0.9rem; color: rgba(255, 255, 255, 0.7);">&copy; vidsponential</p>
+            </section>
+        </div>
+    </div>
+
+    <!-- Include sidebar component -->
+        <script src="../../shared/js/theme-manager.js"></script>
+    <script src="../../shared/js/sidebar-component.js"></script>
+
+    <script>
+        // Smooth scrolling function
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        // Initialize sidebar
+        window.addEventListener('DOMContentLoaded', function() {
+            if (typeof initializeSidebar === 'function') {
+                initializeSidebar('landing_page_1.html');
+            }
+        });
+    </script>
+</body>
+</html>

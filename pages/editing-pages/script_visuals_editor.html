@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visual Suggestions Editor</title>
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍎</text></svg>">
-    
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
     <link rel="stylesheet" href="../../shared/styles/fonts.css">
     <link rel="stylesheet" href="../../shared/styles/components.css">
     <link rel="stylesheet" href="../../shared/styles/base.css">
@@ -104,23 +108,39 @@
             flex-direction: column;
         }
 
-        /* Auto-expanding text fields with top-left alignment */
-        .beat-script-input,
-        .beat-visual-input {
+        /* Override the default min-height for text-field-multi__input on this page */
+        .text-field-multi__input.auto-height-sync {
+            min-height: 59px !important; /* Override the 225px from components.css */
+            max-height: none !important; /* Remove any max-height constraints */
+            height: auto !important;
+            padding: 15px !important;
             font-family: "Tahoma", sans-serif !important;
             font-size: 19px !important;
             font-weight: 400 !important;
             line-height: 1.6 !important;
-            width: 100%;
-            min-height: 59px; /* Match rating field container height */
-            height: 100%; /* Fill container height */
-            resize: none;
-            overflow: hidden;
+            resize: none !important;
+            overflow: hidden !important; /* Hide scrollbars but ensure height fits content */
+            overflow-y: hidden !important;
             vertical-align: top;
-            padding: 15px !important;
-            white-space: pre-wrap; /* Allow text wrapping */
+            white-space: pre-wrap;
             word-wrap: break-word;
-            box-sizing: border-box;
+            box-sizing: border-box !important;
+            border: 1px solid #ccc; /* Ensure border is visible */
+        }
+        
+        /* Ensure the container doesn't constrain the textarea */
+        .text-field-multi__container {
+            height: auto !important;
+            min-height: auto !important;
+            max-height: none !important;
+            overflow: visible !important;
+        }
+        
+        .text-field-multi {
+            height: auto !important;
+            min-height: auto !important;
+            max-height: none !important;
+            overflow: visible !important;
         }
         
         /* Rating field container matches text field height */
@@ -152,21 +172,49 @@
     </style>
 </head>
 <body class="has-sidebar">
+    <!-- Sticky Top Status Bar -->
+    <div id="stickyStatusBar" style="
+        position: fixed;
+        top: 0;
+        left: 280px;
+        right: 0;
+        background: transparent;
+        padding: 4px 20px;
+        z-index: 999;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+    ">
+        <!-- Script Info Pill (Left) -->
+        <div id="stickyScriptInfo" style="
+            background: white;
+            padding: 3.6px 10.8px;
+            border-radius: 18px;
+            font-size: 10.8px;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            pointer-events: auto;
+            display: none;
+        ">-</div>
+
+        <!-- Status Indicator Pill (Right) -->
+        <div class="status-indicator" id="stickyStatusIndicator" style="pointer-events: auto;">Loading</div>
+    </div>
+
     <!-- Sidebar Container -->
     <div id="sidebarContainer"></div>
-    
-    <div class="container with-sidebar">
+
+    <div class="container with-sidebar" style="padding-top: 30px;">
         <!-- =============================================== -->
         <!--                 HEADER SECTION                -->
         <!-- =============================================== -->
         <div class="header">
             
-            <!-- Second horizontal container: Status Indicator -->
-            <div class="status-bar">
-                <div class="status-indicator" id="statusIndicator">Loading</div>
-            </div>
-            
-            <!-- Third horizontal container: Scripts Completed Today -->
+            <!-- Status bar removed - now in sticky top bar -->
+
+            <!-- Scripts Completed Today -->
             <div class="completed-today-bar">
                 <div class="completed-today-text">Script Visuals Completed Today: <span id="visualsCompletedTodayCount">0</span></div>
             </div>
@@ -185,34 +233,7 @@
         <!-- =============================================== -->
         <div id="content">
             <!-- Script Info Section -->
-            <div class="info-section">
-                <div class="script-info" id="scriptInfo" style="display: none;">
-                    <div class="info-item">
-                        <div class="info-label">Script ID</div>
-                        <div class="info-value" id="scriptIdValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Words</div>
-                        <div class="info-value" id="wordsValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Client</div>
-                        <div class="info-value" id="clientValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Channel</div>
-                        <div class="info-value" id="channelValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Type</div>
-                        <div class="info-value" id="typeValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Genre</div>
-                        <div class="info-value" id="genreValue">-</div>
-                    </div>
-                </div>
-            </div>
+            <div id="scriptInfoBox"></div>
 
             <!-- Visual Suggestions Section -->
             <div class="visuals-section">
@@ -230,35 +251,66 @@
         <!-- Bottom navigation will be added by JavaScript -->
     </div>
 
-    <script type="module" src="../../../../../shared/js/sidebar-component.js"></script>
-    <script type="module" src="../../../../../shared/js/textarea-autosize.js"></script>
-    <script>
+        <script src="../../shared/js/theme-manager.js"></script>
+    <script type="module" src="../../shared/js/sidebar-component.js"></script>
+    <script type="module" src="../../shared/js/textarea-autosize.js"></script>
+    <script type="module">
         // Visual Editor Application - Loads scripts with status_id=40, updates to 45
         
-        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
-        
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+        import { updateStatus, displayScriptInfo, loadScriptInfo, updateScriptStatus, showNoScriptsMessage, fetchWithErrorHandling } from '../../shared/js/editor-utils.js';
+        import { loadRatings, saveRatings, collectRatingValues, populateRatingFields } from '../../shared/js/rating-utils.js';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         let scriptsToReview = [];
         let currentScriptIndex = 0;
         let hasUnsavedChanges = false;
         let isLoading = false;
+        let pageConfig = null;
+        let currentScriptData = null;
 
         async function init() {
             try {
-                console.log('=== VISUAL EDITOR DEBUG: Starting initialization ===');
-                updateStatus('loading', 'Loading scripts...');
-                
-                const scripts = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_status_id=eq.40&select=script_id,script_headline`, {
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-                }).then(r => r.json());
-                
-                console.log('Loaded visual scripts:', scripts);
+                updateStatus('loading', 'Loading page configuration...');
+
+                // Get page configuration
+                const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+
+                const { data: config, error: configError } = await supabase
+                    .from('html_page_config')
+                    .select('*')
+                    .eq('page_name', pageName)
+                    .single();
+
+                if (configError || !config) {
+                    throw new Error(`Page configuration not found for: ${pageName}`);
+                }
+
+                pageConfig = config;
+
+                // Set page title dynamically
+                document.title = pageConfig.page_title;
+                const h1Element = document.querySelector('h1.page-title');
+                if (h1Element) {
+                    h1Element.textContent = pageConfig.page_title;
+                }
+
+                updateStatus('loading', `Loading ${pageConfig.page_title.toLowerCase()}...`);
+
+                // Filter records using config
+                const url = `${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.status_field_name}=eq.${pageConfig.display_status_id}&select=${pageConfig.id_field_name},${pageConfig.status_table_name === 'scripts' ? 'script_headline' : 'headline'}`;
+                const scripts = await fetchWithErrorHandling(url);
+
+                console.log('Loaded scripts:', scripts);
                 scriptsToReview = scripts;
-                
+
                 if (scripts.length > 0) {
                     await loadCurrentScriptData();
+                    setupEventListeners();
+                    startAutoSave();
                 } else {
-                    showNoScriptsMessage('There are no scripts ready for visuals (status_id = 40) at this time.');
+                    showNoScriptsMessage(`There are no ${pageConfig.page_title.toLowerCase()} ready for editing at this time.`);
                 }
             } catch (error) {
                 console.error('Visual Editor initialization error:', error);
@@ -268,15 +320,31 @@
 
         async function loadCurrentScriptData() {
             if (scriptsToReview.length === 0) return;
-            
-            const scriptId = scriptsToReview[currentScriptIndex].script_id;
-            
+
+            const scriptId = scriptsToReview[currentScriptIndex][pageConfig.id_field_name];
+
             try {
-                const scriptInfo = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}&select=*`, {
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-                }).then(r => r.json()).then(data => data[0]);
-                
-                displayScriptData({ script: scriptInfo });
+                const scriptInfo = await loadScriptInfo(scriptId);
+
+                const beatsData = await loadBeatsData(scriptId);
+
+                // Load ratings for all beats
+                const beatRatings = {};
+                for (const beat of beatsData) {
+                    const ratings = await loadRatings('beats', beat.beat_id, [
+                        'visual_suggestion'
+                    ]);
+                    beatRatings[beat.beat_id] = ratings;
+                }
+
+                // Store in currentScriptData
+                currentScriptData = {
+                    script: scriptInfo,
+                    beats: beatsData,
+                    beatRatings: beatRatings
+                };
+
+                displayScriptData(currentScriptData);
                 updateNavigationButtons();
                 updateStatus('saved', 'Loaded successfully');
             } catch (error) {
@@ -285,17 +353,334 @@
             }
         }
 
+        // Load beats data from the beats table
+        async function loadBeatsData(scriptId) {
+            const url = `${SUPABASE_URL}/rest/v1/beats?script_id=eq.${scriptId}&select=*&order=chapter_number,beat_number`;
+            try {
+                const data = await fetchWithErrorHandling(url);
+                console.log('Loaded beats data:', data?.length || 0, 'beats');
+                return data || [];
+            } catch (error) {
+                console.warn('No beats data found for script:', scriptId);
+                return [];
+            }
+        }
+
         function displayScriptData(data) {
             if (!data) return;
             document.getElementById('content').style.display = 'block';
-            document.getElementById('scriptInfo').style.display = 'grid';
+
+            // Use utility function to display script info
+            displayScriptInfo(data.script);
+
+            // Try to initialize enhanced script info box (non-blocking)
+            initializeScriptInfoBox(data.script.script_id);
+
+
+            // Update sticky script info pill
+            const stickyScriptInfo = document.getElementById('stickyScriptInfo');
+            if (stickyScriptInfo && data.script) {
+                const scriptId = data.script.script_id || '-';
+                const scriptHeadline = data.script.script_headline || 'Untitled';
+                stickyScriptInfo.textContent = `Script ID: ${scriptId} | ${scriptHeadline}`;
+                stickyScriptInfo.style.display = 'block';
+            }
+
+            displayBeats(data.beats);
+        }
+
+        // Display beats grouped by chapters
+        function displayBeats(beats) {
+            console.log('displayBeats called with:', beats);
+            const container = document.getElementById('visualsList');
+            container.innerHTML = '';
+
+            if (!beats || beats.length === 0) {
+                console.log('No beats to display, beats array:', beats);
+                container.innerHTML = `
+                    <div class="message info">
+                        <strong>No beats found</strong><br>
+                        No beats are available for this script in the database.
+                    </div>
+                `;
+                return;
+            }
+
+            console.log('Displaying', beats.length, 'beats');
+
+            // Group beats by chapter_number
+            const beatsByChapter = {};
+            beats.forEach(beat => {
+                const chapterNum = beat.chapter_number || 1;
+                if (!beatsByChapter[chapterNum]) {
+                    beatsByChapter[chapterNum] = [];
+                }
+                beatsByChapter[chapterNum].push(beat);
+            });
             
-            document.getElementById('scriptIdValue').textContent = data.script.script_id || '-';
-            document.getElementById('wordsValue').textContent = data.script.target_word_count || '-';
-            document.getElementById('clientValue').textContent = data.script.client_name || '-';
-            document.getElementById('channelValue').textContent = data.script.channel_name || '-';
-            document.getElementById('typeValue').textContent = data.script.script_type || '-';
-            document.getElementById('genreValue').textContent = data.script.genre || '-';
+            // Sort beats within each chapter by beat_number
+            Object.keys(beatsByChapter).forEach(chapterNum => {
+                beatsByChapter[chapterNum].sort((a, b) => (a.beat_number || 0) - (b.beat_number || 0));
+            });
+
+            // Display each chapter with its beats
+            Object.keys(beatsByChapter).sort((a, b) => parseInt(a) - parseInt(b)).forEach(chapterNum => {
+                const chapterBeats = beatsByChapter[chapterNum];
+                
+                // Create chapter section
+                const chapterSection = document.createElement('div');
+                chapterSection.className = 'chapter-se-7a2807fb2c0d';
+                
+                // Chapter header
+                const chapterHeader = document.createElement('button');
+                chapterHeader.className = 'gradient-button';
+                chapterHeader.innerHTML = `<span class="gradient-button__text">Chapter ${chapterNum} (${chapterBeats.length} beats)</span>`;
+                chapterSection.appendChild(chapterHeader);
+                
+                // Add column headers only for this chapter - matching the exact structure of beat rows
+                const columnHeaders = document.createElement('div');
+                columnHeaders.className = 'form-row';
+                columnHeaders.innerHTML = `
+                    <div class="form-row__text-field" style="display: flex; gap: 20px;">
+                        <div style="flex: 1; font-size: 11px; font-family: 'Inter', sans-serif; font-weight: 600; color: #2c3e50; text-transform: uppercase; letter-spacing: 0.5px; padding-left: 0px;">Script Beat:</div>
+                        <div style="flex: 1; font-size: 11px; font-family: 'Inter', sans-serif; font-weight: 600; color: #2c3e50; text-transform: uppercase; letter-spacing: 0.5px; padding-left: 0px;">Visual Suggestion:</div>
+                    </div>
+                    <div class="form-row__rating-field" style="width: 100px;">
+                        <!-- Empty space for rating column -->
+                    </div>
+                `;
+                columnHeaders.style.marginBottom = '10px';
+                chapterSection.appendChild(columnHeaders);
+                
+                // Add each beat as a row
+                chapterBeats.forEach((beat, beatIndex) => {
+                    const beatRow = document.createElement('div');
+                    beatRow.className = 'form-row';
+                    beatRow.style.marginBottom = '20px';
+                    
+                    beatRow.innerHTML = `
+                        <!-- Beat Content (Two Column Layout) -->
+                        <div class="form-row__text-field" style="display: flex; gap: 20px;">
+                            <!-- Left Column: Script Beat -->
+                            <div style="flex: 1;">
+                                <div class="text-field-multi">
+                                    <div class="text-field-multi__container">
+                                        <textarea class="text-field-multi__input auto-height-sync beat-script-input" 
+                                                 id="script_beat_${beat.beat_id}" 
+                                                 data-beat-id="${beat.beat_id}"
+                                                 data-field="script_beat"
+                                                 data-sync-group="beat_${beat.beat_id}"
+                                                 style="resize: none; overflow: hidden;"
+                                                 placeholder="Enter script beat text...">${beat.script_beat || ''}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column: Visual Suggestion -->
+                            <div style="flex: 1;">
+                                <div class="text-field-multi">
+                                    <div class="text-field-multi__container">
+                                        <textarea class="text-field-multi__input auto-height-sync beat-visual-input" 
+                                                 id="visual_suggestion_${beat.beat_id}" 
+                                                 data-beat-id="${beat.beat_id}"
+                                                 data-field="visual_suggestion"
+                                                 data-sync-group="beat_${beat.beat_id}"
+                                                 style="resize: none; overflow: hidden;"
+                                                 placeholder="Enter visual suggestion...">${beat.visual_suggestion || ''}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Rating Field -->
+                        <div class="form-row__rating-field">
+                            <div class="rating-field">
+                                <label class="rating-field__label">Rating / 100:</label>
+                                <div class="rating-field__container">
+                                    <input type="number"
+                                           class="rating-field__input"
+                                           id="rating_visual_suggestion_${beat.beat_id}"
+                                           data-beat-id="${beat.beat_id}"
+                                           data-field="visual_suggestion_rating"
+                                           min="1"
+                                           max="100"
+                                           value="">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    chapterSection.appendChild(beatRow);
+                });
+                
+                container.appendChild(chapterSection);
+            });
+
+            // Populate ratings after all beats are displayed
+            if (currentScriptData && currentScriptData.beatRatings) {
+                beats.forEach(beat => {
+                    const beatRatings = currentScriptData.beatRatings[beat.beat_id];
+                    if (beatRatings) {
+                        const ratingEl = document.getElementById(`rating_visual_suggestion_${beat.beat_id}`);
+                        if (ratingEl && beatRatings.visual_suggestion) {
+                            ratingEl.value = beatRatings.visual_suggestion;
+                        }
+                    }
+                });
+            }
+
+            // Initialize auto-height functionality for all textareas
+            initAutoHeightSync();
+        }
+
+        // Safely initialize enhanced script info box
+        async function initializeScriptInfoBox(scriptId) {
+            try {
+                // Dynamically import the ScriptInfoBox component
+                const { default: ScriptInfoBox } = await import('../../shared/js/script-info-box.js');
+
+                const scriptInfoBox = new ScriptInfoBox('scriptInfoBox');
+                await scriptInfoBox.init(scriptId, {
+                    autoRefresh: false,
+                    refreshRate: 30000
+                });
+
+                // Hide the old info box and show the new one
+                const oldInfoBox = document.getElementById('scriptInfo');
+                if (oldInfoBox) {
+                    oldInfoBox.style.display = 'none';
+                }
+
+                console.log('Enhanced script info box loaded successfully');
+            } catch (error) {
+                console.log('Enhanced script info box not available, using standard version:', error);
+                // Fallback: ensure the old info box is visible
+                const oldInfoBox = document.getElementById('scriptInfo');
+                if (oldInfoBox) {
+                    oldInfoBox.style.display = 'block';
+                }
+            }
+        }
+
+        // Initialize auto-height sync functionality
+        function initAutoHeightSync() {
+            const textareas = document.querySelectorAll('.auto-height-sync');
+            
+            // First pass: sync all groups
+            const processedGroups = new Set();
+            textareas.forEach(textarea => {
+                const syncGroup = textarea.dataset.syncGroup;
+                if (syncGroup && !processedGroups.has(syncGroup)) {
+                    syncHeightWithGroup(textarea);
+                    processedGroups.add(syncGroup);
+                }
+            });
+            
+            // Force a re-sync after a short delay to handle any dynamic content
+            setTimeout(() => {
+                const processedGroupsDelay = new Set();
+                textareas.forEach(textarea => {
+                    const syncGroup = textarea.dataset.syncGroup;
+                    if (syncGroup && !processedGroupsDelay.has(syncGroup)) {
+                        syncHeightWithGroup(textarea);
+                        processedGroupsDelay.add(syncGroup);
+                    }
+                });
+            }, 100);
+            
+            // Add input event listeners
+            textareas.forEach(textarea => {
+                // Add input event listener
+                textarea.addEventListener('input', function() {
+                    const syncGroup = this.dataset.syncGroup;
+                    const groupTextareas = document.querySelectorAll(`[data-sync-group="${syncGroup}"]`);
+                    
+                    // Calculate the required height for each textarea in the group
+                    let maxHeight = 59; // Minimum height matching chapter headline field
+                    
+                    groupTextareas.forEach(ta => {
+                        const requiredHeight = getRequiredHeight(ta);
+                        maxHeight = Math.max(maxHeight, requiredHeight);
+                    });
+                    
+                    // Apply the maximum height to all textareas in the group
+                    groupTextareas.forEach(ta => {
+                        ta.style.height = maxHeight + 'px';
+                    });
+                });
+            });
+        }
+
+        // Calculate the required height for a textarea
+        function getRequiredHeight(textarea) {
+            // Create a temporary div to measure text height more accurately
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.visibility = 'hidden';
+            tempDiv.style.width = textarea.offsetWidth + 'px';
+            tempDiv.style.padding = '15px';
+            tempDiv.style.fontFamily = 'Tahoma, sans-serif';
+            tempDiv.style.fontSize = '19px';
+            tempDiv.style.fontWeight = '400';
+            tempDiv.style.lineHeight = '1.6';
+            tempDiv.style.whiteSpace = 'pre-wrap';
+            tempDiv.style.wordWrap = 'break-word';
+            tempDiv.style.boxSizing = 'border-box';
+            tempDiv.style.border = '1px solid #ccc';
+            tempDiv.textContent = textarea.value || 'placeholder text';
+            
+            document.body.appendChild(tempDiv);
+            const measuredHeight = tempDiv.offsetHeight;
+            document.body.removeChild(tempDiv);
+            
+            // Add minimal padding to ensure all content is visible without extra space
+            const finalHeight = Math.max(59, measuredHeight + 2);
+            console.log(`Height calc for "${textarea.value.substring(0, 30)}...": measuredHeight=${measuredHeight}, finalHeight=${finalHeight}`);
+            return finalHeight;
+        }
+
+        // Auto-resize a single textarea
+        function autoResize(textarea) {
+            const requiredHeight = getRequiredHeight(textarea);
+            textarea.style.height = requiredHeight + 'px';
+        }
+
+        // Sync height with all textareas in the same group
+        function syncHeightWithGroup(textarea) {
+            const syncGroup = textarea.dataset.syncGroup;
+            if (!syncGroup) {
+                autoResize(textarea);
+                return;
+            }
+            
+            const groupTextareas = document.querySelectorAll(`[data-sync-group="${syncGroup}"]`);
+            
+            // Calculate the required height for each textarea in the group
+            let maxHeight = 59; // Minimum height matching chapter headline field
+            
+            groupTextareas.forEach(ta => {
+                const requiredHeight = getRequiredHeight(ta);
+                maxHeight = Math.max(maxHeight, requiredHeight);
+                console.log(`Textarea ${ta.id}: content="${ta.value.substring(0, 50)}...", required height: ${requiredHeight}px`);
+            });
+            
+            console.log(`Setting height for group ${syncGroup}: ${maxHeight}px`);
+            
+            // Apply the maximum height to all textareas in the group
+            groupTextareas.forEach(ta => {
+                ta.style.setProperty('height', maxHeight + 'px', 'important');
+                ta.style.setProperty('min-height', maxHeight + 'px', 'important');
+                ta.style.setProperty('max-height', 'none', 'important');
+                
+                // Force the container to expand as well
+                const container = ta.closest('.text-field-multi__container');
+                if (container) {
+                    container.style.setProperty('height', maxHeight + 'px', 'important');
+                    container.style.setProperty('min-height', maxHeight + 'px', 'important');
+                }
+                
+                console.log(`Applied height ${maxHeight}px to textarea ${ta.id}`);
+            });
         }
 
         async function saveScript() {
@@ -305,15 +690,22 @@
                 isLoading = true;
                 updateStatus('loading', 'Saving visuals and updating status...');
                 
-                const scriptId = scriptsToReview[currentScriptIndex].script_id;
+                const scriptId = scriptsToReview[currentScriptIndex][pageConfig.id_field_name];
                 
-                await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`, {
-                    method: 'PATCH',
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ script_status_id: 45 })
-                });
+                // Save beats data
+                await saveBeatsData(scriptId);
+
+                // Update status using configuration
+                if (pageConfig && pageConfig.next_status_id) {
+                    await updateScriptStatus(scriptId, pageConfig.next_status_id);
+                }
+
+                updateStatus('saved', 'Visuals completed and status updated');
+                hasUnsavedChanges = false;
+                if (window.setUnsavedChanges) {
+                    window.setUnsavedChanges(false);
+                }
                 
-                updateStatus('saved', 'Visuals completed and status updated to 45');
                 scriptsToReview.splice(currentScriptIndex, 1);
                 
                 if (scriptsToReview.length > 0) {
@@ -325,9 +717,84 @@
                 
             } catch (error) {
                 console.error('Save error:', error);
-                updateStatus('error', 'Failed to save visuals');
+                updateStatus('error', `Failed to save visuals: ${error.message}`);
             } finally {
                 isLoading = false;
+            }
+        }
+
+        // Save beats data
+        async function saveBeatsData(scriptId) {
+            const beatFields = document.querySelectorAll('[data-beat-id]');
+            const updatesByBeat = {};
+            const ratingsByBeat = {};
+
+            // Collect all updates by beat ID
+            beatFields.forEach(field => {
+                const beatId = field.dataset.beatId;
+                const fieldType = field.dataset.field;
+
+                if (!updatesByBeat[beatId]) {
+                    updatesByBeat[beatId] = { id: parseInt(beatId) };
+                }
+
+                if (fieldType === 'script_beat') {
+                    updatesByBeat[beatId].script_beat = field.value;
+                } else if (fieldType === 'visual_suggestion') {
+                    updatesByBeat[beatId].visual_suggestion = field.value;
+                }
+                // Note: visual_suggestion_mp_rating is NO LONGER collected here
+            });
+
+            // Collect ratings separately
+            beatFields.forEach(field => {
+                const beatId = field.dataset.beatId;
+                const fieldId = field.id;
+
+                // Check if this is a rating field
+                if (fieldId && fieldId.startsWith('rating_visual_suggestion_')) {
+                    if (!ratingsByBeat[beatId]) {
+                        ratingsByBeat[beatId] = {};
+                    }
+                    if (field.value) {
+                        ratingsByBeat[beatId].visual_suggestion = parseInt(field.value) || null;
+                    }
+                }
+            });
+
+            // Save each beat individually
+            const beatIds = Object.keys(updatesByBeat);
+            let savedCount = 0;
+
+            for (const beatId in updatesByBeat) {
+                const update = updatesByBeat[beatId];
+                const { id, ...updateData } = update;
+
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/beats?beat_id=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to save beat ${id}`);
+                }
+
+                savedCount++;
+                // Update status to show progress
+                updateStatus('loading', `Saving visuals... ${savedCount}/${beatIds.length}`);
+            }
+
+            // Save ratings for each beat
+            for (const beatId in ratingsByBeat) {
+                if (Object.keys(ratingsByBeat[beatId]).length > 0) {
+                    await saveRatings('beats', beatId, ratingsByBeat[beatId], scriptId);
+                }
             }
         }
 
@@ -347,18 +814,43 @@
             }
         }
 
-        function updateStatus(status, message) {
-            const statusIndicator = document.getElementById('statusIndicator');
-            if (statusIndicator) {
-                statusIndicator.textContent = message;
-                statusIndicator.className = `status-indicator ${status}`;
-            }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Add change listeners to mark unsaved changes
+            document.addEventListener('input', (e) => {
+                // Handle both content fields and rating fields
+                if ((e.target.dataset.field && e.target.dataset.beatId) ||
+                    (e.target.id && e.target.id.startsWith('rating_visual_suggestion_'))) {
+                    hasUnsavedChanges = true;
+                    if (window.setUnsavedChanges) {
+                        window.setUnsavedChanges(true);
+                    }
+                    updateStatus('editing', 'Editing visual suggestions...');
+                }
+            });
         }
 
-        function showNoScriptsMessage(message) {
-            document.getElementById('content').style.display = 'none';
-            document.getElementById('noScriptsMessage').innerHTML = `<div class="message info"><strong>No scripts found</strong><br>${message}</div>`;
-            document.getElementById('noScriptsMessage').style.display = 'block';
+        // Auto-save functionality
+        function startAutoSave() {
+            if (window.bottomNav) {
+                window.bottomNav.startAutoSave(async () => {
+                    if (hasUnsavedChanges && scriptsToReview.length > 0) {
+                        try {
+                            const scriptId = scriptsToReview[currentScriptIndex][pageConfig.id_field_name];
+                            await saveBeatsData(scriptId);
+                            hasUnsavedChanges = false;
+                            if (window.setUnsavedChanges) {
+                                window.setUnsavedChanges(false);
+                            }
+                            updateStatus('saved', 'Auto-saved');
+                        } catch (error) {
+                            console.error('Auto-save failed:', error);
+                            updateStatus('error', 'Auto-save failed');
+                        }
+                    }
+                });
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -371,7 +863,7 @@
     </script>
     
     <script type="module">
-        import BottomNavigation from '../../../../../shared/js/bottom-navigation.js';
+        import BottomNavigation from '../../shared/js/bottom-navigation.js';
         window.bottomNav = new BottomNavigation({
             onSave: () => window.saveScript(),
             onNavigate: (direction) => window.navigateScript(direction),
@@ -380,6 +872,12 @@
         
         window.updateBottomNavigation = (currentIndex, totalItems) => {
             if (window.bottomNav) window.bottomNav.updateNavigation(currentIndex, totalItems);
+        };
+        
+        window.setUnsavedChanges = (hasChanges) => {
+            if (window.bottomNav) {
+                window.bottomNav.setUnsavedChanges(hasChanges);
+            }
         };
     </script>
 </body>

@@ -1,0 +1,33 @@
+# System files
+.DS_Store
+*.log
+
+# Claude artifacts
+.claude/
+
+# Node
+node_modules/
+
+# Backup/Archive
+archive/
+backups/
+
+# Local dev configs
+supabase/
+cors_server.py
+
+# Build scripts
+*.sh
+build.js
+fix_rating_fields.py
+
+# Documentation (keep out of Vercel)
+*.md
+!README.md
+
+# Test files
+insert_dummy_data.html
+insert_dummy_ideas.sql
+insert_ideas.js
+test_rating_system.html
+create_script_ideas_table.html

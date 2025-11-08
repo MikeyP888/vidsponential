@@ -7,7 +7,7 @@ class BottomNavigation {
             onSave: config.onSave || (() => console.log('Save clicked')),
             onNavigate: config.onNavigate || ((direction) => console.log('Navigate:', direction)),
             showAutoSave: config.showAutoSave !== false,
-            autoSaveInterval: config.autoSaveInterval || 30000,
+            autoSaveInterval: config.autoSaveInterval || 10000,
             ...config
         };
         

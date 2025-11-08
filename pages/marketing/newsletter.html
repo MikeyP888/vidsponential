@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsletter Signup - Vidsponential</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>">
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+
+    <!-- Supabase CDN -->
+    <script src="../../shared/js/theme-manager.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #fefefe 0%, #fdfdfd 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .newsletter-container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo-container {
+            margin-bottom: 60px;
+            text-align: center;
+        }
+
+        .logo {
+            height: 40px;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        .newsletter-title {
+            font-size: 52px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .newsletter-subtitle {
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 60px;
+            line-height: 1.6;
+        }
+
+        .signup-form {
+            display: flex;
+            gap: 12px;
+            max-width: 600px;
+            margin: 0 auto 24px;
+        }
+
+        .email-input {
+            flex: 1;
+            padding: 18px 24px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-family: "Inter", sans-serif;
+        }
+
+        .email-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .submit-btn {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            padding: 18px 36px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: "Inter", sans-serif;
+            white-space: nowrap;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .privacy-text {
+            font-size: 14px;
+            color: #888;
+            line-height: 1.5;
+        }
+
+        .message {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: 500;
+            display: none;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 30px 20px;
+            }
+
+            .newsletter-title {
+                font-size: 36px;
+            }
+
+            .newsletter-subtitle {
+                font-size: 18px;
+                margin-bottom: 40px;
+            }
+
+            .logo {
+                height: 32px;
+            }
+
+            .logo-container {
+                margin-bottom: 40px;
+            }
+
+            .signup-form {
+                flex-direction: column;
+            }
+
+            .submit-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="newsletter-container">
+        <div class="logo-container">
+            <img src="../../shared/assets/vidsponential logo.png" alt="Vidsponential" class="logo">
+        </div>
+
+        <h1 class="newsletter-title">Join the Newsletter</h1>
+        <p class="newsletter-subtitle">Get weekly tips on YouTube growth and scriptwriting</p>
+
+        <div id="messageContainer"></div>
+
+        <form class="signup-form" id="newsletterForm">
+            <input
+                type="email"
+                class="email-input"
+                id="emailInput"
+                placeholder="Enter your email address"
+                required
+                autocomplete="email"
+            >
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Subscribe
+            </button>
+        </form>
+
+        <p class="privacy-text">
+            No spam. Unsubscribe anytime.
+        </p>
+    </div>
+
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const form = document.getElementById('newsletterForm');
+        const emailInput = document.getElementById('emailInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const messageContainer = document.getElementById('messageContainer');
+
+        // Check for pre-filled email from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const prefilledEmail = urlParams.get('email');
+        if (prefilledEmail) {
+            emailInput.value = decodeURIComponent(prefilledEmail);
+        }
+
+        function showMessage(text, type) {
+            messageContainer.innerHTML = `<div class="message ${type}">${text}</div>`;
+
+            // Auto-hide success message after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageContainer.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            const email = emailInput.value.trim();
+
+            // Validate email
+            if (!email) {
+                showMessage('Please enter your email address.', 'error');
+                return;
+            }
+
+            if (!validateEmail(email)) {
+                showMessage('Please enter a valid email address.', 'error');
+                return;
+            }
+
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Subscribing...';
+
+            try {
+                // Check if email already exists
+                const { data: existingSubscriber, error: checkError } = await supabase
+                    .from('newsletter_subscribers')
+                    .select('email_address')
+                    .eq('email_address', email)
+                    .maybeSingle();
+
+                if (checkError && checkError.code !== 'PGRST116') {
+                    throw checkError;
+                }
+
+                if (existingSubscriber) {
+                    showMessage('This email is already subscribed to our newsletter!', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Subscribe Now';
+                    return;
+                }
+
+                // Insert new subscriber
+                const { error: insertError } = await supabase
+                    .from('newsletter_subscribers')
+                    .insert([
+                        { email_address: email }
+                    ]);
+
+                if (insertError) throw insertError;
+
+                // Success!
+                showMessage('🎉 Success! You\'re now subscribed to the Vidsponential newsletter. Check your inbox soon!', 'success');
+                emailInput.value = '';
+
+            } catch (error) {
+                console.error('Error subscribing:', error);
+                showMessage('Oops! Something went wrong. Please try again later.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Subscribe Now';
+            }
+        }
+
+        form.addEventListener('submit', handleSubmit);
+
+        // Clear error message when user starts typing
+        emailInput.addEventListener('input', () => {
+            if (messageContainer.querySelector('.error')) {
+                messageContainer.innerHTML = '';
+            }
+        });
+    </script>
+</body>
+</html>

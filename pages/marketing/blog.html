@@ -4,255 +4,600 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog - Vidsponential</title>
-    
-    <link rel="stylesheet" href="shared/styles/base.css">
-    <link rel="stylesheet" href="shared/styles/fonts.css">
-    <link rel="stylesheet" href="shared/styles/layout.css">
-    <link rel="stylesheet" href="shared/styles/buttons.css">
-    <link rel="stylesheet" href="shared/styles/notifications.css">
-    
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-</head>
-<body>
-    <nav class="main-nav">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <img src="shared/assets/vidsponential logo.png" alt="Vidsponential" height="40">
-            </div>
-            <ul class="nav-menu">
-                <li><a href="index.html" class="nav-link">Home</a></li>
-                <li><a href="portfolio/index.html" class="nav-link">Portfolio</a></li>
-                <li><a href="blog.html" class="nav-link active">Blog</a></li>
-            </ul>
-        </div>
-    </nav>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📰</text></svg>">
 
-    <main class="main-content">
-        <section class="blog-header">
-            <div class="container">
-                <h1 class="page-title">Blog</h1>
-                <p class="page-subtitle">Insights, tips, and updates from the world of YouTube content creation</p>
-            </div>
-        </section>
-
-        <section class="articles-section">
-            <div class="container">
-                <div class="articles-grid" id="articlesGrid">
-                    <!-- Articles will be loaded dynamically -->
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="site-footer">
-        © vidsponential
-    </footer>
-
-    <script type="module" src="shared/js/config.js"></script>
-    <script type="module" src="shared/js/website-api.js"></script>
-    <script type="module" src="js/blog.js"></script>
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
 
     <style>
-        .main-nav {
-            background: white;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 0.75rem 0;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-        }
-
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-        }
-
-        .nav-link {
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-
-        .nav-link:hover,
-        .nav-link.active {
-            background-color: #f0f0f0;
-        }
-
-        .blog-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 3rem 0;
-            text-align: center;
-        }
-
-        .page-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .page-subtitle {
-            font-size: 1.125rem;
-            opacity: 0.9;
-        }
-
-        .articles-section {
-            padding: 3rem 0;
-        }
-
-        .articles-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .article-card {
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-        }
-
-        .article-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        }
-
-        .article-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background: #f0f0f0;
-        }
-
-        .article-content {
-            padding: 1.5rem;
-        }
-
-        .article-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            font-size: 0.875rem;
-            color: #666;
-        }
-
-        .article-category {
-            background: #e9ecef;
-            color: #495057;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .article-date {
-            color: #888;
-        }
-
-        .article-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            color: #333;
-            line-height: 1.4;
-        }
-
-        .article-excerpt {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-        }
-
-        .read-more {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.875rem;
-        }
-
-        .read-more:hover {
-            text-decoration: underline;
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #fefefe 0%, #fdfdfd 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 2rem;
         }
 
-        .site-footer {
+        .header {
             text-align: center;
-            padding: 1rem 0;
-            margin-top: auto;
-            color: #666;
-            font-size: 14px;
-            border-top: 1px solid #eee;
+            margin-bottom: 60px;
+            margin-top: 40px;
+            position: relative;
         }
 
-        body {
+        .logo {
+            height: 29px;
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            margin: 0;
+            z-index: 1000;
+        }
+
+        .page-title {
+            font-size: 48px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 16px;
+        }
+
+        .page-subtitle {
+            font-size: 20px;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Categories */
+        .categories {
             display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
         }
 
-        .main-content {
+        .category-chip {
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 2px solid #e0e0e0;
+            border-radius: 24px;
+            background: white;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-chip:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .category-chip.active {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Featured Post */
+        .featured-post {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.025);
+            border: 0.5px solid #e0e0e0;
+            margin-bottom: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .featured-post:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        }
+
+        .featured-image {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, rgba(11, 230, 255, 0.2) 0%, rgba(175, 11, 255, 0.2) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+        }
+
+        .featured-content {
+            padding: 40px;
+        }
+
+        .featured-tag {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to right, rgba(11, 230, 255, 0.15) 0%, rgba(175, 11, 255, 0.15) 100%);
+            color: #667eea;
+            margin-bottom: 16px;
+        }
+
+        .featured-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+
+        .featured-excerpt {
+            font-size: 18px;
+            color: #666;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .featured-meta {
+            display: flex;
+            gap: 24px;
+            color: #888;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Blog Grid */
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 28px;
+            margin-bottom: 50px;
+        }
+
+        .blog-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.025);
+            border: 0.5px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        }
+
+        .blog-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(11, 230, 255, 0.15) 0%, rgba(175, 11, 255, 0.15) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .blog-content {
+            padding: 24px;
+        }
+
+        .blog-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #f0f0f0;
+            color: #667eea;
+            margin-bottom: 12px;
+        }
+
+        .blog-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .blog-excerpt {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .blog-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f0;
+            color: #888;
+            font-size: 13px;
+        }
+
+        .read-time {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Newsletter CTA */
+        .newsletter-cta {
+            background: linear-gradient(135deg, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            border-radius: 24px;
+            padding: 60px;
+            text-align: center;
+            margin: 60px 0;
+        }
+
+        .newsletter-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .newsletter-text {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 32px;
+        }
+
+        .newsletter-form {
+            display: flex;
+            gap: 12px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .newsletter-input {
             flex: 1;
+            padding: 16px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 12px;
+            font-family: "Inter", sans-serif;
         }
 
-        .loading {
+        .newsletter-input:focus {
+            outline: none;
+        }
+
+        .newsletter-button {
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .newsletter-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Load More */
+        .load-more {
             text-align: center;
-            padding: 3rem;
-            color: #666;
-            grid-column: 1 / -1;
+            margin: 40px 0;
         }
 
-        .no-articles {
-            text-align: center;
-            padding: 3rem;
-            color: #666;
-            grid-column: 1 / -1;
+        .load-more-button {
+            padding: 16px 48px;
+            font-size: 16px;
+            font-weight: 600;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
+        .load-more-button:hover {
+            border-color: #667eea;
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .nav-container {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
             .page-title {
-                font-size: 2rem;
+                font-size: 36px;
             }
 
-            .articles-grid {
+            .featured-image {
+                height: 250px;
+                font-size: 60px;
+            }
+
+            .featured-content {
+                padding: 24px;
+            }
+
+            .featured-title {
+                font-size: 28px;
+            }
+
+            .featured-excerpt {
+                font-size: 16px;
+            }
+
+            .blog-grid {
                 grid-template-columns: 1fr;
             }
 
-            .container {
-                padding: 0 1rem;
+            .newsletter-cta {
+                padding: 40px 24px;
             }
 
-            .article-meta {
+            .newsletter-form {
                 flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
+            }
+
+            .newsletter-button {
+                width: 100%;
             }
         }
     </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <img src="../../shared/assets/vidsponential logo.png" alt="Vidsponential" class="logo">
+            <h1 class="page-title">Blog</h1>
+            <p class="page-subtitle">Insights, tips, and strategies for YouTube success and scriptwriting mastery</p>
+        </div>
+
+        <!-- Categories -->
+        <div class="categories">
+            <div class="category-chip active" onclick="filterCategory('all')">All Posts</div>
+            <div class="category-chip" onclick="filterCategory('scriptwriting')">Scriptwriting</div>
+            <div class="category-chip" onclick="filterCategory('youtube')">YouTube Growth</div>
+            <div class="category-chip" onclick="filterCategory('monetization')">Monetization</div>
+            <div class="category-chip" onclick="filterCategory('case-studies')">Case Studies</div>
+            <div class="category-chip" onclick="filterCategory('tools')">Tools & Resources</div>
+        </div>
+
+        <!-- Featured Post -->
+        <div class="featured-post" onclick="openPost('featured')">
+            <div class="featured-image">🎬</div>
+            <div class="featured-content">
+                <span class="featured-tag">Featured</span>
+                <h2 class="featured-title">The Ultimate Guide to Writing Viral YouTube Scripts in 2025</h2>
+                <p class="featured-excerpt">
+                    Discover the proven framework used by top creators to write scripts that captivate audiences,
+                    boost retention rates, and drive massive growth. Learn the psychology behind viral content and
+                    how to apply it to every script you write.
+                </p>
+                <div class="featured-meta">
+                    <div class="meta-item">
+                        <span>📅</span>
+                        <span>January 15, 2025</span>
+                    </div>
+                    <div class="meta-item">
+                        <span>⏱️</span>
+                        <span>12 min read</span>
+                    </div>
+                    <div class="meta-item">
+                        <span>👁️</span>
+                        <span>2.4K views</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blog Grid -->
+        <div class="blog-grid" id="blogGrid">
+            <!-- Blog posts will be rendered here -->
+        </div>
+
+        <!-- Newsletter CTA -->
+        <div class="newsletter-cta">
+            <h2 class="newsletter-title">Never Miss a Post</h2>
+            <p class="newsletter-text">Join 10,000+ creators getting weekly scriptwriting tips and YouTube growth strategies</p>
+            <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
+                <input type="email" class="newsletter-input" placeholder="Enter your email" required>
+                <button type="submit" class="newsletter-button">Subscribe</button>
+            </form>
+        </div>
+
+        <!-- Load More -->
+        <div class="load-more">
+            <button class="load-more-button" onclick="loadMore()">Load More Posts</button>
+        </div>
+    </div>
+
+    <script src="../../shared/js/theme-manager.js"></script>
+    <script>
+        // Sample blog posts data
+        const blogPosts = [
+            {
+                id: 1,
+                title: "5 Hook Formulas That Get 90%+ Click-Through Rates",
+                excerpt: "The first 5 seconds determine if viewers stay or leave. Master these proven hook formulas to capture attention instantly.",
+                category: "scriptwriting",
+                icon: "🎯",
+                date: "January 12, 2025",
+                readTime: "8 min"
+            },
+            {
+                id: 2,
+                title: "How to Structure a 10-Minute YouTube Script (Template Included)",
+                excerpt: "A step-by-step breakdown of the perfect script structure that keeps viewers engaged from start to finish.",
+                category: "scriptwriting",
+                icon: "📝",
+                date: "January 10, 2025",
+                readTime: "10 min"
+            },
+            {
+                id: 3,
+                title: "YouTube Algorithm Changes in 2025: What Creators Need to Know",
+                excerpt: "Stay ahead of the curve with these critical algorithm updates and how they impact your content strategy.",
+                category: "youtube",
+                icon: "🚀",
+                date: "January 8, 2025",
+                readTime: "7 min"
+            },
+            {
+                id: 4,
+                title: "From 0 to 100K Subscribers: A Complete Roadmap",
+                excerpt: "The exact strategies successful creators used to reach 100K subscribers, broken down into actionable steps.",
+                category: "youtube",
+                icon: "📈",
+                date: "January 5, 2025",
+                readTime: "15 min"
+            },
+            {
+                id: 5,
+                title: "Monetization Strategies Beyond AdSense",
+                excerpt: "Discover 7 revenue streams top creators use to earn 10x more than AdSense alone.",
+                category: "monetization",
+                icon: "💰",
+                date: "January 3, 2025",
+                readTime: "11 min"
+            },
+            {
+                id: 6,
+                title: "Case Study: How This Faceless Channel Hit 500K in 6 Months",
+                excerpt: "An in-depth analysis of the strategy, scripts, and content approach that led to explosive growth.",
+                category: "case-studies",
+                icon: "🔍",
+                date: "December 30, 2024",
+                readTime: "13 min"
+            },
+            {
+                id: 7,
+                title: "The Psychology of Retention: Keep Viewers Watching",
+                excerpt: "Scientific principles that explain why viewers stay engaged and how to apply them to your scripts.",
+                category: "scriptwriting",
+                icon: "🧠",
+                date: "December 28, 2024",
+                readTime: "9 min"
+            },
+            {
+                id: 8,
+                title: "AI Tools Every Scriptwriter Should Use in 2025",
+                excerpt: "The best AI-powered tools to streamline research, ideation, and script optimization.",
+                category: "tools",
+                icon: "🤖",
+                date: "December 25, 2024",
+                readTime: "6 min"
+            },
+            {
+                id: 9,
+                title: "Thumbnail + Title + Hook: The Triple Threat Formula",
+                excerpt: "How to create perfect synergy between your thumbnail, title, and opening hook for maximum impact.",
+                category: "youtube",
+                icon: "⚡",
+                date: "December 22, 2024",
+                readTime: "8 min"
+            }
+        ];
+
+        let currentCategory = 'all';
+
+        // Render blog posts
+        function renderPosts() {
+            const grid = document.getElementById('blogGrid');
+            grid.innerHTML = '';
+
+            const filteredPosts = currentCategory === 'all'
+                ? blogPosts
+                : blogPosts.filter(post => post.category === currentCategory);
+
+            filteredPosts.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'blog-card';
+                card.onclick = () => openPost(post.id);
+
+                card.innerHTML = `
+                    <div class="blog-image">${post.icon}</div>
+                    <div class="blog-content">
+                        <span class="blog-tag">${post.category}</span>
+                        <h3 class="blog-title">${post.title}</h3>
+                        <p class="blog-excerpt">${post.excerpt}</p>
+                        <div class="blog-meta">
+                            <span>${post.date}</span>
+                            <span class="read-time">
+                                <span>⏱️</span>
+                                <span>${post.readTime}</span>
+                            </span>
+                        </div>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Filter by category
+        window.filterCategory = function(category) {
+            currentCategory = category;
+
+            // Update active state
+            document.querySelectorAll('.category-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Re-render posts
+            renderPosts();
+        };
+
+        // Open post
+        window.openPost = function(postId) {
+            console.log('Opening post:', postId);
+            alert(`Opening blog post #${postId}. In production, this would navigate to the full article.`);
+        };
+
+        // Load more posts
+        window.loadMore = function() {
+            alert('Loading more posts... In production, this would fetch additional blog posts from the database.');
+        };
+
+        // Subscribe to newsletter
+        window.subscribeNewsletter = function(event) {
+            event.preventDefault();
+            const email = event.target.querySelector('input').value;
+            alert(`Thanks for subscribing with ${email}! In production, this would save to the database.`);
+            event.target.reset();
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPosts();
+        });
+    </script>
 </body>
 </html>

@@ -54,23 +54,46 @@ class TextareaAutosize {
     }
 
     adjustHeight(textarea) {
+        // Store current cursor position and scroll state
+        const cursorPosition = textarea.selectionStart;
+        const cursorEnd = textarea.selectionEnd;
+        const scrollTop = textarea.scrollTop;
+        const wasActiveElement = document.activeElement === textarea;
+
+        // Store the page scroll position to prevent jumping
+        const pageScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const pageScrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
         // Reset height to get accurate scrollHeight
         textarea.style.height = 'auto';
         textarea.style.overflowY = 'hidden'; // Always hidden - no scrolling
-        
+
         // Calculate the needed height to fit all content
         const minHeight = 225; // Minimum height in pixels (about 8-9 lines)
         const extraPadding = 15; // Extra bottom padding to match top padding
-        
+
         // Always expand to fit ALL content - no maximum height limit
         const newHeight = Math.max(minHeight, textarea.scrollHeight + extraPadding);
-        
+
         // Set the new height to show all content
         textarea.style.height = newHeight + 'px';
-        
+
         // Ensure no scrolling is ever needed
         textarea.style.overflowY = 'hidden';
         textarea.style.resize = 'none';
+
+        // Restore cursor position and focus if textarea was active
+        if (wasActiveElement) {
+            textarea.focus();
+            textarea.setSelectionRange(cursorPosition, cursorEnd);
+            // Only restore scroll if we had some scroll position
+            if (scrollTop > 0) {
+                textarea.scrollTop = scrollTop;
+            }
+        }
+
+        // Restore the page scroll position to prevent jumping
+        window.scrollTo(pageScrollLeft, pageScrollTop);
     }
 
     setupMutationObserver() {

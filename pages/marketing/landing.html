@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional YouTube Script Writing - Vidsponential</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #fefefe 0%, #fdfdfd 100%);
+            min-height: 100vh;
+        }
+
+        .logo {
+            height: 29px;
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            margin: 0;
+            z-index: 1000;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            padding: 120px 20px 80px 20px;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 56px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 24px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+            font-weight: 400;
+        }
+
+        .hero-cta {
+            background: white;
+            color: #667eea;
+            padding: 18px 48px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Stats Banner */
+        .stats-banner {
+            background: white;
+            padding: 60px 20px;
+            border-top: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .stats-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            font-size: 42px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            color: #666;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 32px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.025);
+            border: 0.5px solid #e0e0e0;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .feature-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .feature-description {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.7;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            background: #f8f9fa;
+            padding: 80px 20px;
+        }
+
+        .pricing-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 32px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.025);
+            border: 0.5px solid #e0e0e0;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .package-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .package-price {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .package-duration {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .package-features {
+            text-align: left;
+            margin-bottom: 30px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .feature-icon-small {
+            color: #667eea;
+            margin-right: 8px;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .pricing-cta {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .pricing-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Testimonials */
+        .testimonials-section {
+            padding: 80px 20px;
+        }
+
+        .testimonials-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .testimonial-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 32px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.025);
+            border: 0.5px solid #e0e0e0;
+        }
+
+        .testimonial-quote {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #444;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 15px;
+        }
+
+        .testimonial-role {
+            font-size: 14px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .testimonial-rating {
+            color: #FFC107;
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+
+        /* Process Section */
+        .process-section {
+            background: white;
+            padding: 80px 20px;
+        }
+
+        .process-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+        }
+
+        .process-step {
+            text-align: center;
+        }
+
+        .step-number {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 auto 20px;
+        }
+
+        .step-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .step-description {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.7;
+        }
+
+        /* Final CTA Section */
+        .final-cta {
+            background: linear-gradient(135deg, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .cta-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .cta-subtitle {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .cta-button {
+            background: white;
+            color: #667eea;
+            padding: 18px 48px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Footer */
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 36px;
+            }
+
+            .hero-subtitle {
+                font-size: 18px;
+            }
+
+            .section-title {
+                font-size: 32px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .features-grid,
+            .pricing-grid,
+            .testimonials-grid,
+            .process-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 60px 20px;
+            }
+
+            .pricing-section,
+            .testimonials-section,
+            .process-section {
+                padding: 60px 20px;
+            }
+
+            .cta-title {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Logo -->
+    <img src="../../shared/assets/vidsponential logo.png" alt="Vidsponential" class="logo">
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <h1 class="hero-title">Professional YouTube Scripts<br>That Drive Real Results</h1>
+        <p class="hero-subtitle">High-converting scripts crafted by experts to boost engagement and grow your channel</p>
+        <a href="order_script.html" class="hero-cta">Order Your Script Now</a>
+    </section>
+
+    <!-- Stats Banner -->
+    <section class="stats-banner">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">500+</div>
+                <div class="stat-label">Scripts Written</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">50M+</div>
+                <div class="stat-label">Total Views Generated</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">98%</div>
+                <div class="stat-label">Client Satisfaction</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">24-48hr</div>
+                <div class="stat-label">Average Delivery</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="container">
+        <div class="section-header">
+            <h2 class="section-title">Why Choose Our Scripts?</h2>
+            <p class="section-subtitle">Proven strategies that transform viewers into loyal subscribers</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <span class="feature-icon">🎯</span>
+                <h3 class="feature-title">Research-Driven Content</h3>
+                <p class="feature-description">Every script is backed by thorough research, ensuring accuracy, relevance, and maximum audience engagement.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-icon">📈</span>
+                <h3 class="feature-title">Proven to Increase Views</h3>
+                <p class="feature-description">Our scripts use proven storytelling techniques and psychological triggers that keep viewers watching until the end.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-icon">⚡</span>
+                <h3 class="feature-title">Fast Turnaround</h3>
+                <p class="feature-description">Get high-quality, ready-to-record scripts delivered within 24-48 hours, keeping your content calendar on track.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-icon">🎬</span>
+                <h3 class="feature-title">Multiple Formats</h3>
+                <p class="feature-description">From educational content to entertainment, we craft scripts tailored to your specific niche and audience.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-icon">🔄</span>
+                <h3 class="feature-title">Unlimited Revisions</h3>
+                <p class="feature-description">Your satisfaction is guaranteed. We'll work with you until the script is exactly what you envisioned.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-icon">💎</span>
+                <h3 class="feature-title">SEO Optimized</h3>
+                <p class="feature-description">Scripts include strategic keyword placement to help your videos rank higher in YouTube search results.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Section -->
+    <section class="process-section">
+        <div class="section-header">
+            <h2 class="section-title">Our Proven 3-Step Process</h2>
+            <p class="section-subtitle">From concept to final script in just a few days</p>
+        </div>
+
+        <div class="process-grid">
+            <div class="process-step">
+                <div class="step-number">1</div>
+                <h3 class="step-title">Research & Analysis</h3>
+                <p class="step-description">We dive deep into your niche, analyzing trending topics and competitor content to find the perfect angle.</p>
+            </div>
+
+            <div class="process-step">
+                <div class="step-number">2</div>
+                <h3 class="step-title">Script Writing</h3>
+                <p class="step-description">Our expert writers craft a compelling script with your unique voice, including hooks and engagement triggers.</p>
+            </div>
+
+            <div class="process-step">
+                <div class="step-number">3</div>
+                <h3 class="step-title">Review & Deliver</h3>
+                <p class="step-description">You receive a polished, ready-to-record script with visual suggestions and SEO recommendations.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section">
+        <div class="section-header">
+            <h2 class="section-title">Simple, Transparent Pricing</h2>
+            <p class="section-subtitle">Choose the package that fits your needs</p>
+        </div>
+
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <div class="package-name">Basic Script</div>
+                <div class="package-price">$297</div>
+                <div class="package-duration">3-5 day delivery</div>
+                <div class="package-features">
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>8-12 minute script</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>Hook + Outline + Full Script</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>1 Revision Round</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>SEO Optimized</span>
+                    </div>
+                </div>
+                <a href="order_script.html?package=basic" class="pricing-cta">Get Started</a>
+            </div>
+
+            <div class="pricing-card">
+                <div class="pricing-badge">POPULAR</div>
+                <div class="package-name">Pro Script</div>
+                <div class="package-price">$497</div>
+                <div class="package-duration">3-5 day delivery</div>
+                <div class="package-features">
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>12-20 minute script</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>Research + Hook + Outline + Script</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>2 Revision Rounds</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>SEO + Thumbnail Copy</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>Visual Suggestions</span>
+                    </div>
+                </div>
+                <a href="order_script.html?package=pro" class="pricing-cta">Get Started</a>
+            </div>
+
+            <div class="pricing-card">
+                <div class="package-name">Premium Script</div>
+                <div class="package-price">$797</div>
+                <div class="package-duration">2-4 day delivery</div>
+                <div class="package-features">
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>20+ minute script</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>Deep Research + Full Production</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>Unlimited Revisions</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>SEO + Thumbnail + Description</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>Visual Suggestions + Timeline</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon-small">✓</span>
+                        <span>Priority Support</span>
+                    </div>
+                </div>
+                <a href="order_script.html?package=premium" class="pricing-cta">Get Started</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section">
+        <div class="section-header">
+            <h2 class="section-title">What Our Clients Say</h2>
+            <p class="section-subtitle">Real results from real creators</p>
+        </div>
+
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-quote">"The script quality is outstanding! My video retention rate increased by 40% and I gained 10K subscribers in just one month. Best investment I've made for my channel."</p>
+                <div class="testimonial-author">Sarah Johnson</div>
+                <div class="testimonial-role">Tech Channel • 250K Subscribers</div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-quote">"Professional, fast, and results-driven. The scripts feel authentic to my voice while being incredibly engaging. My average view duration went from 4 minutes to 7 minutes."</p>
+                <div class="testimonial-author">Mike Rodriguez</div>
+                <div class="testimonial-role">Gaming Channel • 180K Subscribers</div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-quote">"I've tried other scriptwriters, but none deliver the quality and speed like this. My views have tripled and my engagement is through the roof. Couldn't be happier!"</p>
+                <div class="testimonial-author">Emma Chen</div>
+                <div class="testimonial-role">Lifestyle Channel • 320K Subscribers</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <h2 class="cta-title">Ready to Transform Your Channel?</h2>
+        <p class="cta-subtitle">Join hundreds of successful YouTubers who trust us with their scripts</p>
+        <a href="order_script.html" class="cta-button">Order Your Script Now</a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 Vidsponential. All rights reserved.</p>
+    </footer>
+</body>
+</html>

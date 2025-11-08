@@ -57,6 +57,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    padding-bottom: 125px;
     background: white;
     min-height: 100vh;
     box-shadow: 0 0 20px rgba(0,0,0,0.1);

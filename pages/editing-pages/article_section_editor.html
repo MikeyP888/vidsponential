@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Editor</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Shared Styles -->
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/components.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+    <link rel="stylesheet" href="../../shared/styles/layout.css">
+    <link rel="stylesheet" href="../../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../../shared/styles/forms.css">
+    <link rel="stylesheet" href="../../shared/styles/status.css">
+    <link rel="stylesheet" href="../../shared/styles/notifications.css">
+    <link rel="stylesheet" href="../../shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="../../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+</head>
+<body class="has-sidebar">
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
+    
+    <div class="container with-sidebar">
+        <div class="header">
+            
+            <div class="status-bar">
+                <div class="status-indicator" id="statusIndicator">Loading</div>
+            </div>
+            
+            <div class="completed-today-bar">
+                <div class="completed-today-text">Articles Published Today: <span id="articlesCompletedTodayCount">0</span></div>
+            </div>
+            
+            <h1 class="page-title">Article Editor</h1>
+        </div>
+
+        <div id="content">
+            <div class="info-section">
+                <div class="script-info" id="articleInfo" style="display: none;">
+                    <div class="info-item">
+                        <div class="info-label">Article ID</div>
+                        <div class="info-value" id="articleIdValue">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Title</div>
+                        <div class="info-value" id="titleValue">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Category</div>
+                        <div class="info-value" id="categoryValue">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Word Count</div>
+                        <div class="info-value" id="wordCountValue">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="editor-section" id="articleSection" style="display: none;">
+                <h2>Article Title</h2>
+                <input type="text" id="articleTitle" class="form-input" style="margin-bottom: 20px;">
+                
+                <h2>Article Content</h2>
+                <textarea id="articleContent" class="content-textarea" rows="20"></textarea>
+                
+                <h3 style="margin-top: 20px;">SEO Keywords</h3>
+                <input type="text" id="seoKeywords" class="form-input" placeholder="keyword1, keyword2, keyword3">
+            </div>
+
+            <div class="button-group" id="actionButtons" style="display: none;">
+                <button class="btn btn-secondary" onclick="skipArticle()">Skip</button>
+                <button class="btn btn-primary" onclick="saveAndContinue()">Save & Continue</button>
+            </div>
+
+            <div id="noArticlesMessage" style="display: none; text-align: center; padding: 40px;">
+                <h2>No Articles to Review</h2>
+                <p>All articles have been reviewed. Check back later for new items.</p>
+            </div>
+        </div>
+    </div>
+
+        <script src="../../shared/js/theme-manager.js"></script>
+    <script type="module" src="../../shared/js/sidebar-component.js"></script>
+    
+    <script type="module">
+        // Article Section Editor Application - Configuration-driven editor
+
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+        import { updateStatus, showNoScriptsMessage, fetchWithErrorHandling } from '../../shared/js/editor-utils.js';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentArticleData = null;
+        let articlesToReview = [];
+        let currentArticleIndex = 0;
+        let pageConfig = null;
+
+        async function init() {
+            try {
+                updateStatus('loading', 'Loading page configuration...');
+
+                // Get page configuration
+                const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+
+                const { data: config, error: configError } = await supabase
+                    .from('html_page_config')
+                    .select('*')
+                    .eq('page_name', pageName)
+                    .single();
+
+                if (configError || !config) {
+                    throw new Error(`Page configuration not found for: ${pageName}`);
+                }
+
+                pageConfig = config;
+
+                // Set page title dynamically
+                document.title = pageConfig.page_title;
+                const h1Element = document.querySelector('h1.page-title');
+                if (h1Element) {
+                    h1Element.textContent = pageConfig.page_title;
+                }
+
+                updateStatus('loading', `Loading ${pageConfig.page_title.toLowerCase()}...`);
+
+                // Filter records using config
+                const url = `${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.status_field_name}=eq.${pageConfig.display_status_id}&select=*`;
+                const articles = await fetchWithErrorHandling(url);
+                articlesToReview = articles;
+
+                if (articles.length > 0) {
+                    loadArticle(0);
+                    updateStatus('saved', 'Loaded successfully');
+                } else {
+                    showNoScriptsMessage(`No ${pageConfig.page_title.toLowerCase()} to display - everything checked ✓`);
+                }
+            } catch (error) {
+                console.error('Article Section Editor initialization error:', error);
+                updateStatus('error', `Failed to load articles: ${error.message}`);
+            }
+        }
+
+        function loadArticle(index) {
+            if (index >= articlesToReview.length) {
+                showNoScriptsMessage('All articles completed!');
+                return;
+            }
+
+            currentArticleData = articlesToReview[index];
+            currentArticleIndex = index;
+
+            const recordId = currentArticleData[pageConfig.id_field_name];
+
+            document.getElementById('articleIdValue').textContent = recordId || '-';
+            document.getElementById('titleValue').textContent = currentArticleData.title || '-';
+            document.getElementById('categoryValue').textContent = currentArticleData.category || '-';
+
+            const content = currentArticleData.content || '';
+            const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
+            document.getElementById('wordCountValue').textContent = wordCount;
+
+            document.getElementById('articleTitle').value = currentArticleData.title || '';
+            document.getElementById('articleContent').value = content;
+            document.getElementById('seoKeywords').value = currentArticleData.seo_keywords || '';
+
+            document.getElementById('articleInfo').style.display = 'grid';
+            document.getElementById('articleSection').style.display = 'block';
+            document.getElementById('actionButtons').style.display = 'flex';
+            document.getElementById('noArticlesMessage').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+        }
+
+        async function saveAndContinue() {
+            if (!currentArticleData) return;
+
+            try {
+                updateStatus('loading', 'Saving article...');
+
+                const recordId = currentArticleData[pageConfig.id_field_name];
+                const updateData = {
+                    title: document.getElementById('articleTitle').value,
+                    content: document.getElementById('articleContent').value,
+                    seo_keywords: document.getElementById('seoKeywords').value
+                };
+
+                // Update status using configuration
+                if (pageConfig && pageConfig.next_status_id) {
+                    updateData[pageConfig.status_field_name] = pageConfig.next_status_id;
+                }
+
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.id_field_name}=eq.${recordId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to save article: ${response.status}`);
+                }
+
+                updateStatus('saved', 'Article saved successfully');
+
+                if (window.refreshNavigationBadges) {
+                    await window.refreshNavigationBadges();
+                }
+
+                articlesToReview.splice(currentArticleIndex, 1);
+
+                if (articlesToReview.length > 0) {
+                    if (currentArticleIndex >= articlesToReview.length) currentArticleIndex = 0;
+                    loadArticle(currentArticleIndex);
+                } else {
+                    showNoScriptsMessage('All articles completed!');
+                }
+            } catch (error) {
+                console.error('Error saving:', error);
+                updateStatus('error', `Failed to save: ${error.message}`);
+            }
+        }
+
+        function skipArticle() {
+            currentArticleIndex++;
+            loadArticle(currentArticleIndex);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, starting Article Section Editor...');
+            init();
+        });
+
+        window.saveAndContinue = saveAndContinue;
+        window.skipArticle = skipArticle;
+    </script>
+</body>
+</html>

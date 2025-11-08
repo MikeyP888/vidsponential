@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ultimate Guide to Writing Viral YouTube Scripts in 2025 - Vidsponential</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📰</text></svg>">
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+
+    <!-- Supabase CDN -->
+    <script src="../../shared/js/theme-manager.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #fefefe 0%, #fdfdfd 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .logo {
+            height: 29px;
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            margin: 0;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding-top: 80px;
+        }
+
+        /* Article Header */
+        .article-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .article-category {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to right, rgba(11, 230, 255, 0.15) 0%, rgba(175, 11, 255, 0.15) 100%);
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .article-title {
+            font-size: 48px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            color: #888;
+            font-size: 14px;
+            font-weight: 500;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Article Image */
+        .article-image {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, rgba(11, 230, 255, 0.05) 0%, rgba(175, 11, 255, 0.05) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 100px;
+            margin-bottom: 60px;
+            border: 0.5px solid #e0e0e0;
+        }
+
+        /* Article Content */
+        .article-content {
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.025);
+            border: 0.5px solid #e0e0e0;
+            margin-bottom: 40px;
+        }
+
+        .article-content h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .article-content h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+
+        .article-content p {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #444;
+            margin-bottom: 24px;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #444;
+            margin-bottom: 24px;
+            margin-left: 24px;
+        }
+
+        .article-content li {
+            margin-bottom: 12px;
+        }
+
+        .article-content strong {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .article-content em {
+            font-style: italic;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid;
+            border-image: linear-gradient(to bottom, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%) 1;
+            padding-left: 24px;
+            margin: 32px 0;
+            font-size: 20px;
+            font-style: italic;
+            color: #666;
+        }
+
+        .article-content code {
+            background: #f8f9fa;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: "Monaco", monospace;
+            font-size: 16px;
+            color: #667eea;
+        }
+
+        /* CTA Box */
+        .article-cta {
+            background: linear-gradient(135deg, rgba(11, 230, 255, 0.1) 0%, rgba(175, 11, 255, 0.1) 100%);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin: 40px 0;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .article-cta h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .article-cta p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        .cta-button {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Related Articles */
+        .related-articles {
+            margin-top: 80px;
+        }
+
+        .related-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .related-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.025);
+            border: 0.5px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .related-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+        }
+
+        .related-image {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(135deg, rgba(11, 230, 255, 0.05) 0%, rgba(175, 11, 255, 0.05) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .related-content {
+            padding: 20px;
+        }
+
+        .related-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .related-card-meta {
+            font-size: 13px;
+            color: #888;
+        }
+
+        /* Newsletter Signup */
+        .newsletter-box {
+            background: linear-gradient(135deg, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            border-radius: 20px;
+            padding: 48px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .newsletter-box h3 {
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .newsletter-box p {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 24px;
+        }
+
+        .newsletter-form {
+            display: flex;
+            gap: 12px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .newsletter-input {
+            flex: 1;
+            padding: 14px 20px;
+            font-size: 15px;
+            border: none;
+            border-radius: 12px;
+            font-family: "Inter", sans-serif;
+        }
+
+        .newsletter-input:focus {
+            outline: none;
+        }
+
+        .newsletter-button {
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .newsletter-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Progress Bar */
+        .reading-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            z-index: 9999;
+            transition: width 0.1s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding-top: 60px;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-image {
+                height: 250px;
+                font-size: 60px;
+            }
+
+            .article-content {
+                padding: 30px 24px;
+            }
+
+            .article-content h2 {
+                font-size: 26px;
+            }
+
+            .article-content h3 {
+                font-size: 20px;
+            }
+
+            .article-content p,
+            .article-content ul,
+            .article-content ol {
+                font-size: 16px;
+            }
+
+            .newsletter-form {
+                flex-direction: column;
+            }
+
+            .newsletter-button {
+                width: 100%;
+            }
+
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Reading Progress Bar -->
+    <div class="reading-progress" id="readingProgress"></div>
+
+    <!-- Logo -->
+    <img src="../../shared/assets/vidsponential logo.png" alt="Vidsponential" class="logo" onclick="window.location.href='blog_new.html'">
+
+    <div class="container">
+        <!-- Article Header -->
+        <div class="article-header">
+            <div class="article-category">Scriptwriting</div>
+            <h1 class="article-title">The Ultimate Guide to Writing Viral YouTube Scripts in 2025</h1>
+            <div class="article-meta">
+                <div class="meta-item">
+                    <span>📅</span>
+                    <span>January 15, 2025</span>
+                </div>
+                <div class="meta-item">
+                    <span>⏱️</span>
+                    <span>12 min read</span>
+                </div>
+                <div class="meta-item">
+                    <span>👁️</span>
+                    <span id="viewCount">0</span>
+                    <span>views</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Article Image -->
+        <div class="article-image">🎬</div>
+
+        <!-- Article Content -->
+        <div class="article-content">
+            <p>
+                Creating viral YouTube content isn't about luck—it's about mastering the art of scriptwriting. In 2025, the competition is fiercer than ever, but with the right framework, you can write scripts that captivate audiences and drive massive growth.
+            </p>
+
+            <h2>Why Script Quality Matters More Than Ever</h2>
+
+            <p>
+                The average viewer makes a decision within the first <strong>3-5 seconds</strong> of your video. That's all the time you have to hook them. A well-crafted script ensures that every second counts, from the opening hook to the final call-to-action.
+            </p>
+
+            <blockquote>
+                "The difference between a video with 1,000 views and one with 1,000,000 views often comes down to the script." - Top YouTube Creator
+            </blockquote>
+
+            <h2>The 5-Part Viral Script Framework</h2>
+
+            <p>
+                After analyzing hundreds of viral videos, I've identified a consistent pattern that top creators follow. Here's the framework that works:
+            </p>
+
+            <h3>1. The Pattern Interrupt Hook (0-5 seconds)</h3>
+
+            <p>
+                Your hook needs to stop the scroll. Use one of these proven techniques:
+            </p>
+
+            <ul>
+                <li><strong>The Question Hook:</strong> "Have you ever wondered why some videos go viral while others die?"</li>
+                <li><strong>The Shocking Statement:</strong> "I made $50,000 last month using this one script technique."</li>
+                <li><strong>The Promise Hook:</strong> "By the end of this video, you'll know exactly how to triple your views."</li>
+                <li><strong>The Story Hook:</strong> "Three months ago, my channel was dying. Today, I'm at 500K subscribers."</li>
+            </ul>
+
+            <div class="article-cta">
+                <h3>Want Professional Scripts Like This?</h3>
+                <p>Get high-converting YouTube scripts written by experts in 24-48 hours</p>
+                <a href="order_script.html" class="cta-button">Order Your Script Now</a>
+            </div>
+
+            <h3>2. The Value Preview (5-30 seconds)</h3>
+
+            <p>
+                Immediately after your hook, tell viewers exactly what they'll get. Be specific:
+            </p>
+
+            <ul>
+                <li>What problem will you solve?</li>
+                <li>What will they learn?</li>
+                <li>Why should they keep watching?</li>
+            </ul>
+
+            <p>
+                Example: <em>"In the next 10 minutes, I'm going to show you the exact 5-part framework that took my videos from 1,000 views to 100,000 views. I'll break down each step, show you real examples, and give you a free template you can use today."</em>
+            </p>
+
+            <h3>3. The Authority Builder (30-90 seconds)</h3>
+
+            <p>
+                Before diving into your main content, establish why viewers should trust you. Share:
+            </p>
+
+            <ol>
+                <li>Your credentials or results</li>
+                <li>Social proof (subscriber count, client wins, etc.)</li>
+                <li>A brief personal story that relates to the topic</li>
+            </ol>
+
+            <h3>4. The Core Content (Main Body)</h3>
+
+            <p>
+                This is where you deliver on your promise. Structure it using:
+            </p>
+
+            <ul>
+                <li><strong>The Rule of Three:</strong> Break your content into 3-7 main points</li>
+                <li><strong>Mini-Hooks:</strong> Re-engage viewers every 60-90 seconds with transitions like "But here's where it gets interesting..."</li>
+                <li><strong>Pattern Breaks:</strong> Mix up your delivery with examples, stories, visuals, and quick tips</li>
+                <li><strong>Open Loops:</strong> Tease upcoming content to maintain curiosity</li>
+            </ul>
+
+            <h3>5. The Strong Close (Last 60 seconds)</h3>
+
+            <p>
+                Your closing is just as important as your opening. Include:
+            </p>
+
+            <ol>
+                <li><strong>Quick Recap:</strong> Summarize the 3-5 main takeaways</li>
+                <li><strong>Call-to-Action:</strong> Tell viewers exactly what to do next (subscribe, download, comment)</li>
+                <li><strong>Next Video Tease:</strong> Create anticipation for your next upload</li>
+            </ol>
+
+            <h2>Advanced Script Techniques</h2>
+
+            <h3>The "Open Loop" Strategy</h3>
+
+            <p>
+                Create curiosity gaps throughout your script. Mention something interesting early on, but don't explain it until later. This keeps viewers watching.
+            </p>
+
+            <p>
+                Example: <em>"I'll show you the tool that saved me 10 hours per week—we'll get to that in a minute, but first..."</em>
+            </p>
+
+            <h3>Pacing and Rhythm</h3>
+
+            <p>
+                Your script should feel like a conversation, not a lecture. Use:
+            </p>
+
+            <ul>
+                <li>Short sentences for impact</li>
+                <li>Questions to engage viewers</li>
+                <li>Varied sentence length to maintain rhythm</li>
+                <li>Strategic pauses (indicated in your script)</li>
+            </ul>
+
+            <h3>The Psychology of Retention</h3>
+
+            <p>
+                High retention = more recommendations from YouTube. Keep viewers engaged by:
+            </p>
+
+            <ul>
+                <li>Cutting fluff ruthlessly</li>
+                <li>Front-loading value</li>
+                <li>Using pattern interrupts every 90 seconds</li>
+                <li>Creating mini-payoffs throughout the video</li>
+            </ul>
+
+            <h2>Common Script Mistakes to Avoid</h2>
+
+            <p>
+                Even experienced creators make these errors:
+            </p>
+
+            <ol>
+                <li><strong>Slow Openings:</strong> If you spend 30 seconds on intros and channel updates, you've already lost viewers</li>
+                <li><strong>Vague Promises:</strong> "Today I'm going to talk about YouTube growth" is weak. Be specific.</li>
+                <li><strong>No Structure:</strong> Random thoughts don't create viral videos. Follow a framework.</li>
+                <li><strong>Weak CTAs:</strong> "Like and subscribe" isn't enough. Give viewers a compelling reason.</li>
+                <li><strong>Forgetting the Algorithm:</strong> Write for humans, but optimize for discoverability</li>
+            </ol>
+
+            <h2>Your Action Plan</h2>
+
+            <p>
+                Ready to implement this framework? Here's what to do next:
+            </p>
+
+            <ol>
+                <li>Choose your next video topic</li>
+                <li>Write a hook using one of the 4 techniques above</li>
+                <li>Outline your content using the 5-part framework</li>
+                <li>Add pattern interrupts every 60-90 seconds</li>
+                <li>Craft a strong closing with clear CTA</li>
+                <li>Read your script out loud and refine</li>
+            </ol>
+
+            <p>
+                Remember: the best scripts sound natural when spoken. Write like you talk, then polish.
+            </p>
+
+            <div class="article-cta">
+                <h3>Don't Want to Write Scripts Yourself?</h3>
+                <p>Let our expert team create viral-ready scripts for your channel</p>
+                <a href="order_script.html" class="cta-button">Order Professional Script</a>
+            </div>
+
+            <h2>Final Thoughts</h2>
+
+            <p>
+                Viral scripts aren't created by accident—they're engineered. By following this framework, you'll dramatically increase your chances of creating content that resonates, retains, and converts viewers into loyal subscribers.
+            </p>
+
+            <p>
+                Start with one video. Apply these principles. Measure the results. Then optimize and repeat.
+            </p>
+
+            <p>
+                <strong>Your next viral video is just one great script away.</strong>
+            </p>
+        </div>
+
+        <!-- Newsletter Signup -->
+        <div class="newsletter-box">
+            <h3>Want More Tips Like This?</h3>
+            <p>Join 10,000+ creators getting weekly scriptwriting strategies</p>
+            <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
+                <input type="email" class="newsletter-input" placeholder="Enter your email" required>
+                <button type="submit" class="newsletter-button">Subscribe</button>
+            </form>
+        </div>
+
+        <!-- Related Articles -->
+        <div class="related-articles">
+            <h2 class="related-title">Continue Reading</h2>
+            <div class="related-grid">
+                <div class="related-card" onclick="window.location.href='blog_new.html'">
+                    <div class="related-image">🎯</div>
+                    <div class="related-content">
+                        <h3 class="related-card-title">5 Hook Formulas That Get 90%+ Click-Through Rates</h3>
+                        <p class="related-card-meta">8 min read</p>
+                    </div>
+                </div>
+
+                <div class="related-card" onclick="window.location.href='blog_new.html'">
+                    <div class="related-image">📝</div>
+                    <div class="related-content">
+                        <h3 class="related-card-title">How to Structure a 10-Minute YouTube Script</h3>
+                        <p class="related-card-meta">10 min read</p>
+                    </div>
+                </div>
+
+                <div class="related-card" onclick="window.location.href='blog_new.html'">
+                    <div class="related-image">🧠</div>
+                    <div class="related-content">
+                        <h3 class="related-card-title">The Psychology of Retention: Keep Viewers Watching</h3>
+                        <p class="related-card-meta">9 min read</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Article tracking configuration
+        const ARTICLE_ID = 'viral-youtube-scripts-2025';
+        const ARTICLE_TITLE = 'The Ultimate Guide to Writing Viral YouTube Scripts in 2025';
+        let sessionId = null;
+        let startTime = Date.now();
+        let scrollDepth = 0;
+        let maxScrollDepth = 0;
+        let timeOnPage = 0;
+        let isFirstVisit = true;
+
+        // Generate or retrieve session ID
+        function getSessionId() {
+            let sid = sessionStorage.getItem('article_session_id');
+            if (!sid) {
+                sid = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                sessionStorage.setItem('article_session_id', sid);
+            }
+            return sid;
+        }
+
+        // Initialize tracking
+        async function initTracking() {
+            sessionId = getSessionId();
+
+            // Track page view
+            await trackEvent('page_view', {
+                article_id: ARTICLE_ID,
+                article_title: ARTICLE_TITLE,
+                referrer: document.referrer,
+                user_agent: navigator.userAgent,
+                screen_width: window.innerWidth,
+                screen_height: window.innerHeight
+            });
+
+            // Update view count display
+            await updateViewCount();
+        }
+
+        // Track events in Supabase
+        async function trackEvent(eventType, eventData) {
+            try {
+                const { error } = await supabase
+                    .from('blog_analytics')
+                    .insert([{
+                        session_id: sessionId,
+                        article_id: ARTICLE_ID,
+                        event_type: eventType,
+                        event_data: eventData,
+                        timestamp: new Date().toISOString()
+                    }]);
+
+                if (error) throw error;
+            } catch (error) {
+                console.error('Error tracking event:', error);
+            }
+        }
+
+        // Update view count
+        async function updateViewCount() {
+            try {
+                const { data, error } = await supabase
+                    .from('blog_analytics')
+                    .select('session_id')
+                    .eq('article_id', ARTICLE_ID)
+                    .eq('event_type', 'page_view');
+
+                if (!error && data) {
+                    // Count unique sessions
+                    const uniqueSessions = new Set(data.map(d => d.session_id)).size;
+                    document.getElementById('viewCount').textContent = uniqueSessions;
+                }
+            } catch (error) {
+                console.error('Error fetching view count:', error);
+            }
+        }
+
+        // Track scroll depth
+        function trackScrollDepth() {
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.scrollY;
+
+            scrollDepth = Math.round((scrollTop / (documentHeight - windowHeight)) * 100);
+
+            if (scrollDepth > maxScrollDepth) {
+                maxScrollDepth = scrollDepth;
+
+                // Track milestones
+                if (maxScrollDepth >= 25 && maxScrollDepth < 26) {
+                    trackEvent('scroll_depth', { depth: 25 });
+                } else if (maxScrollDepth >= 50 && maxScrollDepth < 51) {
+                    trackEvent('scroll_depth', { depth: 50 });
+                } else if (maxScrollDepth >= 75 && maxScrollDepth < 76) {
+                    trackEvent('scroll_depth', { depth: 75 });
+                } else if (maxScrollDepth >= 90 && maxScrollDepth < 91) {
+                    trackEvent('scroll_depth', { depth: 90 });
+                    trackEvent('article_completed', { time_spent: timeOnPage });
+                }
+            }
+
+            // Update reading progress bar
+            document.getElementById('readingProgress').style.width = scrollDepth + '%';
+        }
+
+        // Track time on page
+        setInterval(() => {
+            timeOnPage = Math.round((Date.now() - startTime) / 1000);
+
+            // Track time milestones
+            if (timeOnPage === 30) {
+                trackEvent('time_milestone', { seconds: 30 });
+            } else if (timeOnPage === 60) {
+                trackEvent('time_milestone', { seconds: 60 });
+            } else if (timeOnPage === 120) {
+                trackEvent('time_milestone', { seconds: 120 });
+            }
+        }, 1000);
+
+        // Track CTA clicks
+        document.querySelectorAll('.cta-button').forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+                trackEvent('cta_click', {
+                    cta_position: index + 1,
+                    time_on_page: timeOnPage,
+                    scroll_depth: maxScrollDepth
+                });
+            });
+        });
+
+        // Track newsletter signup
+        window.subscribeNewsletter = function(event) {
+            event.preventDefault();
+            const email = event.target.querySelector('input').value;
+
+            trackEvent('newsletter_signup', {
+                from_article: true,
+                time_on_page: timeOnPage,
+                scroll_depth: maxScrollDepth
+            });
+
+            window.location.href = 'newsletter.html?email=' + encodeURIComponent(email);
+        };
+
+        // Track exit intent
+        document.addEventListener('mouseleave', (e) => {
+            if (e.clientY < 0) {
+                trackEvent('exit_intent', {
+                    time_on_page: timeOnPage,
+                    scroll_depth: maxScrollDepth
+                });
+            }
+        });
+
+        // Track when user leaves page
+        window.addEventListener('beforeunload', () => {
+            trackEvent('page_exit', {
+                time_on_page: timeOnPage,
+                max_scroll_depth: maxScrollDepth
+            });
+        });
+
+        // Event listeners
+        window.addEventListener('scroll', trackScrollDepth);
+        window.addEventListener('DOMContentLoaded', initTracking);
+
+        // Track related article clicks
+        document.querySelectorAll('.related-card').forEach((card, index) => {
+            card.addEventListener('click', () => {
+                trackEvent('related_click', {
+                    position: index + 1,
+                    time_on_page: timeOnPage
+                });
+            });
+        });
+    </script>
+</body>
+</html>

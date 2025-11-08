@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Script - Vidsponential</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>">
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #fefefe 0%, #fdfdfd 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            margin-top: 40px;
+            position: relative;
+        }
+
+        .logo {
+            height: 29px;
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            margin: 0;
+            z-index: 1000;
+        }
+
+        .page-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        /* Billing Toggle */
+        .billing-toggle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .billing-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .billing-label.inactive {
+            color: #888;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 32px;
+            background: #e0e0e0;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-slider.active {
+            left: 32px;
+        }
+
+        .savings-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        /* Pricing Cards */
+        .pricing-section {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .pricing-section {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.01875);
+            border: 0.5px solid #e0e0e0;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            border-color: #667eea;
+        }
+
+        .pricing-card.selected {
+            border: 2px solid #667eea;
+            background: linear-gradient(to right, rgba(11, 230, 255, 0.05) 0%, rgba(175, 11, 255, 0.05) 100%);
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .package-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .package-price {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .package-duration {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .package-subtitle {
+            font-size: 13px;
+            color: #999;
+            margin-top: -4px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .package-features {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .feature-icon {
+            color: #667eea;
+            margin-right: 8px;
+            font-size: 18px;
+        }
+
+        /* Main Form Card */
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.025);
+            border: 0.5px solid #e0e0e0;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: "Inter", sans-serif;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Script Parameters */
+        .parameters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .parameter-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .parameter-select {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: "Inter", sans-serif;
+            transition: all 0.3s ease;
+            background: white;
+            cursor: pointer;
+        }
+
+        .parameter-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Order Summary */
+        .order-summary {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 15px;
+            color: #444;
+        }
+
+        .summary-row.total {
+            font-size: 20px;
+            font-weight: 700;
+            padding-top: 12px;
+            border-top: 2px solid #e0e0e0;
+            margin-top: 12px;
+        }
+
+        .summary-row.total .amount {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Submit Button */
+        .submit-section {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            padding: 18px 48px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: "Inter", sans-serif;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Message */
+        .message {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        /* Product Selector */
+        .product-selector {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.025);
+            border: 0.5px solid #e0e0e0;
+            margin-bottom: 30px;
+        }
+
+        .selector-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .selector-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .selector-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 8px;
+        }
+
+        .product-select {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: "Inter", sans-serif;
+            transition: all 0.3s ease;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .product-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .quantity-input {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: "Inter", sans-serif;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .quantity-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .cost-per-label {
+            font-size: 13px;
+            color: #888;
+            margin-top: 6px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-card {
+                padding: 24px;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+
+            .pricing-section,
+            .form-grid,
+            .parameters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .selector-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <img src="../../shared/assets/vidsponential logo.png" alt="Vidsponential" class="logo">
+            <h1 class="page-title">Order Your Script</h1>
+            <p class="page-subtitle">Professional YouTube scripts delivered in 3-5 days</p>
+        </div>
+
+        <!-- Billing Toggle -->
+        <div class="billing-toggle-container">
+            <span class="billing-label" id="monthlyLabel">Monthly</span>
+            <div class="toggle-switch" id="billingToggle" onclick="toggleBilling()">
+                <div class="toggle-slider" id="toggleSlider"></div>
+            </div>
+            <span class="billing-label inactive" id="yearlyLabel">Yearly</span>
+            <span class="savings-badge">Save 50%</span>
+        </div>
+
+        <!-- Pricing Packages -->
+        <div class="pricing-section">
+            <div class="pricing-card" data-package="basic" data-price="199" onclick="selectPackage('basic')">
+                <div class="package-name">Starter</div>
+                <div class="package-price">$199</div>
+                <div class="package-duration">1 script per week</div>
+                <div class="package-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>1 YouTube Script (8-12 minutes)</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Hook + Outline + Full Script</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>1 Revision Round</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>SEO Optimized</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pricing-card" data-package="pro" data-price="599" onclick="selectPackage('pro')">
+                <div class="pricing-badge">POPULAR</div>
+                <div class="package-name">Accelerate</div>
+                <div class="package-price">$599</div>
+                <div class="package-duration">3 scripts per week</div>
+                <div class="package-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>1 YouTube Script (12-20 minutes)</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Research + Hook + Outline + Script</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>2 Revision Rounds</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>SEO + Thumbnail Copy</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Visual Suggestions</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pricing-card" data-package="premium" data-price="999" data-yearly-price="5994" onclick="selectPackage('premium')">
+                <div class="package-name">Exponential</div>
+                <div class="package-price">$999</div>
+                <div class="package-duration">6 scripts per week</div>
+                <div class="package-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>1 YouTube Script (20+ minutes)</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Deep Research + Full Production</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Unlimited Revisions</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>SEO + Thumbnail + Description</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Visual Suggestions + Timeline</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Priority Support</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pricing-card" data-package="partner" data-price="99" onclick="selectPackage('partner')">
+                <div class="pricing-badge" style="background: linear-gradient(to right, #10b981 0%, #059669 100%);">BEST VALUE</div>
+                <div class="package-name">Partner Program</div>
+                <div class="package-price">$99</div>
+                <div class="package-subtitle">25% revenue share partnership</div>
+                <div class="package-duration">4 scripts per week</div>
+                <div class="package-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>We share the same goal - your success</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Only pay 25% if channel takes off</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Our full attention & best effort</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Aligned incentives - we win together</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Continuous optimization for results</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>True long-term partnership</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Selector -->
+        <div class="product-selector">
+            <div class="selector-grid">
+                <div class="selector-item">
+                    <label class="selector-label">What would you like to order?</label>
+                    <select class="product-select" id="productSelect" onchange="updatePricing()">
+                        <option value="script">YouTube Script</option>
+                        <option value="thumbnail">Thumbnail Design</option>
+                        <option value="description">Video Description</option>
+                        <option value="channel-setup">Channel Setup</option>
+                        <option value="consultation">1-on-1 Consultation</option>
+                    </select>
+                    <div class="cost-per-label" id="costPerLabel">Cost per script</div>
+                </div>
+                <div class="selector-item">
+                    <label class="selector-label">Quantity</label>
+                    <input type="number" class="quantity-input" id="quantityInput" value="1" min="1" max="100" onchange="updatePricing()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Form -->
+        <div class="form-card">
+            <div id="messageContainer"></div>
+
+            <!-- Contact Information -->
+            <h2 class="section-title">Your Information</h2>
+            <div class="form-grid">
+                <div>
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" class="form-input" id="fullName" required>
+                </div>
+                <div>
+                    <label class="form-label">Email Address *</label>
+                    <input type="email" class="form-input" id="email" required>
+                </div>
+            </div>
+
+            <!-- Script Details -->
+            <h2 class="section-title">Script Details</h2>
+
+            <label class="form-label">Video Topic / Keyword *</label>
+            <input type="text" class="form-input" id="videoTopic" placeholder="e.g., How to start a YouTube channel in 2025" required>
+
+            <label class="form-label">Script Brief / Additional Details</label>
+            <textarea class="form-textarea" id="scriptBrief" placeholder="Tell us about your video idea, target audience, key points to cover, tone you want, etc."></textarea>
+
+            <!-- Script Parameters -->
+            <h2 class="section-title">Script Preferences (Optional)</h2>
+            <div class="parameters-grid">
+                <div class="parameter-item">
+                    <label class="form-label">Emotional Tone</label>
+                    <select class="parameter-select" id="emotionalTone">
+                        <option value="">Choose tone...</option>
+                        <option value="1">Motivational</option>
+                        <option value="2">Educational</option>
+                        <option value="3">Entertaining</option>
+                        <option value="4">Serious/Professional</option>
+                        <option value="5">Casual/Conversational</option>
+                        <option value="6">Dramatic</option>
+                        <option value="7">Humorous</option>
+                        <option value="8">Inspirational</option>
+                    </select>
+                </div>
+
+                <div class="parameter-item">
+                    <label class="form-label">Script Structure</label>
+                    <select class="parameter-select" id="scriptStructure">
+                        <option value="">Choose structure...</option>
+                        <option value="1">Listicle</option>
+                        <option value="2">Story-Driven</option>
+                        <option value="3">Problem-Solution</option>
+                        <option value="4">Tutorial/Step-by-Step</option>
+                        <option value="5">Case Study</option>
+                        <option value="6">How-To Guide</option>
+                        <option value="7">Comparison/Review</option>
+                        <option value="8">Documentary Style</option>
+                    </select>
+                </div>
+
+                <div class="parameter-item">
+                    <label class="form-label">Opening Hook Type</label>
+                    <select class="parameter-select" id="openingHookType">
+                        <option value="">Choose hook...</option>
+                        <option value="1">Question Hook</option>
+                        <option value="2">Shocking Statement</option>
+                        <option value="3">Story Hook</option>
+                        <option value="4">Statistic Hook</option>
+                        <option value="5">Promise Hook</option>
+                        <option value="6">Challenge Hook</option>
+                        <option value="7">Mystery Hook</option>
+                        <option value="8">Direct Address</option>
+                    </select>
+                </div>
+
+                <div class="parameter-item">
+                    <label class="form-label">Target Audience</label>
+                    <select class="parameter-select" id="targetAudience">
+                        <option value="">Choose audience...</option>
+                        <option value="1">General Audience</option>
+                        <option value="2">Young Adults (18-30)</option>
+                        <option value="3">Adults (30-50)</option>
+                        <option value="4">Seniors (50+)</option>
+                        <option value="5">Experts/Professionals</option>
+                        <option value="6">Beginners</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <h2 class="section-title">Order Summary</h2>
+            <div class="order-summary">
+                <div class="summary-row">
+                    <span>Package:</span>
+                    <span id="summaryPackage">None selected</span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery:</span>
+                    <span id="summaryDelivery">-</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total:</span>
+                    <span class="amount" id="summaryTotal">$0</span>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="submit-section">
+                <button class="submit-btn" id="submitBtn" onclick="proceedToCheckout()">
+                    Proceed to Payment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stripe.js -->
+    <script src="../../shared/js/theme-manager.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Initialize Stripe (replace with your publishable key)
+        const stripe = Stripe('pk_test_YOUR_STRIPE_PUBLISHABLE_KEY');
+
+        let selectedPackage = null;
+        let currentProduct = 'script';
+        let currentQuantity = 1;
+        let isYearly = false;
+
+        const products = {
+            script: {
+                name: 'YouTube Script',
+                label: 'script',
+                packages: {
+                    basic: { name: 'Starter', price: 199, yearlyPrice: 1194, delivery: '1 script per week' },
+                    pro: { name: 'Accelerate', price: 599, yearlyPrice: 3594, delivery: '3 scripts per week' },
+                    premium: { name: 'Exponential', price: 999, yearlyPrice: 5994, delivery: '6 scripts per week' },
+                    partner: { name: 'Partner Program', price: 99, yearlyPrice: 297, delivery: '4 scripts per week', revenueShare: 25 }
+                }
+            },
+            thumbnail: {
+                name: 'Thumbnail Design',
+                label: 'thumbnail',
+                packages: {
+                    basic: { name: 'Basic Thumbnail', price: 97, delivery: '1-2 day delivery' },
+                    pro: { name: 'Pro Thumbnail', price: 147, delivery: '1-2 day delivery' },
+                    premium: { name: 'Premium Thumbnail', price: 197, delivery: '24 hour delivery' },
+                    partner: { name: 'Partner Program', price: 49, delivery: '1-2 day delivery' }
+                }
+            },
+            description: {
+                name: 'Video Description',
+                label: 'description',
+                packages: {
+                    basic: { name: 'Basic Description', price: 47, delivery: '1 day delivery' },
+                    pro: { name: 'Pro Description', price: 77, delivery: '1 day delivery' },
+                    premium: { name: 'Premium Description', price: 97, delivery: '24 hour delivery' },
+                    partner: { name: 'Partner Program', price: 29, delivery: '1 day delivery' }
+                }
+            },
+            'channel-setup': {
+                name: 'Channel Setup',
+                label: 'channel setup',
+                packages: {
+                    basic: { name: 'Basic Setup', price: 497, delivery: '3-5 day delivery' },
+                    pro: { name: 'Pro Setup', price: 797, delivery: '3-5 day delivery' },
+                    premium: { name: 'Premium Setup', price: 1297, delivery: '2-4 day delivery' },
+                    partner: { name: 'Partner Program', price: 197, delivery: '3-5 day delivery' }
+                }
+            },
+            consultation: {
+                name: '1-on-1 Consultation',
+                label: 'consultation',
+                packages: {
+                    basic: { name: '30 Min Session', price: 147, delivery: 'Scheduled within 7 days' },
+                    pro: { name: '60 Min Session', price: 247, delivery: 'Scheduled within 5 days' },
+                    premium: { name: '90 Min Session', price: 347, delivery: 'Scheduled within 3 days' },
+                    partner: { name: 'Partner Program', price: 97, delivery: 'Scheduled within 7 days' }
+                }
+            }
+        };
+
+        const packages = products[currentProduct].packages;
+
+        // Toggle billing period
+        window.toggleBilling = function() {
+            isYearly = !isYearly;
+
+            // Update UI
+            const toggle = document.getElementById('billingToggle');
+            const slider = document.getElementById('toggleSlider');
+            const monthlyLabel = document.getElementById('monthlyLabel');
+            const yearlyLabel = document.getElementById('yearlyLabel');
+
+            if (isYearly) {
+                toggle.classList.add('active');
+                slider.classList.add('active');
+                monthlyLabel.classList.add('inactive');
+                yearlyLabel.classList.remove('inactive');
+            } else {
+                toggle.classList.remove('active');
+                slider.classList.remove('active');
+                monthlyLabel.classList.remove('inactive');
+                yearlyLabel.classList.add('inactive');
+            }
+
+            // Update pricing
+            updatePricing();
+        };
+
+        // Update pricing based on product and quantity
+        window.updatePricing = function() {
+            currentProduct = document.getElementById('productSelect').value;
+            currentQuantity = parseInt(document.getElementById('quantityInput').value) || 1;
+
+            const productData = products[currentProduct];
+            const productPackages = productData.packages;
+
+            // Update cost per label
+            const billingPeriod = isYearly ? 'per year' : 'per month';
+            document.getElementById('costPerLabel').textContent = `Cost per ${productData.label} (${billingPeriod})`;
+
+            const quantityLabel = currentQuantity > 1 ? ` × ${currentQuantity}` : '';
+
+            // Calculate prices using specific yearly prices (50% discount already built in)
+            const basicPrice = isYearly
+                ? productPackages.basic.yearlyPrice * currentQuantity
+                : productPackages.basic.price * currentQuantity;
+            const proPrice = isYearly
+                ? productPackages.pro.yearlyPrice * currentQuantity
+                : productPackages.pro.price * currentQuantity;
+            const premiumPrice = isYearly
+                ? productPackages.premium.yearlyPrice * currentQuantity
+                : productPackages.premium.price * currentQuantity;
+            const partnerPrice = isYearly
+                ? productPackages.partner.yearlyPrice * currentQuantity
+                : productPackages.partner.price * currentQuantity;
+
+            // Update pricing cards
+            document.querySelector('[data-package="basic"] .package-name').textContent = productPackages.basic.name;
+            document.querySelector('[data-package="basic"] .package-price').textContent = `$${basicPrice.toLocaleString()}`;
+            const basicDuration = isYearly ? 'Full year optimization' : productPackages.basic.delivery;
+            document.querySelector('[data-package="basic"] .package-duration').textContent = `${basicDuration}${quantityLabel}`;
+            document.querySelector('[data-package="basic"]').dataset.price = productPackages.basic.price;
+
+            document.querySelector('[data-package="pro"] .package-name').textContent = productPackages.pro.name;
+            document.querySelector('[data-package="pro"] .package-price').textContent = `$${proPrice.toLocaleString()}`;
+            const proDuration = isYearly ? 'Full year optimization' : productPackages.pro.delivery;
+            document.querySelector('[data-package="pro"] .package-duration').textContent = `${proDuration}${quantityLabel}`;
+            document.querySelector('[data-package="pro"]').dataset.price = productPackages.pro.price;
+
+            // Premium changes name when yearly
+            const premiumName = isYearly ? 'Long Term Thinking' : productPackages.premium.name;
+            document.querySelector('[data-package="premium"] .package-name').textContent = premiumName;
+            document.querySelector('[data-package="premium"] .package-price').textContent = `$${premiumPrice.toLocaleString()}`;
+            const premiumDuration = isYearly ? 'Full year optimization' : productPackages.premium.delivery;
+            document.querySelector('[data-package="premium"] .package-duration').textContent = `${premiumDuration}${quantityLabel}`;
+            document.querySelector('[data-package="premium"]').dataset.price = productPackages.premium.price;
+
+            document.querySelector('[data-package="partner"] .package-name').textContent = productPackages.partner.name;
+            document.querySelector('[data-package="partner"] .package-price').textContent = `$${partnerPrice.toLocaleString()}`;
+            const partnerDuration = isYearly ? 'Full year optimization' : productPackages.partner.delivery;
+            document.querySelector('[data-package="partner"] .package-duration').textContent = `${partnerDuration}${quantityLabel}`;
+            document.querySelector('[data-package="partner"]').dataset.price = productPackages.partner.price;
+
+            // Update summary if package selected
+            if (selectedPackage) {
+                updateSummary();
+            }
+        };
+
+        // Select package
+        window.selectPackage = function(packageType) {
+            selectedPackage = packageType;
+
+            // Update UI
+            document.querySelectorAll('.pricing-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-package="${packageType}"]`).classList.add('selected');
+
+            // Update summary
+            updateSummary();
+        };
+
+        // Update summary
+        function updateSummary() {
+            const productData = products[currentProduct];
+            const pkg = productData.packages[selectedPackage];
+
+            // Use specific yearly or monthly price
+            const totalPrice = isYearly
+                ? pkg.yearlyPrice * currentQuantity
+                : pkg.price * currentQuantity;
+
+            const billingPeriod = isYearly ? '/year' : '/month';
+            const displayName = (selectedPackage === 'premium' && isYearly) ? 'Long Term Thinking' : pkg.name;
+
+            // Add revenue share note for partner program
+            const revenueShareNote = selectedPackage === 'partner' ? ' + 25% revenue share' : '';
+
+            document.getElementById('summaryPackage').textContent = `${displayName} × ${currentQuantity}${revenueShareNote}`;
+            document.getElementById('summaryDelivery').textContent = `${pkg.delivery} • Billed ${isYearly ? 'yearly' : 'monthly'}`;
+            document.getElementById('summaryTotal').textContent = `$${totalPrice.toLocaleString()}${billingPeriod}`;
+        }
+
+        // Show message
+        function showMessage(text, type) {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.innerHTML = `<div class="message ${type}">${text}</div>`;
+
+            // Scroll to message
+            messageContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // Auto-hide success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageContainer.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        // Validate form
+        function validateForm() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const videoTopic = document.getElementById('videoTopic').value.trim();
+
+            if (!selectedPackage) {
+                showMessage('Please select a package above.', 'error');
+                return false;
+            }
+
+            if (!fullName) {
+                showMessage('Please enter your full name.', 'error');
+                return false;
+            }
+
+            if (!email || !email.includes('@')) {
+                showMessage('Please enter a valid email address.', 'error');
+                return false;
+            }
+
+            if (!videoTopic) {
+                showMessage('Please enter your video topic or keyword.', 'error');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Proceed to checkout
+        window.proceedToCheckout = async function() {
+            if (!validateForm()) {
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+
+            try {
+                // Collect form data
+                const productData = products[currentProduct];
+                const pkg = productData.packages[selectedPackage];
+                const totalAmount = pkg.price * currentQuantity;
+
+                const orderData = {
+                    product_type: currentProduct,
+                    package: selectedPackage,
+                    quantity: currentQuantity,
+                    full_name: document.getElementById('fullName').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    video_topic: document.getElementById('videoTopic').value.trim(),
+                    script_brief: document.getElementById('scriptBrief').value.trim(),
+                    emotional_tone_id: document.getElementById('emotionalTone').value || null,
+                    script_structure_id: document.getElementById('scriptStructure').value || null,
+                    opening_hook_type_id: document.getElementById('openingHookType').value || null,
+                    target_audience_id: document.getElementById('targetAudience').value || null,
+                    unit_price: pkg.price,
+                    amount: totalAmount,
+                    status: 'pending'
+                };
+
+                // Save order to database
+                const { data: order, error: orderError } = await supabase
+                    .from('script_orders')
+                    .insert([orderData])
+                    .select()
+                    .single();
+
+                if (orderError) throw orderError;
+
+                // Create Stripe Checkout Session
+                // Note: You'll need to create a server endpoint to handle this
+                // For now, this is a placeholder showing the flow
+
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        orderId: order.id,
+                        productType: currentProduct,
+                        package: selectedPackage,
+                        quantity: currentQuantity,
+                        amount: totalAmount,
+                        customerEmail: orderData.email
+                    })
+                });
+
+                const session = await response.json();
+
+                // Redirect to Stripe Checkout
+                const result = await stripe.redirectToCheckout({
+                    sessionId: session.id
+                });
+
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+
+            } catch (error) {
+                console.error('Error processing order:', error);
+                showMessage(`Error: ${error.message}. Please try again or contact support.`, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Proceed to Payment';
+            }
+        };
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            // You can pre-select a package if coming from a link
+            const urlParams = new URLSearchParams(window.location.search);
+            const preselectedPackage = urlParams.get('package');
+            if (preselectedPackage && packages[preselectedPackage]) {
+                selectPackage(preselectedPackage);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Outreach Editor</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>">
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/components.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+    <link rel="stylesheet" href="../../shared/styles/layout.css">
+    <link rel="stylesheet" href="../../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../../shared/styles/forms.css">
+    <link rel="stylesheet" href="../../shared/styles/status.css">
+    <link rel="stylesheet" href="../../shared/styles/notifications.css">
+    <link rel="stylesheet" href="../../shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="../../shared/styles/missing-layout.css">
+    <link rel="stylesheet" href="../../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+    <link rel="stylesheet" href="../../shared/styles/bottom-navigation.css">
+</head>
+<body class="has-sidebar">
+    <!-- Sticky Top Status Bar -->
+    <div id="stickyStatusBar" style="
+        position: fixed;
+        top: 0;
+        left: 280px;
+        right: 0;
+        background: transparent;
+        padding: 4px 20px;
+        z-index: 999;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+    ">
+        <!-- Script Info Pill (Left) -->
+        <div id="stickyScriptInfo" style="
+            background: white;
+            padding: 3.6px 10.8px;
+            border-radius: 18px;
+            font-size: 10.8px;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            pointer-events: auto;
+            display: none;
+        ">-</div>
+
+        <!-- Status Indicator Pill (Right) -->
+        <div class="status-indicator" id="stickyStatusIndicator" style="pointer-events: auto;">Loading</div>
+    </div>
+
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
+
+    <div class="container with-sidebar" style="padding-top: 30px;">
+        <!-- =============================================== -->
+        <!--                 HEADER SECTION                -->
+        <!-- =============================================== -->
+        <div class="header">
+
+            <!-- Status bar removed - now in sticky top bar -->
+
+            <!-- Scripts Completed Today -->
+            <div class="completed-today-bar">
+                <div class="completed-today-text">Script Chapters Completed Today: <span id="chaptersCompletedTodayCount">0</span></div>
+            </div>
+
+            <!-- Fourth horizontal container: Overall Scripts Completed Today -->
+            <div class="completed-today-bar">
+                <div class="completed-today-text">Scripts Completed Today: <span id="scriptsCompletedTodayCount">0</span></div>
+            </div>
+
+            <!-- Page Title -->
+            <h1 class="page-title">Email Outreach Editor</h1>
+        </div>
+
+        <!-- =============================================== -->
+        <!--                 MAIN CONTENT                  -->
+        <!-- =============================================== -->
+        <div id="content">
+            <!-- Script Info Section -->
+            <div id="scriptInfoBox"></div>
+            <!-- Working Headline and Primary Keyword Fields -->
+            <div class="main-fields">
+                <!-- Working Headline Section -->
+                <div class="headline-options">
+                    <h2 class="section-title">Subject Line</h2>
+                    <div class="chapter-se-7a2807fb2c0d">
+                        <!-- Working Headline Row -->
+                        <div class="ch-title-7a2807fb2c0f">
+                            <!-- Headline Text + Label -->
+                            <div class="title-la-7a2807fb2c1a">
+                                <label class="label-ch-7a2807fb2c1f">Subject Line:</label>
+                                <div class="title-fiel-7a2807fb2c1e">
+                                    <textarea class="chapter-ti-7a2807fb2c20" id="workingHeadline" placeholder="Enter the email subject line..."></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Headline Rating + Label -->
+                            <div class="title-rating-l-7a2807fb2c19">
+                                <label class="label-rat-7a2807fb2c1c">Rating / 100:</label>
+                                <div class="rating-fie-7a2807fb2c1b">
+                                    <input type="number" class="rating-7a2807fb2c1d" id="workingHeadlineRating" data-field="script_headline_rating" min="1" max="100" value="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Primary Keyword Section -->
+                <div class="headline-options">
+                    <h2 class="section-title">Target Company</h2>
+                    <div class="chapter-se-7a2807fb2c0d">
+                        <!-- Primary Keyword Row -->
+                        <div class="ch-title-7a2807fb2c0f">
+                            <!-- Keyword Text + Label -->
+                            <div class="title-la-7a2807fb2c1a">
+                                <label class="label-ch-7a2807fb2c1f">Target Company:</label>
+                                <div class="title-fiel-7a2807fb2c1e">
+                                    <input type="text" class="chapter-ti-7a2807fb2c20" id="primaryKeyword" placeholder="Enter the target company name...">
+                                </div>
+                            </div>
+
+                            <!-- Keyword Rating + Label -->
+                            <div class="title-rating-l-7a2807fb2c19">
+                                <label class="label-rat-7a2807fb2c1c">Rating / 100:</label>
+                                <div class="rating-fie-7a2807fb2c1b">
+                                    <input type="number" class="rating-7a2807fb2c1d" id="primaryKeywordRating" data-field="primary_keyword_rating" min="1" max="100" value="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Email Content Section -->
+            <div class="chapters-section">
+                <h2 class="section-title">Email Content</h2>
+                <div id="chaptersList"></div>
+            </div>
+        </div>
+
+        <!-- =============================================== -->
+        <!--                 NO SCRIPTS MESSAGE            -->
+        <!-- =============================================== -->
+        <div id="noScriptsMessage" class="message" style="display: none;">
+            No email outreach content to display - everything checked ✓
+        </div>
+
+        <!-- Bottom navigation will be added by JavaScript -->
+    </div>
+
+        <script src="../../shared/js/theme-manager.js"></script>
+    <script type="module" src="../../shared/js/sidebar-component.js"></script>
+    <script type="module" src="../../shared/js/textarea-autosize.js"></script>
+    <script type="module">
+        // Email Outreach Editor Application - Configuration-driven editor
+
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+        import { updateStatus, showNoScriptsMessage, fetchWithErrorHandling } from '../../shared/js/editor-utils.js';
+        import { loadRatings, saveRatings } from '../../shared/js/rating-utils.js';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let postsToReview = [];
+        let currentPostIndex = 0;
+        let hasUnsavedChanges = false;
+        let isLoading = false;
+        let pageConfig = null;
+        let currentPostData = null;
+
+        async function init() {
+            try {
+                updateStatus('loading', 'Loading page configuration...');
+
+                // Get page configuration
+                const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+
+                const { data: config, error: configError } = await supabase
+                    .from('html_page_config')
+                    .select('*')
+                    .eq('page_name', pageName)
+                    .single();
+
+                if (configError || !config) {
+                    throw new Error(`Page configuration not found for: ${pageName}`);
+                }
+
+                pageConfig = config;
+
+                // Set page title dynamically
+                document.title = pageConfig.page_title;
+                const h1Element = document.querySelector('h1.page-title');
+                if (h1Element) {
+                    h1Element.textContent = pageConfig.page_title;
+                }
+
+                updateStatus('loading', `Loading ${pageConfig.page_title.toLowerCase()}...`);
+
+                // Filter records using config
+                const url = `${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.status_field_name}=eq.${pageConfig.display_status_id}&select=${pageConfig.id_field_name},${pageConfig.status_table_name === 'social_posts' ? 'social_post_headline' : 'headline'}`;
+                const posts = await fetchWithErrorHandling(url);
+                postsToReview = posts;
+
+                if (posts.length > 0) {
+                    await loadCurrentPostData();
+                    setupEventListeners();
+                    startAutoSave();
+                } else {
+                    showNoScriptsMessage('There are no email outreach content ready for editing at this time.');
+                }
+            } catch (error) {
+                console.error('Email Outreach Editor initialization error:', error);
+                updateStatus('error', `Failed to load email outreach: ${error.message}`);
+            }
+        }
+
+        async function loadCurrentPostData() {
+            if (postsToReview.length === 0) return;
+
+            const recordId = postsToReview[currentPostIndex][pageConfig.id_field_name];
+
+            try {
+                const recordInfo = await loadRecordInfo(recordId);
+
+                // Load centralized ratings for social_posts table
+                const ratings = await loadRatings('social_posts', recordId, [
+                    'social_post_headline',
+                    'social_post'
+                ]);
+
+                currentPostData = {
+                    post: recordInfo,
+                    ratings: ratings
+                };
+
+                displayPostData(currentPostData);
+                updateNavigationButtons();
+                updateStatus('saved', 'Loaded successfully');
+            } catch (error) {
+                console.error(`Error loading ${pageConfig.status_table_name}:`, error);
+                updateStatus('error', `Failed to load ${pageConfig.status_table_name} data`);
+            }
+        }
+
+        // Load record data from configured table
+        async function loadRecordInfo(recordId) {
+            console.log(`Loading ${pageConfig.status_table_name} data for ID:`, recordId);
+
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.id_field_name}=eq.${recordId}&select=*`, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
+            });
+
+            console.log(`${pageConfig.status_table_name} response status:`, response.status);
+
+            if (!response.ok) {
+                console.warn(`No ${pageConfig.status_table_name} data found`);
+                return null;
+            }
+
+            const data = await response.json();
+            console.log(`${pageConfig.status_table_name} data received:`, data);
+            return data && data.length > 0 ? data[0] : null;
+        }
+
+        function displayPostData(data) {
+            if (!data) return;
+            document.getElementById('content').style.display = 'block';
+
+            // Use utility function to display post info
+            displayPostInfo(data.post);
+
+            // Update sticky post info pill
+            const stickyScriptInfo = document.getElementById('stickyScriptInfo');
+            if (stickyScriptInfo && data.post) {
+                const postId = data.post.social_post_id || '-';
+                const postHeadline = data.post.social_post_headline || 'Untitled';
+                stickyScriptInfo.textContent = `Email ID: ${postId} | ${postHeadline}`;
+                stickyScriptInfo.style.display = 'block';
+            }
+
+            displayEmailContent(data.post, data.ratings);
+        }
+
+        // Display email content from the social_posts table
+        function displayEmailContent(post, ratings) {
+            console.log('displayEmailContent called with:', post);
+            const container = document.getElementById('chaptersList');
+            container.innerHTML = '';
+
+            if (!post) {
+                console.log('No email to display');
+                container.innerHTML = `
+                    <div class="message info">
+                        <strong>No email content found</strong><br>
+                        No email content data is available.
+                    </div>
+                `;
+                return;
+            }
+
+            console.log('Displaying email content');
+
+            const postSection = document.createElement('div');
+            postSection.className = 'chapter-se-7a2807fb2c0d';
+
+            postSection.innerHTML = `
+                <!-- Email Header Button -->
+                <button class="gradient-button">
+                    <span class="gradient-button__text">Email ID: ${post.social_post_id || 'N/A'}</span>
+                </button>
+
+                <!-- Email Subject Line Row -->
+                <div class="ch-title-7a2807fb2c0f">
+                    <!-- Email Subject Line Text + Label -->
+                    <div class="form-row__text-field">
+                        <label class="label-ch-7a2807fb2c1f">Email Subject Line:</label>
+                        <div class="title-fiel-7a2807fb2c1e">
+                            <input type="text" class="chapter-ti-7a2807fb2c20"
+                                   id="social_post_headline_${post.social_post_id}"
+                                   data-post-id="${post.social_post_id}"
+                                   data-field="social_post_headline"
+                                   placeholder="Enter email subject line..."
+                                   value="${post.social_post_headline || ''}">
+                        </div>
+                    </div>
+
+                    <!-- Email Subject Line Rating + Label -->
+                    <div class="form-row__rating-field">
+                        <div class="rating-field">
+                            <label class="rating-field__label">Rating / 100:</label>
+                            <div class="rating-field__container">
+                                <input type="number"
+                                       class="rating-field__input"
+                                       id="social_post_headline_rating_${post.social_post_id}"
+                                       data-post-id="${post.social_post_id}"
+                                       data-field="social_post_headline_rating"
+                                       min="1" max="100"
+                                       value="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Content Row -->
+                <div class="form-row">
+                    <div class="form-row__text-field">
+                        <div class="text-field-multi">
+                            <div class="text-field-multi__container">
+                                <textarea class="text-field-multi__input"
+                                         id="social_post_text_${post.social_post_id}"
+                                         data-post-id="${post.social_post_id}"
+                                         data-field="social_post"
+                                         style="min-height: 500px; height: 500px;"
+                                         placeholder="Enter email content...">${post.social_post || ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row__rating-field">
+                        <div class="rating-field">
+                            <label class="rating-field__label">Rating / 100:</label>
+                            <div class="rating-field__container">
+                                <input type="number"
+                                       class="rating-field__input"
+                                       id="social_post_text_rating_${post.social_post_id}"
+                                       data-post-id="${post.social_post_id}"
+                                       data-field="social_post_rating"
+                                       min="1"
+                                       max="100"
+                                       value="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(postSection);
+
+            // Populate ratings from centralized system
+            if (ratings) {
+                const headlineRatingEl = document.getElementById(`social_post_headline_rating_${post.social_post_id}`);
+                const postRatingEl = document.getElementById(`social_post_text_rating_${post.social_post_id}`);
+                
+                if (headlineRatingEl && ratings.social_post_headline) {
+                    headlineRatingEl.value = ratings.social_post_headline;
+                }
+                if (postRatingEl && ratings.social_post) {
+                    postRatingEl.value = ratings.social_post;
+                }
+            }
+        }
+
+        // Display basic post info
+        function displayPostInfo(post) {
+            if (!post) return;
+
+            // Update script info area with post information
+            const scriptInfo = document.getElementById('scriptInfo');
+            if (scriptInfo) {
+                scriptInfo.innerHTML = `
+                    <div class="info-card">
+                        <h3>Email Outreach Information</h3>
+                        <p><strong>Email ID:</strong> ${post.social_post_id || 'N/A'}</p>
+                        <p><strong>Subject Line:</strong> ${post.social_post_headline || 'No subject line'}</p>
+                        <p><strong>Status ID:</strong> ${post.social_post_status_id || 'N/A'}</p>
+                    </div>
+                `;
+                scriptInfo.style.display = 'block';
+            }
+        }
+
+        async function saveScript() {
+            if (isLoading) return;
+
+            try {
+                isLoading = true;
+                updateStatus('loading', 'Saving email outreach data...');
+
+                const postId = postsToReview[currentPostIndex].social_post_id;
+
+                // Save email data
+                await saveEmailData(postId);
+
+                updateStatus('saved', 'Email outreach saved successfully');
+                hasUnsavedChanges = false;
+                if (window.setUnsavedChanges) {
+                    window.setUnsavedChanges(false);
+                }
+
+                postsToReview.splice(currentPostIndex, 1);
+
+                if (postsToReview.length > 0) {
+                    if (currentPostIndex >= postsToReview.length) currentPostIndex = 0;
+                    await loadCurrentPostData();
+                } else {
+                    showNoScriptsMessage('All email outreach completed!');
+                }
+
+            } catch (error) {
+                console.error('Save error:', error);
+                updateStatus('error', `Failed to save email outreach: ${error.message}`);
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // Save email data
+        async function saveEmailData(postId) {
+            const postFields = document.querySelectorAll('[data-post-id]');
+            const updateData = {};
+            const ratingsData = {};
+
+            // Collect all updates for this post
+            postFields.forEach(field => {
+                const fieldType = field.dataset.field;
+
+                if (fieldType === 'social_post_headline') {
+                    updateData.social_post_headline = field.value;
+                } else if (fieldType === 'social_post_headline_rating') {
+                    // Collect for centralized ratings
+                    if (field.value) {
+                        ratingsData.social_post_headline = parseInt(field.value);
+                    }
+                } else if (fieldType === 'social_post') {
+                    updateData.social_post = field.value;
+                } else if (fieldType === 'social_post_rating') {
+                    // Collect for centralized ratings
+                    if (field.value) {
+                        ratingsData.social_post = parseInt(field.value);
+                    }
+                }
+            });
+
+            // Update status using configuration
+            if (pageConfig && pageConfig.next_status_id) {
+                updateData[pageConfig.status_field_name] = pageConfig.next_status_id;
+            }
+
+            console.log(`Saving ${pageConfig ? pageConfig.status_table_name : 'record'} ${postId} with data:`, updateData);
+
+            // Save content to social_posts table (WITHOUT ratings)
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.id_field_name}=eq.${postId}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`Failed to save ${pageConfig.status_table_name} ${postId}. Response:`, response.status, errorText);
+                throw new Error(`Failed to save ${pageConfig.status_table_name} ${postId}: ${response.status} - ${errorText}`);
+            }
+
+            // Save ratings to centralized system
+            if (Object.keys(ratingsData).length > 0) {
+                console.log(`Saving ratings for ${pageConfig.status_table_name} ${postId}:`, ratingsData);
+                await saveRatings('social_posts', postId, ratingsData);
+            }
+        }
+
+        async function navigateScript(direction) {
+            if (hasUnsavedChanges && !confirm('You have unsaved changes. Continue?')) return;
+
+            const newIndex = currentPostIndex + direction;
+            if (newIndex >= 0 && newIndex < postsToReview.length) {
+                currentPostIndex = newIndex;
+                await loadCurrentPostData();
+            }
+        }
+
+        function updateNavigationButtons() {
+            if (window.updateBottomNavigation) {
+                window.updateBottomNavigation(currentPostIndex, postsToReview.length);
+            }
+        }
+
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Add change listeners to mark unsaved changes
+            document.addEventListener('input', (e) => {
+                if (e.target.dataset.field && e.target.dataset.postId) {
+                    hasUnsavedChanges = true;
+                    if (window.setUnsavedChanges) {
+                        window.setUnsavedChanges(true);
+                    }
+                    updateStatus('editing', 'Editing email outreach data...');
+                }
+            });
+        }
+
+        // Auto-save functionality
+        function startAutoSave() {
+            if (window.bottomNav) {
+                window.bottomNav.startAutoSave(async () => {
+                    if (hasUnsavedChanges && postsToReview.length > 0) {
+                        try {
+                            const postId = postsToReview[currentPostIndex].social_post_id;
+                            await saveEmailData(postId);
+                            hasUnsavedChanges = false;
+                            if (window.setUnsavedChanges) {
+                                window.setUnsavedChanges(false);
+                            }
+                            updateStatus('saved', 'Auto-saved');
+                        } catch (error) {
+                            console.error('Auto-save failed:', error);
+                            updateStatus('error', 'Auto-save failed');
+                        }
+                    }
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, starting Email Outreach Editor...');
+            init();
+        });
+
+        window.saveScript = saveScript;
+        window.navigateScript = navigateScript;
+    </script>
+
+    <script type="module">
+        import BottomNavigation from '../../shared/js/bottom-navigation.js';
+        window.bottomNav = new BottomNavigation({
+            onSave: () => window.saveScript(),
+            onNavigate: (direction) => window.navigateScript(direction),
+            showAutoSave: true
+        });
+
+        window.updateBottomNavigation = (currentIndex, totalItems) => {
+            if (window.bottomNav) window.bottomNav.updateNavigation(currentIndex, totalItems);
+        };
+
+        window.setUnsavedChanges = (hasChanges) => {
+            if (window.bottomNav) {
+                window.bottomNav.setUnsavedChanges(hasChanges);
+            }
+        };
+    </script>
+</body>
+</html>

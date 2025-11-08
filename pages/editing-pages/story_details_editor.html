@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Details Editor</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/components.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+    <link rel="stylesheet" href="../../shared/styles/layout.css">
+    <link rel="stylesheet" href="../../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../../shared/styles/forms.css">
+    <link rel="stylesheet" href="../../shared/styles/status.css">
+    <link rel="stylesheet" href="../../shared/styles/notifications.css">
+    <link rel="stylesheet" href="../../shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="../../shared/styles/missing-layout.css">
+    <link rel="stylesheet" href="../../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+    <link rel="stylesheet" href="../../shared/styles/bottom-navigation.css">
+</head>
+<body class="has-sidebar">
+    <!-- Sticky Top Status Bar -->
+    <div id="stickyStatusBar" style="
+        position: fixed;
+        top: 0;
+        left: 280px;
+        right: 0;
+        background: transparent;
+        padding: 4px 20px;
+        z-index: 999;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+    ">
+        <!-- Script Info Pill (Left) -->
+        <div id="stickyScriptInfo" style="
+            background: white;
+            padding: 3.6px 10.8px;
+            border-radius: 18px;
+            font-size: 10.8px;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            pointer-events: auto;
+            display: none;
+        ">-</div>
+
+        <!-- Status Indicator Pill (Right) -->
+        <div class="status-indicator" id="stickyStatusIndicator" style="pointer-events: auto;">Loading</div>
+    </div>
+
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
+
+    <div class="container with-sidebar" style="padding-top: 30px;">
+        <!-- =============================================== -->
+        <!--                 HEADER SECTION                -->
+        <!-- =============================================== -->
+        <div class="header">
+            
+            <!-- Status bar removed - now in sticky top bar -->
+
+            <!-- Scripts Completed Today -->
+            <div class="completed-today-bar">
+                <div class="completed-today-text">Story Details Completed Today: <span id="researchCompletedTodayCount">0</span></div>
+            </div>
+            
+            <!-- Fourth horizontal container: Overall Scripts Completed Today -->
+            <div class="completed-today-bar">
+                <div class="completed-today-text">Scripts Completed Today: <span id="scriptsCompletedTodayCount">0</span></div>
+            </div>
+            
+            <!-- Page Title -->
+            <h1 class="page-title">Story Details Editor</h1>
+        </div>
+
+        <!-- =============================================== -->
+        <!--                 MAIN CONTENT                  -->
+        <!-- =============================================== -->
+        <div id="content">
+            <!-- Script Info Section -->
+            <div id="scriptInfoBox"></div>
+
+            <!-- Research Content Section -->
+            <div class="research-section">
+                <div id="researchList">
+                    <!-- Research fields will be populated here by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- No Scripts Message -->
+        <div id="noScriptsMessage" class="message" style="display: none;"></div>
+
+        <!-- Bottom navigation will be added by JavaScript -->
+    </div>
+
+        <script src="../../shared/js/theme-manager.js"></script>
+    <script type="module" src="../../shared/js/sidebar-component.js"></script>
+    <script type="module" src="../../shared/js/textarea-autosize.js"></script>
+    <script type="module">
+        import BottomNavigation from '../../shared/js/bottom-navigation.js';
+        window.bottomNav = new BottomNavigation({
+            onSave: () => window.saveScript(),
+            onNavigate: (direction) => window.navigateScript(direction),
+            showAutoSave: true
+        });
+        
+        // Make the navigation update function available globally
+        window.updateBottomNavigation = (currentIndex, totalItems) => {
+            if (window.bottomNav) {
+                window.bottomNav.updateNavigation(currentIndex, totalItems);
+            }
+        };
+        
+        // Make the unsaved changes function available globally
+        window.setUnsavedChanges = (hasChanges) => {
+            if (window.bottomNav) {
+                window.bottomNav.setUnsavedChanges(hasChanges);
+            }
+        };
+    </script>
+    <script type="module">
+        // Story Details Editor Application
+        
+        import { SUPABASE_URL, SUPABASE_ANON_KEY, STORY_DETAILS_FIELDS } from '../../shared/js/config.js';
+        import { updateStatus, displayScriptInfo, loadScriptInfo, updateScriptStatus, showNoScriptsMessage, fetchWithErrorHandling } from '../../shared/js/editor-utils.js';
+        import { loadRatings, saveRatings, collectRatingValues, populateRatingFields } from '../../shared/js/rating-utils.js';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let pageConfig = null;
+
+        // Application state
+        let currentScriptData = null;
+        let recordsToReview = [];
+        let currentScriptIndex = 0;
+        let autoSaveTimer = null;
+        let isLoading = false;
+        let hasUnsavedChanges = false;
+
+
+        // Initialize the application
+        async function init() {
+            try {
+                console.log('=== RESEARCH EDITOR DEBUG: Starting initialization ===');
+                updateStatus('loading', 'Loading page configuration...');
+
+                // Get page configuration
+                const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+
+                const { data: config, error: configError } = await supabase
+                    .from('html_page_config')
+                    .select('*')
+                    .eq('page_name', pageName)
+                    .single();
+
+                if (configError || !config) {
+                    throw new Error(`Page configuration not found for: ${pageName}`);
+                }
+
+                pageConfig = config;
+
+                // Set page title dynamically
+                document.title = pageConfig.page_title;
+                const h1Element = document.querySelector('h1.page-title');
+                if (h1Element) {
+                    h1Element.textContent = pageConfig.page_title;
+                }
+
+                updateStatus('loading', `Loading ${pageConfig.page_title.toLowerCase()}...`);
+
+                // Load scripts using config
+                const scripts = await loadScriptsToReview();
+
+                recordsToReview = scripts;
+
+                if (scripts.length > 0) {
+                    console.log('Loading first script with ID:', scripts[0][pageConfig.id_field_name]);
+                    await loadCurrentScriptData();
+                    startAutoSave();
+                } else {
+                    showNoScriptsMessage(`There are no scripts ready for ${pageConfig.page_title.toLowerCase()} at this time.`);
+                }
+            } catch (error) {
+                console.error('Initialization error:', error);
+                handleInitializationError(error);
+            }
+        }
+
+
+        // Load scripts that need research using config
+        async function loadScriptsToReview() {
+            if (!pageConfig) throw new Error('Page configuration not loaded');
+            const url = `${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.status_field_name}=eq.${pageConfig.display_status_id}&select=${pageConfig.id_field_name},script_headline`;
+            return await fetchWithErrorHandling(url);
+        }
+
+        // Load current script data and research
+        async function loadCurrentScriptData() {
+            if (recordsToReview.length === 0 || !pageConfig) {
+                showNoScriptsMessage(`There are no scripts ready for ${pageConfig?.page_title?.toLowerCase() || 'research'} at this time.`);
+                return;
+            }
+
+            const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
+
+            try {
+                updateStatus('loading', 'Loading script data...');
+
+                // Load script info and research data first
+                console.log('Loading script info for ID:', scriptId);
+                const scriptInfo = await loadScriptInfo(scriptId);
+                console.log('Script info loaded:', scriptInfo);
+
+                console.log('Loading research data for ID:', scriptId);
+                const researchData = await loadResearchData(scriptId);
+                console.log('Research data loaded:', researchData);
+
+                // Load centralized ratings
+                console.log('Loading ratings for scripts, ID:', scriptId);
+                const ratings = await loadRatings('scripts', scriptId, [
+                    'logline',
+                    'script_basic_outline',
+                    'script_outline',
+                    'synopsis',
+                    'primary_keyword',
+                    'script_summary',
+                    'video_description'
+                ]);
+                console.log('Ratings loaded:', ratings);
+
+                currentScriptData = { script: scriptInfo, research: researchData, ratings: ratings };
+
+                displayScriptData(currentScriptData);
+                updateNavigationButtons();
+                updateStatus('saved', 'Loaded successfully');
+                hasUnsavedChanges = false;
+            } catch (error) {
+                console.error('Error loading script:', error);
+                console.error('Error details:', error.message, error.stack);
+                updateStatus('error', 'Failed to load script data: ' + error.message);
+            }
+        }
+
+        // Use the utility function from editor-utils.js
+
+        // Load story details data from scripts table
+        async function loadResearchData(scriptId) {
+            const url = `${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}&select=logline,script_basic_outline,script_outline,synopsis,primary_keyword,script_summary,video_description`;
+            try {
+                const data = await fetchWithErrorHandling(url);
+                return data[0] || {}; // Return empty object if no data exists yet
+            } catch (error) {
+                console.warn('No story details data found for script:', scriptId);
+                return {};
+            }
+        }
+
+        // Display script data in UI
+        function displayScriptData(data) {
+            if (!data) return;
+
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('noScriptsMessage').style.display = 'none';
+
+
+            // Update sticky script info pill
+            const stickyScriptInfo = document.getElementById('stickyScriptInfo');
+            if (stickyScriptInfo && data.script && pageConfig) {
+                const scriptId = data.script[pageConfig.id_field_name] || '-';
+                const scriptHeadline = data.script.script_headline || 'Untitled';
+                stickyScriptInfo.textContent = `Script ID: ${scriptId} | ${scriptHeadline}`;
+                stickyScriptInfo.style.display = 'block';
+            }
+
+            // Use the utility function to display script info
+            displayScriptInfo(data.script);
+
+            // Try to initialize enhanced script info box (non-blocking)
+            if (pageConfig) {
+                initializeScriptInfoBox(data.script[pageConfig.id_field_name]);
+            }
+
+            // Display research fields
+            displayResearchFields(data.research);
+        }
+
+        // Safely initialize enhanced script info box
+        async function initializeScriptInfoBox(scriptId) {
+            try {
+                // Dynamically import the ScriptInfoBox component
+                const { default: ScriptInfoBox } = await import('../../shared/js/script-info-box.js');
+
+                const scriptInfoBox = new ScriptInfoBox('scriptInfoBox');
+                await scriptInfoBox.init(scriptId, {
+                    autoRefresh: false,
+                    refreshRate: 30000
+                });
+
+                // Hide the old info box and show the new one
+                const oldInfoBox = document.getElementById('scriptInfo');
+                if (oldInfoBox) {
+                    oldInfoBox.style.display = 'none';
+                }
+
+                console.log('Enhanced script info box loaded successfully');
+            } catch (error) {
+                console.log('Enhanced script info box not available, using standard version:', error);
+                // Fallback: ensure the old info box is visible
+                const oldInfoBox = document.getElementById('scriptInfo');
+                if (oldInfoBox) {
+                    oldInfoBox.style.display = 'block';
+                }
+            }
+        }
+
+        // Display research fields
+        function displayResearchFields(researchData) {
+            const container = document.getElementById('researchList');
+            container.innerHTML = '';
+
+            STORY_DETAILS_FIELDS.forEach(field => {
+                const fieldSection = document.createElement('div');
+                fieldSection.className = 'chapter-se-7a2807fb2c0d'; // Reuse existing styling
+
+                fieldSection.innerHTML = `
+                    <!-- Field Label Button -->
+                    <button class="gradient-button">
+                        <span class="gradient-button__text">${field.label}</span>
+                    </button>
+
+                    <!-- Field Content Row -->
+                    <div class="form-row">
+                        <div class="form-row__text-field">
+                            <div class="text-field-multi">
+                                <div class="text-field-multi__container">
+                                    <textarea class="text-field-multi__input"
+                                             id="research_${field.name}"
+                                             data-field="${field.name}"
+                                             style="min-height: 225px; height: 225px;"
+                                             placeholder="Enter ${field.label.toLowerCase()}...">${researchData[field.name] || ''}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row__rating-field">
+                            <div class="rating-field">
+                                <label class="rating-field__label">Rating / 100:</label>
+                                <div class="rating-field__container">
+                                    <input type="number"
+                                           class="rating-field__input"
+                                           id="rating_${field.name}"
+                                           data-field="${field.name}_rating"
+                                           min="1"
+                                           max="100"
+                                           value="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(fieldSection);
+            });
+
+            // Setup event listeners after fields are created
+            setupEventListeners();
+
+            // Auto-resize textareas
+            setTimeout(() => {
+                const textareas = document.querySelectorAll('.text-field-multi__input');
+                textareas.forEach((textarea) => {
+                    textarea.style.minHeight = '225px';
+                    textarea.style.height = '225px';
+                    textarea.style.overflowY = 'hidden';
+                    textarea.style.resize = 'none';
+                    
+                    if (textarea.value && textarea.value.length > 0) {
+                        textarea.style.height = 'auto';
+                        const newHeight = Math.max(225, textarea.scrollHeight + 15);
+                        textarea.style.height = newHeight + 'px';
+                    }
+                    
+                    textarea.addEventListener('input', function() {
+                        this.style.height = 'auto';
+                        const newHeight = Math.max(225, this.scrollHeight + 15);
+                        this.style.height = newHeight + 'px';
+                        this.style.overflowY = 'hidden';
+                    });
+                });
+            }, 200);
+
+            // Populate rating fields from centralized ratings
+            if (currentScriptData && currentScriptData.ratings) {
+                console.log('Populating rating fields with data:', currentScriptData.ratings);
+                populateRatingFields(currentScriptData.ratings, 'rating_');
+            } else {
+                console.log('No ratings data to populate:', currentScriptData?.ratings);
+            }
+        }
+
+        // Save script function - Updates status from 12 to 13
+        async function saveScript() {
+            if (isLoading) return;
+            
+            try {
+                isLoading = true;
+                updateStatus('loading', 'Saving story details and updating status...');
+
+                const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
+                const researchData = collectResearchData();
+
+                // Save story details AND update script status
+                await saveResearchDataAndUpdateStatus(scriptId, researchData);
+
+                updateStatus('saved', 'Story details saved and status updated');
+                hasUnsavedChanges = false;
+                if (window.setUnsavedChanges) {
+                    window.setUnsavedChanges(false);
+                }
+
+                // Remove this script from the review list
+                recordsToReview.splice(currentScriptIndex, 1);
+
+                // Load next script or show completion message
+                if (recordsToReview.length > 0) {
+                    if (currentScriptIndex >= recordsToReview.length) {
+                        currentScriptIndex = 0;
+                    }
+                    await loadCurrentScriptData();
+                } else {
+                    updateStatus('completed', 'All story details completed!');
+                    showNoScriptsMessage('All story details completed!');
+                }
+
+            } catch (error) {
+                console.error('Save error:', error);
+                updateStatus('error', `Failed to save story details: ${error.message}`);
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // Collect research data from form
+        function collectResearchData() {
+            const data = {};
+
+            STORY_DETAILS_FIELDS.forEach(field => {
+                const textField = document.getElementById(`research_${field.name}`);
+
+                // Only collect text content, ratings handled separately
+                if (textField) data[field.name] = textField.value;
+            });
+
+            return data;
+        }
+
+        // Save story details data to scripts table
+        async function saveResearchDataAndUpdateStatus(scriptId, data) {
+            // Save story details to scripts table
+            let url = `${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`;
+            let options = {
+                method: 'PATCH',
+                body: JSON.stringify(data),
+                headers: { 'Prefer': 'return=representation' }
+            };
+
+            await fetchWithErrorHandling(url, options);
+
+            // Save ratings to centralized system
+            const ratingValues = collectRatingValues([
+                'logline',
+                'script_basic_outline',
+                'script_outline',
+                'synopsis',
+                'primary_keyword',
+                'script_summary',
+                'video_description'
+            ], 'rating_');
+
+            await saveRatings('scripts', scriptId, ratingValues, scriptId);
+
+            // Update script status using configuration
+            if (pageConfig && pageConfig.next_status_id) {
+                await updateScriptStatus(scriptId, pageConfig.next_status_id);
+            }
+        }
+
+        // Save story details data to Supabase (for auto-save - no status change)
+        async function saveResearchData(scriptId, data) {
+            // Save to scripts table
+            let url = `${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`;
+            let options = {
+                method: 'PATCH',
+                body: JSON.stringify(data),
+                headers: { 'Prefer': 'return=representation' }
+            };
+
+            const result = await fetchWithErrorHandling(url, options);
+
+            // Also save ratings during auto-save
+            const ratingValues = collectRatingValues([
+                'logline',
+                'script_basic_outline',
+                'script_outline',
+                'synopsis',
+                'primary_keyword',
+                'script_summary',
+                'video_description'
+            ], 'rating_');
+
+            await saveRatings('scripts', scriptId, ratingValues, scriptId);
+
+            return result;
+        }
+
+        // Navigate between scripts
+        async function navigateScript(direction) {
+            if (isLoading) return;
+
+            if (hasUnsavedChanges) {
+                if (!confirm('You have unsaved changes. Do you want to continue without saving?')) {
+                    return;
+                }
+            }
+
+            const newIndex = currentScriptIndex + direction;
+            if (newIndex >= 0 && newIndex < recordsToReview.length) {
+                currentScriptIndex = newIndex;
+                await loadCurrentScriptData();
+            }
+        }
+
+        // Update navigation button states
+        function updateNavigationButtons() {
+            // Update the bottom navigation component
+            if (window.updateBottomNavigation) {
+                window.updateBottomNavigation(currentScriptIndex, recordsToReview.length);
+            }
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Add change listeners to mark unsaved changes
+            STORY_DETAILS_FIELDS.forEach(field => {
+                const textField = document.getElementById(`research_${field.name}`);
+                const ratingField = document.getElementById(`rating_${field.name}`);
+                
+                if (textField) {
+                    textField.addEventListener('input', () => {
+                        hasUnsavedChanges = true;
+                        updateStatus('unsaved', 'Unsaved changes');
+                        if (window.setUnsavedChanges) {
+                            window.setUnsavedChanges(true);
+                        }
+                    });
+                }
+                
+                if (ratingField) {
+                    ratingField.addEventListener('input', () => {
+                        hasUnsavedChanges = true;
+                        updateStatus('unsaved', 'Unsaved changes');
+                        if (window.setUnsavedChanges) {
+                            window.setUnsavedChanges(true);
+                        }
+                    });
+                }
+            });
+        }
+
+        // Auto-save functionality
+        function startAutoSave() {
+            // Use the bottom navigation component's auto-save
+            if (window.bottomNav) {
+                window.bottomNav.startAutoSave(async () => {
+                    if (hasUnsavedChanges && recordsToReview.length > 0) {
+                        try {
+                            const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
+                            const researchData = collectResearchData();
+                            await saveResearchData(scriptId, researchData);
+                            hasUnsavedChanges = false;
+                            if (window.setUnsavedChanges) {
+                                window.setUnsavedChanges(false);
+                            }
+                            updateStatus('saved', 'Auto-saved');
+                        } catch (error) {
+                            console.error('Auto-save failed:', error);
+                            updateStatus('error', 'Auto-save failed');
+                        }
+                    }
+                });
+            }
+        }
+
+
+
+        function handleInitializationError(error) {
+            updateStatus('error', `Failed to load scripts: ${error.message}`);
+            showNoScriptsMessage(`Error loading scripts: ${error.message}`);
+        }
+
+        // Make functions available globally for HTML onclick handlers
+        window.saveScript = saveScript;
+        window.navigateScript = navigateScript;
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            init().catch(error => {
+                console.error('Failed to initialize Story Details Editor:', error);
+            });
+        });
+    </script>
+</body>
+</html>

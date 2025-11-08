@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scripts</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/components.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+    <link rel="stylesheet" href="../../shared/styles/layout.css">
+    <link rel="stylesheet" href="../../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../../shared/styles/forms.css">
+    <link rel="stylesheet" href="../../shared/styles/status.css">
+    <link rel="stylesheet" href="../../shared/styles/notifications.css">
+    <link rel="stylesheet" href="../../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+
+    <style>
+        .filters-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .filters-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            font-family: "Inter", sans-serif;
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 0.5px solid #5b5a5a;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .search-input {
+            padding: 8px 12px;
+            border: 0.5px solid #5b5a5a;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 300px;
+        }
+
+        .scripts-table {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .scripts-table thead {
+            background: linear-gradient(to right, rgba(11, 230, 255, 0.1) 0%, rgba(175, 11, 255, 0.1) 100%);
+        }
+
+        .scripts-table th {
+            padding: 15px;
+            text-align: left;
+            font-size: 11px;
+            font-family: "Inter", sans-serif;
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background-color 0.2s ease;
+        }
+
+        .scripts-table th:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .scripts-table th.sortable::after {
+            content: '↕️';
+            font-size: 10px;
+            margin-left: 5px;
+            opacity: 0.5;
+        }
+
+        .scripts-table th.sort-asc::after {
+            content: '↑';
+            opacity: 1;
+            color: #007bff;
+        }
+
+        .scripts-table th.sort-desc::after {
+            content: '↓';
+            opacity: 1;
+            color: #007bff;
+        }
+
+        .scripts-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            font-family: "Tahoma", sans-serif;
+        }
+
+        .scripts-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-draft {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .status-review {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-published {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit {
+            background: #0099ff;
+            color: white;
+        }
+
+        .btn-export {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-export:hover {
+            background: #218838;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn.active {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            border: none;
+        }
+
+        .page-btn:hover:not(.active) {
+            background: #f9f9f9;
+        }
+
+        /* Edit Script Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 20px auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #0be6ff 0%, #af0bff 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 30px;
+            max-height: calc(90vh - 140px);
+            overflow-y: auto;
+        }
+
+        .modal-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-family: "Inter", sans-serif;
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: "Tahoma", sans-serif;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            min-height: 45px;
+            background: white;
+        }
+
+        .tag {
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tag-remove {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .tag-remove:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn.primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .modal-btn.primary:hover {
+            background: #0056b3;
+        }
+
+        .modal-btn.secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .modal-btn.secondary:hover {
+            background: #545b62;
+        }
+    </style>
+</head>
+<body class="has-sidebar">
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
+
+    <div class="container with-sidebar">
+        <!-- Header Section -->
+        <div class="header">
+
+            <!-- Status Indicator -->
+            <div class="status-bar">
+                <div class="status-indicator" id="statusIndicator">Ready</div>
+            </div>
+
+            <!-- Page Title -->
+            <h1 class="page-title">Scripts</h1>
+        </div>
+
+        <!-- Main Content -->
+        <div id="content">
+            <!-- Filters -->
+            <div class="filters-section">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label class="filter-label">Search</label>
+                        <input type="text" class="search-input" placeholder="Search scripts...">
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <select class="filter-select">
+                            <option value="">All Status</option>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Date Range</label>
+                        <select class="filter-select">
+                            <option value="">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scripts Table -->
+            <table class="scripts-table">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-sort="script_id">ID</th>
+                        <th class="sortable" data-sort="script_headline">Title</th>
+                        <th class="sortable" data-sort="status_name">Status</th>
+                        <th class="sortable" data-sort="created_at">Created</th>
+                        <th>Rating</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Scripts will be populated dynamically -->
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <!-- Pagination will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Script Modal -->
+    <div id="editScriptModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Edit Script</h2>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form class="modal-form" id="editScriptForm">
+                    <!-- Status (Full Width, Top) -->
+                    <div class="form-group full-width">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="editStatus">
+                            <!-- Options populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-input" id="editTitle" placeholder="Script headline">
+                    </div>
+
+                    <!-- YouTube Channel -->
+                    <div class="form-group">
+                        <label class="form-label">YouTube Channel</label>
+                        <select class="form-select" id="editYouTubeChannel">
+                            <!-- Options populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Genre -->
+                    <div class="form-group">
+                        <label class="form-label">Genre</label>
+                        <select class="form-select" id="editGenre">
+                            <!-- Options populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Subgenre -->
+                    <div class="form-group">
+                        <label class="form-label">Subgenre</label>
+                        <select class="form-select" id="editSubgenre">
+                            <!-- Options populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Target Word Count -->
+                    <div class="form-group">
+                        <label class="form-label">Target Word Count</label>
+                        <input type="number" class="form-input" id="editWordCount" placeholder="Target word count">
+                    </div>
+
+                    <!-- Primary Keyword -->
+                    <div class="form-group">
+                        <label class="form-label">Primary Keyword</label>
+                        <input type="text" class="form-input" id="editKeyword" placeholder="Primary keyword">
+                    </div>
+
+                    <!-- Opening Chapter Type -->
+                    <div class="form-group">
+                        <label class="form-label">Opening Chapter Type</label>
+                        <select class="form-select" id="editOpeningChapterType">
+                            <!-- Options populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Final Chapter Type -->
+                    <div class="form-group">
+                        <label class="form-label">Final Chapter Type</label>
+                        <select class="form-select" id="editFinalChapterType">
+                            <!-- Options populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Visual Suggestion Style -->
+                    <div class="form-group">
+                        <label class="form-label">Visual Suggestion Style</label>
+                        <select class="form-select" id="editVisualStyle">
+                            <!-- Options populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Narration Style -->
+                    <div class="form-group">
+                        <label class="form-label">Narration Style</label>
+                        <select class="form-select" id="editNarrationStyle">
+                            <!-- Options populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Niches (Full Width) -->
+                    <div class="form-group full-width">
+                        <label class="form-label">Niches</label>
+                        <div class="tags-container" id="editNiches">
+                            <!-- Niche tags will be populated here -->
+                        </div>
+                        <input type="text" class="form-input" id="nichesInput" placeholder="Type niche and press Enter" style="margin-top: 10px;">
+                    </div>
+
+                    <!-- Client Notes (Full Width) -->
+                    <div class="form-group full-width">
+                        <label class="form-label">Client Notes</label>
+                        <textarea class="form-textarea" id="editClientNotes" placeholder="Client notes..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn secondary" onclick="closeEditModal()">Cancel</button>
+                <button type="button" class="modal-btn primary" onclick="saveScript()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Application state
+        let allScripts = [];
+        let filteredScripts = [];
+        let currentPage = 1;
+        const scriptsPerPage = 20;
+        let clients = [];
+        let statuses = [];
+        let youtubeChannels = [];
+        let genres = [];
+        let subgenres = [];
+        let openingChapterTypes = [];
+        let finalChapterTypes = [];
+        let visualSuggestionStyles = [];
+        let narrationStyles = [];
+        let currentSort = { column: 'script_id', direction: 'desc' };
+        let currentEditingScript = null;
+
+        // Initialize the application
+        async function init() {
+            try {
+                await Promise.all([
+                    loadClients(),
+                    loadStatuses(),
+                    loadYouTubeChannels(),
+                    loadGenres(),
+                    loadSubgenres(),
+                    loadOpeningChapterTypes(),
+                    loadFinalChapterTypes(),
+                    loadVisualSuggestionStyles(),
+                    loadNarrationStyles()
+                ]);
+                await loadScripts();
+                setupEventListeners();
+                populateDropdowns();
+            } catch (error) {
+                console.error('Error initializing manage scripts:', error);
+            }
+        }
+
+        // Load all clients for dropdown
+        async function loadClients() {
+            try {
+                const { data, error } = await supabase
+                    .from('clients')
+                    .select('client_id, client_full_name')
+                    .order('client_id');
+
+                if (error) throw error;
+                clients = data || [];
+            } catch (error) {
+                console.error('Error loading clients:', error);
+                clients = [];
+            }
+        }
+
+        // Load all statuses for dropdown
+        async function loadStatuses() {
+            try {
+                const { data, error } = await supabase
+                    .from('script_statuses')
+                    .select('script_status_id, script_status')
+                    .order('script_status_id');
+
+                if (error) throw error;
+                statuses = data || [];
+            } catch (error) {
+                console.error('Error loading statuses:', error);
+                statuses = [];
+            }
+        }
+
+        // Load YouTube channels
+        async function loadYouTubeChannels() {
+            try {
+                const { data, error } = await supabase
+                    .from('youtube_channels')
+                    .select('youtube_channel_id, youtube_channel_name, client_id')
+                    .order('youtube_channel_name');
+
+                if (error) throw error;
+                youtubeChannels = data || [];
+            } catch (error) {
+                console.error('Error loading YouTube channels:', error);
+                youtubeChannels = [];
+            }
+        }
+
+        // Load genres
+        async function loadGenres() {
+            try {
+                const { data, error} = await supabase
+                    .from('genres')
+                    .select('genre_id, genre')
+                    .order('genre');
+
+                if (error) throw error;
+                genres = data || [];
+            } catch (error) {
+                console.error('Error loading genres:', error);
+                genres = [];
+            }
+        }
+
+        // Load subgenres
+        async function loadSubgenres() {
+            try {
+                const { data, error } = await supabase
+                    .from('subgenres')
+                    .select('subgenre_id, subgenre, genre_id')
+                    .order('subgenre');
+
+                if (error) throw error;
+                subgenres = data || [];
+            } catch (error) {
+                console.error('Error loading subgenres:', error);
+                subgenres = [];
+            }
+        }
+
+        // Load opening chapter types
+        async function loadOpeningChapterTypes() {
+            try {
+                const { data, error } = await supabase
+                    .from('opening_chapter_types')
+                    .select('opening_chapter_type_id, opening_chapter_type')
+                    .order('opening_chapter_type');
+
+                if (error) throw error;
+                openingChapterTypes = data || [];
+            } catch (error) {
+                console.error('Error loading opening chapter types:', error);
+                openingChapterTypes = [];
+            }
+        }
+
+        // Load final chapter types
+        async function loadFinalChapterTypes() {
+            try {
+                const { data, error } = await supabase
+                    .from('final_chapter_types')
+                    .select('final_chapter_type_id, final_chapter_type')
+                    .order('final_chapter_type');
+
+                if (error) throw error;
+                finalChapterTypes = data || [];
+            } catch (error) {
+                console.error('Error loading final chapter types:', error);
+                finalChapterTypes = [];
+            }
+        }
+
+        // Load visual suggestion styles
+        async function loadVisualSuggestionStyles() {
+            try {
+                const { data, error } = await supabase
+                    .from('visual_suggestion_styles')
+                    .select('visual_suggestion_style_id, visual_suggestion_style')
+                    .order('visual_suggestion_style');
+
+                if (error) throw error;
+                visualSuggestionStyles = data || [];
+            } catch (error) {
+                console.error('Error loading visual suggestion styles:', error);
+                visualSuggestionStyles = [];
+            }
+        }
+
+        // Load narration styles
+        async function loadNarrationStyles() {
+            try {
+                const { data, error } = await supabase
+                    .from('narration_styles')
+                    .select('narration_style_id, narration_style')
+                    .order('narration_style');
+
+                if (error) throw error;
+                narrationStyles = data || [];
+            } catch (error) {
+                console.error('Error loading narration styles:', error);
+                narrationStyles = [];
+            }
+        }
+
+        // Load scripts with relationships
+        async function loadScripts() {
+            try {
+                const { data, error } = await supabase
+                    .from('scripts')
+                    .select(`
+                        script_id,
+                        script_headline,
+                        client_id,
+                        script_status_id,
+                        youtube_channel_id,
+                        genre_id,
+                        subgenre_id,
+                        niches,
+                        target_word_count,
+                        primary_keyword,
+                        client_notes,
+                        opening_chapter_type_id,
+                        final_chapter_type_id,
+                        visual_suggestion_style_id,
+                        narration_style_id,
+                        created_at,
+                        clients!inner(client_full_name),
+                        script_statuses!inner(script_status)
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                allScripts = data || [];
+                filteredScripts = [...allScripts];
+
+                // Apply initial sort (script_id desc)
+                applySortToFilteredScripts();
+                updateSortIndicators();
+                displayScripts();
+                updatePagination();
+            } catch (error) {
+                console.error('Error loading scripts:', error);
+                allScripts = [];
+                filteredScripts = [];
+                displayScripts();
+            }
+        }
+
+        // Populate dropdown options
+        function populateDropdowns() {
+            // Populate status dropdown
+            const statusSelect = document.querySelector('.filter-select');
+            if (statusSelect) {
+                statusSelect.innerHTML = '<option value="">All Status</option>';
+                statuses.forEach(status => {
+                    const option = document.createElement('option');
+                    option.value = status.script_status_id;
+                    option.textContent = `${status.script_status_id} - ${status.script_status}`;
+                    statusSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Display scripts in table
+        function displayScripts() {
+            const tbody = document.querySelector('.scripts-table tbody');
+            if (!tbody) return;
+
+            const startIndex = (currentPage - 1) * scriptsPerPage;
+            const endIndex = startIndex + scriptsPerPage;
+            const scriptsToShow = filteredScripts.slice(startIndex, endIndex);
+
+            if (scriptsToShow.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #666;">
+                            No scripts found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = scriptsToShow.map(script => {
+                const createdDate = new Date(script.created_at).toLocaleDateString();
+                const statusName = script.script_statuses?.script_status || 'Unknown Status';
+
+                return `
+                    <tr>
+                        <td>#${script.script_id}</td>
+                        <td>${script.script_headline || 'Untitled'}</td>
+                        <td><span class="status-badge">${statusName}</span></td>
+                        <td>${createdDate}</td>
+                        <td>-</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn btn-edit" onclick="editScript(${script.script_id})">Edit</button>
+                                <button class="action-btn btn-export" onclick="exportScript(${script.script_id})">Export</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Update pagination
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredScripts.length / scriptsPerPage);
+            const pagination = document.querySelector('.pagination');
+
+            if (!pagination || totalPages <= 1) {
+                if (pagination) pagination.style.display = 'none';
+                return;
+            }
+
+            pagination.style.display = 'flex';
+            pagination.innerHTML = '';
+
+            // Previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'page-btn';
+            prevBtn.innerHTML = '←';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => changePage(currentPage - 1);
+            pagination.appendChild(prevBtn);
+
+            // Page numbers
+            for (let i = 1; i <= Math.min(totalPages, 10); i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => changePage(i);
+                pagination.appendChild(pageBtn);
+            }
+
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'page-btn';
+            nextBtn.innerHTML = '→';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => changePage(currentPage + 1);
+            pagination.appendChild(nextBtn);
+        }
+
+        // Change page
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredScripts.length / scriptsPerPage);
+            if (page < 1 || page > totalPages) return;
+
+            currentPage = page;
+            displayScripts();
+            updatePagination();
+        }
+
+        // Get date range for filtering
+        function getDateRange(rangeType) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            switch (rangeType) {
+                case 'today':
+                    return {
+                        start: today,
+                        end: new Date(today.getTime() + 24 * 60 * 60 * 1000) // End of today
+                    };
+                case 'week':
+                    const startOfWeek = new Date(today);
+                    startOfWeek.setDate(today.getDate() - today.getDay()); // Start of this week (Sunday)
+                    const endOfWeek = new Date(startOfWeek);
+                    endOfWeek.setDate(startOfWeek.getDate() + 7); // End of this week
+                    return { start: startOfWeek, end: endOfWeek };
+                case 'month':
+                    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+                    return { start: startOfMonth, end: endOfMonth };
+                default:
+                    return null; // No date filter
+            }
+        }
+
+        // Filter scripts
+        function filterScripts() {
+            const searchTerm = document.querySelector('.search-input').value.toLowerCase();
+            const statusFilter = document.querySelectorAll('.filter-select')[0].value;
+            const dateFilter = document.querySelectorAll('.filter-select')[1].value;
+
+            filteredScripts = allScripts.filter(script => {
+                const matchesSearch = !searchTerm ||
+                    (script.script_headline && script.script_headline.toLowerCase().includes(searchTerm)) ||
+                    script.script_id.toString().includes(searchTerm);
+
+                const matchesStatus = !statusFilter ||
+                    script.script_status_id.toString() === statusFilter;
+
+                // Date range filtering
+                let matchesDate = true;
+                if (dateFilter) {
+                    const dateRange = getDateRange(dateFilter);
+                    if (dateRange) {
+                        const scriptDate = new Date(script.created_at);
+                        matchesDate = scriptDate >= dateRange.start && scriptDate < dateRange.end;
+                    }
+                }
+
+                return matchesSearch && matchesStatus && matchesDate;
+            });
+
+            // Apply current sort to filtered results
+            applySortToFilteredScripts();
+            currentPage = 1;
+            displayScripts();
+            updatePagination();
+        }
+
+        // Apply sort to filtered scripts without changing sort direction
+        function applySortToFilteredScripts() {
+            filteredScripts.sort((a, b) => {
+                let valueA, valueB;
+
+                switch (currentSort.column) {
+                    case 'script_id':
+                        valueA = a.script_id;
+                        valueB = b.script_id;
+                        break;
+                    case 'script_headline':
+                        valueA = (a.script_headline || '').toLowerCase();
+                        valueB = (b.script_headline || '').toLowerCase();
+                        break;
+                    case 'status_name':
+                        valueA = (a.script_statuses?.script_status || '').toLowerCase();
+                        valueB = (b.script_statuses?.script_status || '').toLowerCase();
+                        break;
+                    case 'created_at':
+                        valueA = new Date(a.created_at);
+                        valueB = new Date(b.created_at);
+                        break;
+                    default:
+                        return 0;
+                }
+
+                // Compare values
+                if (valueA < valueB) {
+                    return currentSort.direction === 'asc' ? -1 : 1;
+                }
+                if (valueA > valueB) {
+                    return currentSort.direction === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+
+        // Sort scripts
+        function sortScripts(column) {
+            // Toggle direction if clicking the same column
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                // Default to descending for script_id, ascending for others
+                currentSort.direction = (column === 'script_id') ? 'desc' : 'asc';
+            }
+
+            // Update visual indicators
+            updateSortIndicators();
+
+            // Sort the filtered scripts
+            applySortToFilteredScripts();
+
+            currentPage = 1;
+            displayScripts();
+            updatePagination();
+        }
+
+        // Update sort indicators in column headers
+        function updateSortIndicators() {
+            document.querySelectorAll('.scripts-table th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+            });
+
+            const currentHeader = document.querySelector(`[data-sort="${currentSort.column}"]`);
+            if (currentHeader) {
+                currentHeader.classList.add(`sort-${currentSort.direction}`);
+            }
+        }
+
+        // Setup niches input functionality
+        function setupNichesInput() {
+            const nichesInput = document.getElementById('nichesInput');
+            if (nichesInput) {
+                nichesInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const niche = this.value.trim();
+                        if (niche) {
+                            addNicheTag(niche);
+                            this.value = '';
+                        }
+                    }
+                });
+            }
+        }
+
+        // Setup cascading dropdown functionality
+        function setupCascadingDropdowns() {
+            // Genre -> Subgenre cascading
+            const genreSelect = document.getElementById('editGenre');
+            const subgenreSelect = document.getElementById('editSubgenre');
+
+            if (genreSelect && subgenreSelect) {
+                genreSelect.addEventListener('change', function() {
+                    const selectedGenreId = parseInt(this.value);
+                    filterSubgenresByGenre(selectedGenreId);
+                });
+            }
+        }
+
+        // Filter subgenres based on selected genre
+        function filterSubgenresByGenre(genreId) {
+            const subgenreSelect = document.getElementById('editSubgenre');
+            if (!subgenreSelect) return;
+
+            // Clear current selection
+            subgenreSelect.value = '';
+            subgenreSelect.innerHTML = '<option value="">Select Subgenre</option>';
+
+            if (genreId) {
+                // Filter subgenres that match the selected genre
+                const filteredSubgenres = subgenres.filter(subgenre => subgenre.genre_id === genreId);
+
+                filteredSubgenres.forEach(subgenre => {
+                    const option = document.createElement('option');
+                    option.value = subgenre.subgenre_id;
+                    option.textContent = subgenre.subgenre;
+                    subgenreSelect.appendChild(option);
+                });
+
+                // Enable the subgenre dropdown
+                subgenreSelect.disabled = false;
+            } else {
+                // If no genre selected, disable subgenre dropdown
+                subgenreSelect.disabled = true;
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search input
+            document.querySelector('.search-input').addEventListener('input', filterScripts);
+
+            // Filter dropdowns
+            document.querySelectorAll('.filter-select').forEach(select => {
+                select.addEventListener('change', filterScripts);
+            });
+
+            // Column headers for sorting
+            document.querySelectorAll('.scripts-table th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const sortColumn = th.getAttribute('data-sort');
+                    sortScripts(sortColumn);
+                });
+            });
+
+            // Setup niches input
+            setupNichesInput();
+
+            // Setup cascading dropdowns
+            setupCascadingDropdowns();
+
+            // Close modal when clicking outside
+            document.getElementById('editScriptModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeEditModal();
+                }
+            });
+        }
+
+        // Action functions
+
+        window.editScript = function(scriptId) {
+            // Find the script and open edit modal
+            const script = allScripts.find(s => s.script_id === scriptId);
+            if (script) {
+                openEditModal(script);
+            } else {
+                alert('Script not found');
+            }
+        };
+
+        window.exportScript = function(scriptId) {
+            const script = allScripts.find(s => s.script_id === scriptId);
+            if (!script) {
+                alert('Script not found');
+                return;
+            }
+
+            // Create export data
+            const exportData = {
+                id: script.script_id,
+                title: script.script_headline,
+                status: script.script_statuses?.script_status,
+                created: new Date(script.created_at).toLocaleDateString(),
+                client: script.clients?.client_full_name
+            };
+
+            // Convert to JSON and download
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `script_${script.script_id}_export.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        };
+
+        // Modal functions
+        function openEditModal(script) {
+            currentEditingScript = script;
+
+            // Update modal title with script ID and title
+            const modalTitle = document.getElementById('modalTitle');
+            modalTitle.textContent = `Edit Script #${script.script_id}: ${script.script_headline}`;
+
+            populateModalDropdowns();
+            populateModalFields(script);
+            document.getElementById('editScriptModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editScriptModal').style.display = 'none';
+            currentEditingScript = null;
+            clearModalFields();
+        }
+
+        // Populate all modal dropdowns
+        function populateModalDropdowns() {
+            // Status dropdown
+            const statusSelect = document.getElementById('editStatus');
+            statusSelect.innerHTML = '<option value="">Select Status</option>';
+            statuses.forEach(status => {
+                const option = document.createElement('option');
+                option.value = status.script_status_id;
+                option.textContent = `${status.script_status_id} - ${status.script_status}`;
+                statusSelect.appendChild(option);
+            });
+
+            // YouTube Channel dropdown
+            const channelSelect = document.getElementById('editYouTubeChannel');
+            channelSelect.innerHTML = '<option value="">Select YouTube Channel</option>';
+            youtubeChannels.forEach(channel => {
+                const option = document.createElement('option');
+                option.value = channel.youtube_channel_id;
+                option.textContent = channel.youtube_channel_name;
+                channelSelect.appendChild(option);
+            });
+
+            // Genre dropdown
+            const genreSelect = document.getElementById('editGenre');
+            genreSelect.innerHTML = '<option value="">Select Genre</option>';
+            genres.forEach(genre => {
+                const option = document.createElement('option');
+                option.value = genre.genre_id;
+                option.textContent = genre.genre;
+                genreSelect.appendChild(option);
+            });
+
+            // Subgenre dropdown (initially disabled, will be enabled when genre is selected)
+            const subgenreSelect = document.getElementById('editSubgenre');
+            subgenreSelect.innerHTML = '<option value="">Select Genre First</option>';
+            subgenreSelect.disabled = true;
+
+            // Opening Chapter Type dropdown
+            const openingSelect = document.getElementById('editOpeningChapterType');
+            openingSelect.innerHTML = '<option value="">Select Opening Chapter Type</option>';
+            openingChapterTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type.opening_chapter_type_id;
+                option.textContent = type.opening_chapter_type;
+                openingSelect.appendChild(option);
+            });
+
+            // Final Chapter Type dropdown
+            const finalSelect = document.getElementById('editFinalChapterType');
+            finalSelect.innerHTML = '<option value="">Select Final Chapter Type</option>';
+            finalChapterTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type.final_chapter_type_id;
+                option.textContent = type.final_chapter_type;
+                finalSelect.appendChild(option);
+            });
+
+            // Visual Suggestion Style dropdown
+            const visualSelect = document.getElementById('editVisualStyle');
+            visualSelect.innerHTML = '<option value="">Select Visual Style</option>';
+            visualSuggestionStyles.forEach(style => {
+                const option = document.createElement('option');
+                option.value = style.visual_suggestion_style_id;
+                option.textContent = style.visual_suggestion_style;
+                visualSelect.appendChild(option);
+            });
+
+            // Narration Style dropdown
+            const narrationSelect = document.getElementById('editNarrationStyle');
+            narrationSelect.innerHTML = '<option value="">Select Narration Style</option>';
+            narrationStyles.forEach(style => {
+                const option = document.createElement('option');
+                option.value = style.narration_style_id;
+                option.textContent = style.narration_style;
+                narrationSelect.appendChild(option);
+            });
+        }
+
+        // Populate modal fields with script data
+        function populateModalFields(script) {
+            document.getElementById('editStatus').value = script.script_status_id || '';
+            document.getElementById('editTitle').value = script.script_headline || '';
+            document.getElementById('editWordCount').value = script.target_word_count || '';
+            document.getElementById('editKeyword').value = script.primary_keyword || '';
+            document.getElementById('editOpeningChapterType').value = script.opening_chapter_type_id || '';
+            document.getElementById('editFinalChapterType').value = script.final_chapter_type_id || '';
+            document.getElementById('editVisualStyle').value = script.visual_suggestion_style_id || '';
+            document.getElementById('editNarrationStyle').value = script.narration_style_id || '';
+            document.getElementById('editClientNotes').value = script.client_notes || '';
+            document.getElementById('editYouTubeChannel').value = script.youtube_channel_id || '';
+
+            // Set genre first, then filter subgenres
+            document.getElementById('editGenre').value = script.genre_id || '';
+            if (script.genre_id) {
+                filterSubgenresByGenre(script.genre_id);
+                // Then set the subgenre after filtering
+                setTimeout(() => {
+                    document.getElementById('editSubgenre').value = script.subgenre_id || '';
+                }, 10);
+            }
+
+            // Populate niches as tags
+            populateNicheTags(script.niches || []);
+        }
+
+        // Clear modal fields
+        function clearModalFields() {
+            document.getElementById('editScriptForm').reset();
+            document.getElementById('editNiches').innerHTML = '';
+        }
+
+        // Populate niche tags
+        function populateNicheTags(niches) {
+            const container = document.getElementById('editNiches');
+            container.innerHTML = '';
+
+            if (Array.isArray(niches)) {
+                niches.forEach(niche => {
+                    addNicheTag(niche);
+                });
+            }
+        }
+
+        // Add niche tag
+        function addNicheTag(niche) {
+            const container = document.getElementById('editNiches');
+            const tag = document.createElement('div');
+            tag.className = 'tag';
+            tag.innerHTML = `
+                ${niche}
+                <button type="button" class="tag-remove" onclick="removeNicheTag(this)">×</button>
+            `;
+            container.appendChild(tag);
+        }
+
+        // Remove niche tag
+        function removeNicheTag(button) {
+            button.parentElement.remove();
+        }
+
+        // Get current niches from tags
+        function getCurrentNiches() {
+            const tags = document.querySelectorAll('#editNiches .tag');
+            return Array.from(tags).map(tag => {
+                return tag.textContent.replace('×', '').trim();
+            });
+        }
+
+        // Save script changes
+        async function saveScript() {
+            if (!currentEditingScript) return;
+
+            const scriptData = {
+                script_headline: document.getElementById('editTitle').value,
+                script_status_id: parseInt(document.getElementById('editStatus').value) || null,
+                youtube_channel_id: parseInt(document.getElementById('editYouTubeChannel').value) || null,
+                genre_id: parseInt(document.getElementById('editGenre').value) || null,
+                subgenre_id: parseInt(document.getElementById('editSubgenre').value) || null,
+                target_word_count: parseInt(document.getElementById('editWordCount').value) || null,
+                primary_keyword: document.getElementById('editKeyword').value || null,
+                opening_chapter_type_id: parseInt(document.getElementById('editOpeningChapterType').value) || null,
+                final_chapter_type_id: parseInt(document.getElementById('editFinalChapterType').value) || null,
+                visual_suggestion_style_id: parseInt(document.getElementById('editVisualStyle').value) || null,
+                narration_style_id: parseInt(document.getElementById('editNarrationStyle').value) || null,
+                client_notes: document.getElementById('editClientNotes').value || null,
+                niches: getCurrentNiches()
+            };
+
+            try {
+                const { error } = await supabase
+                    .from('scripts')
+                    .update(scriptData)
+                    .eq('script_id', currentEditingScript.script_id);
+
+                if (error) throw error;
+
+                // Reload scripts to get updated data
+                await loadScripts();
+
+                // Close modal
+                closeEditModal();
+            } catch (error) {
+                console.error('Error updating script:', error);
+                alert('Error updating script: ' + error.message);
+            }
+        }
+
+        // Global function exports for modal
+        window.closeEditModal = closeEditModal;
+        window.saveScript = saveScript;
+        window.removeNicheTag = removeNicheTag;
+
+        // Initialize on DOM ready
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+        <script src="../../shared/js/theme-manager.js"></script>
+    <script type="module" src="../../shared/js/sidebar-component.js"></script>
+</body>
+</html>

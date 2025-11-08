@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Feedback - Vidsponential</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⭐</text></svg>">
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            /* Previous gradient: linear-gradient(135deg, #99ccff 0%, #9168c9 100%); */
+            background: linear-gradient(135deg, #fefefe 0%, #fdfdfd 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            margin-top: 40px;
+            position: relative;
+        }
+
+        .logo {
+            height: 29px;
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            margin: 0;
+            z-index: 1000;
+        }
+
+        .page-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            font-size: 18px;
+            color: #666;
+        }
+
+        /* Dashboard Cards */
+        .dashboard-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.01875);
+            border: 0.5px solid #e0e0e0;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .dashboard-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .dashboard-value {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Main Form Card */
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.025);
+            border: 0.5px solid #e0e0e0;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid;
+            border-image: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%) 1;
+        }
+
+        /* Script Selector */
+        .script-selector {
+            margin-bottom: 30px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .script-select {
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            font-family: "Inter", sans-serif;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .script-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Script Info Display */
+        .script-info {
+            background: linear-gradient(135deg, rgba(11, 230, 255, 0.1) 0%, rgba(175, 11, 255, 0.1) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .script-info.visible {
+            display: block;
+        }
+
+        .script-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 15px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        /* Rating Section */
+        .rating-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .rating-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .rating-item:hover {
+            background: #f0f0f0;
+        }
+
+        .rating-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rating-value-display {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .rating-input {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+            margin-bottom: 8px;
+        }
+
+        .rating-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .rating-input::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .rating-scale {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #888;
+        }
+
+        /* Comments Section */
+        .comments-section {
+            margin-bottom: 30px;
+        }
+
+        .comment-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 16px;
+            font-size: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: "Inter", sans-serif;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .comment-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Parameters Section */
+        .parameters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .parameter-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .parameter-select {
+            padding: 12px 16px;
+            font-size: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            font-family: "Inter", sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .parameter-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Submit Button */
+        .submit-section {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            padding: 18px 48px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: "Inter", sans-serif;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Message */
+        .message {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: 500;
+            text-align: center;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        /* Tags Section */
+        .tags-section {
+            margin-bottom: 24px;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .tag-chip {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tag-chip:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .tag-chip.selected {
+            background: linear-gradient(to right, rgba(11, 230, 255, 0.2) 0%, rgba(175, 11, 255, 0.2) 100%);
+            border-color: #667eea;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .tag-chip .remove-tag {
+            font-size: 16px;
+            font-weight: bold;
+            margin-left: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .tag-chip.selected .remove-tag {
+            opacity: 1;
+        }
+
+        .add-tag-input {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #e0e0e0;
+            font-size: 13px;
+            font-family: "Inter", sans-serif;
+            width: 150px;
+            transition: all 0.2s ease;
+        }
+
+        .add-tag-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .add-tag-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #667eea;
+            background: #667eea;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .add-tag-btn:hover {
+            background: #5568d3;
+            border-color: #5568d3;
+        }
+
+        /* Star Animation */
+        .star-animation {
+            position: fixed;
+            font-size: 48px;
+            pointer-events: none;
+            z-index: 9999;
+            animation: starBurst 1.5s ease-out forwards;
+        }
+
+        @keyframes starBurst {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2) rotate(180deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.8) translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-card {
+                padding: 24px;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+
+            .rating-grid,
+            .parameters-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <img src="../../shared/assets/vidsponential logo.png" alt="Vidsponential" class="logo">
+            <h1 class="page-title">Script Feedback</h1>
+            <p class="page-subtitle">Help us make your script perfect</p>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard-section">
+            <div class="dashboard-card">
+                <div class="dashboard-label">Total Scripts</div>
+                <div class="dashboard-value" id="totalScripts">0</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="dashboard-label">In Production</div>
+                <div class="dashboard-value" id="pendingFeedback">0</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="dashboard-label">Feedback Given</div>
+                <div class="dashboard-value" id="completedScripts">0</div>
+            </div>
+        </div>
+
+        <!-- Main Form -->
+        <div class="form-card">
+            <div id="messageContainer"></div>
+
+            <!-- Script Selection -->
+            <div class="script-selector">
+                <label class="form-label">Select Your Script</label>
+                <select class="script-select" id="scriptSelect">
+                    <option value="">Choose a script...</option>
+                </select>
+            </div>
+
+            <!-- Script Info -->
+            <div class="script-info" id="scriptInfo">
+                <div class="script-info-grid" id="scriptInfoGrid">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Ratings Section -->
+            <div id="ratingsSection" style="display: none;">
+                <h2 class="section-title">Rate Your Script</h2>
+                <div class="rating-grid">
+                    <div class="rating-item">
+                        <div class="rating-label">
+                            <span>Outline</span>
+                            <span class="rating-value-display" id="outlineValue">50</span>
+                        </div>
+                        <input type="range" class="rating-input" id="outlineRating" min="0" max="100" value="50">
+                        <div class="rating-scale">
+                            <span>Needs Work</span>
+                            <span>Perfect</span>
+                        </div>
+                    </div>
+
+                    <div class="rating-item">
+                        <div class="rating-label">
+                            <span>Script Quality</span>
+                            <span class="rating-value-display" id="scriptValue">50</span>
+                        </div>
+                        <input type="range" class="rating-input" id="scriptRating" min="0" max="100" value="50">
+                        <div class="rating-scale">
+                            <span>Needs Work</span>
+                            <span>Perfect</span>
+                        </div>
+                    </div>
+
+                    <div class="rating-item">
+                        <div class="rating-label">
+                            <span>Hook Effectiveness</span>
+                            <span class="rating-value-display" id="hookValue">50</span>
+                        </div>
+                        <input type="range" class="rating-input" id="hookRating" min="0" max="100" value="50">
+                        <div class="rating-scale">
+                            <span>Weak</span>
+                            <span>Strong</span>
+                        </div>
+                    </div>
+
+                    <div class="rating-item">
+                        <div class="rating-label">
+                            <span>Overall Satisfaction</span>
+                            <span class="rating-value-display" id="satisfactionValue">50</span>
+                        </div>
+                        <input type="range" class="rating-input" id="satisfactionRating" min="0" max="100" value="50">
+                        <div class="rating-scale">
+                            <span>Poor</span>
+                            <span>Excellent</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tags -->
+                <div class="tags-section">
+                    <h2 class="section-title">Tags</h2>
+                    <div class="tags-container" id="tagsContainer">
+                        <div class="tag-chip" data-tag="Action-Packed">⚡ Action-Packed</div>
+                        <div class="tag-chip" data-tag="Educational">📚 Educational</div>
+                        <div class="tag-chip" data-tag="Inspirational">✨ Inspirational</div>
+                        <div class="tag-chip" data-tag="Fast-Paced">🚀 Fast-Paced</div>
+                        <input type="text" class="add-tag-input" id="newTagInput" placeholder="Add custom tag..." maxlength="20">
+                        <button class="add-tag-btn" onclick="addCustomTag()">+ Add</button>
+                    </div>
+                </div>
+
+                <!-- Comments -->
+                <div class="comments-section">
+                    <h2 class="section-title">Comments & Suggestions</h2>
+                    <textarea class="comment-textarea" id="comments" placeholder="Share your thoughts, suggestions, or any changes you'd like to see..."></textarea>
+                </div>
+
+                <!-- Script Parameters -->
+                <h2 class="section-title">Adjust Default Script Settings</h2>
+                <div class="parameters-grid">
+                    <div class="parameter-item">
+                        <label class="form-label">Emotional Tone</label>
+                        <select class="parameter-select" id="emotionalTone">
+                            <option value="">Keep Current</option>
+                            <option value="1">Serious & Professional</option>
+                            <option value="2">Warm & Friendly</option>
+                            <option value="3">Energetic & Exciting</option>
+                            <option value="4">Humorous & Light</option>
+                            <option value="5">Dramatic & Intense</option>
+                            <option value="6">Inspirational & Uplifting</option>
+                            <option value="7">Mysterious & Intriguing</option>
+                            <option value="8">Casual & Conversational</option>
+                        </select>
+                    </div>
+
+                    <div class="parameter-item">
+                        <label class="form-label">Script Length</label>
+                        <select class="parameter-select" id="scriptLength">
+                            <option value="">Keep Current</option>
+                            <option value="1">Very Short (3-5 min)</option>
+                            <option value="2">Short (5-7 min)</option>
+                            <option value="3">Medium (8-12 min)</option>
+                            <option value="4">Long (13-20 min)</option>
+                            <option value="5">Extra Long (20+ min)</option>
+                        </select>
+                    </div>
+
+                    <div class="parameter-item">
+                        <label class="form-label">Script Structure</label>
+                        <select class="parameter-select" id="scriptStructure">
+                            <option value="">Keep Current</option>
+                            <option value="1">Linear Narrative</option>
+                            <option value="2">Problem-Solution</option>
+                            <option value="3">List Format</option>
+                            <option value="4">Story-Driven</option>
+                            <option value="5">Educational</option>
+                            <option value="6">How-To Guide</option>
+                            <option value="7">Comparison/Review</option>
+                            <option value="8">Documentary Style</option>
+                        </select>
+                    </div>
+
+                    <div class="parameter-item">
+                        <label class="form-label">Opening Hook Type</label>
+                        <select class="parameter-select" id="openingHookType">
+                            <option value="">Keep Current</option>
+                            <option value="1">Question Hook</option>
+                            <option value="2">Shocking Statement</option>
+                            <option value="3">Story Hook</option>
+                            <option value="4">Statistic Hook</option>
+                            <option value="5">Promise Hook</option>
+                            <option value="6">Challenge Hook</option>
+                            <option value="7">Mystery Hook</option>
+                            <option value="8">Direct Address</option>
+                        </select>
+                    </div>
+
+                    <div class="parameter-item">
+                        <label class="form-label">Pacing</label>
+                        <select class="parameter-select" id="pacing">
+                            <option value="">Keep Current</option>
+                            <option value="1">Very Fast</option>
+                            <option value="2">Fast</option>
+                            <option value="3">Moderate</option>
+                            <option value="4">Slow & Detailed</option>
+                            <option value="5">Varied Pacing</option>
+                        </select>
+                    </div>
+
+                    <div class="parameter-item">
+                        <label class="form-label">Target Audience</label>
+                        <select class="parameter-select" id="targetAudience">
+                            <option value="">Keep Current</option>
+                            <option value="1">General Audience</option>
+                            <option value="2">Young Adults (18-30)</option>
+                            <option value="3">Adults (30-50)</option>
+                            <option value="4">Seniors (50+)</option>
+                            <option value="5">Experts/Professionals</option>
+                            <option value="6">Beginners</option>
+                        </select>
+                    </div>
+
+                    <div class="parameter-item">
+                        <label class="form-label">Call-to-Action Style</label>
+                        <select class="parameter-select" id="ctaStyle">
+                            <option value="">Keep Current</option>
+                            <option value="1">Direct & Strong</option>
+                            <option value="2">Soft & Suggestive</option>
+                            <option value="3">Question-Based</option>
+                            <option value="4">Value-Focused</option>
+                            <option value="5">Urgency-Driven</option>
+                        </select>
+                    </div>
+
+                    <div class="parameter-item">
+                        <label class="form-label">Background Music</label>
+                        <select class="parameter-select" id="backgroundMusic">
+                            <option value="">Keep Current</option>
+                            <option value="1">No Music</option>
+                            <option value="2">Subtle/Ambient</option>
+                            <option value="3">Energetic</option>
+                            <option value="4">Dramatic</option>
+                            <option value="5">Upbeat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="submit-section">
+                    <button class="submit-btn" id="submitBtn" onclick="submitFeedback()">
+                        Submit Feedback
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="../../shared/js/theme-manager.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentScriptData = null;
+
+        // Initialize page
+        async function init() {
+            await loadDashboardStats();
+            await loadClientScripts();
+            setupEventListeners();
+        }
+
+        // Load dashboard statistics
+        async function loadDashboardStats() {
+            try {
+                // Get total scripts for Miguel (client_id 3)
+                const { data: scripts, error: scriptsError } = await supabase
+                    .from('scripts')
+                    .select('script_id, script_status_id')
+                    .eq('client_id', 3);
+
+                if (scriptsError) throw scriptsError;
+
+                const totalScripts = scripts?.length || 0;
+                const pendingFeedback = scripts?.filter(s => s.script_status_id < 40).length || 0;
+                const completedScripts = scripts?.filter(s => s.script_status_id >= 40).length || 0;
+
+                document.getElementById('totalScripts').textContent = totalScripts;
+                document.getElementById('pendingFeedback').textContent = pendingFeedback;
+                document.getElementById('completedScripts').textContent = completedScripts;
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+            }
+        }
+
+        // Load client's scripts
+        async function loadClientScripts() {
+            try {
+                console.log('Loading scripts for client_id 3...');
+
+                const { data, error } = await supabase
+                    .from('scripts')
+                    .select(`
+                        script_id,
+                        script_headline,
+                        script_basic_outline,
+                        script_outline,
+                        primary_keyword,
+                        client_id,
+                        script_status_id,
+                        emotional_tone_id,
+                        script_structure_id,
+                        opening_hook_type_id,
+                        target_word_count,
+                        client_notes,
+                        clients(client_full_name)
+                    `)
+                    .eq('client_id', 3)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Supabase error:', error);
+                    throw error;
+                }
+
+                console.log('Scripts loaded:', data);
+
+                const scriptSelect = document.getElementById('scriptSelect');
+                scriptSelect.innerHTML = '<option value="">Choose a script...</option>';
+
+                if (!data || data.length === 0) {
+                    showMessage('No scripts found for this client.', 'error');
+                    return;
+                }
+
+                data.forEach(script => {
+                    const option = document.createElement('option');
+                    option.value = script.script_id;
+                    option.textContent = `#${script.script_id} - ${script.script_headline || 'Untitled Script'}`;
+                    option.dataset.scriptData = JSON.stringify(script);
+                    scriptSelect.appendChild(option);
+                });
+
+                // Select the last script (highest script_id) by default
+                if (data.length > 0) {
+                    const lastScript = data[data.length - 1];
+                    scriptSelect.value = lastScript.script_id;
+                    // Trigger the change event to load the script details
+                    scriptSelect.dispatchEvent(new Event('change'));
+                }
+            } catch (error) {
+                console.error('Error loading scripts:', error);
+                showMessage(`Error loading scripts: ${error.message}`, 'error');
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Script selection
+            document.getElementById('scriptSelect').addEventListener('change', handleScriptSelection);
+
+            // Rating sliders - update display values
+            const ratings = ['outline', 'script', 'hook', 'satisfaction'];
+            ratings.forEach(rating => {
+                const input = document.getElementById(`${rating}Rating`);
+                const display = document.getElementById(`${rating}Value`);
+                input.addEventListener('input', () => {
+                    display.textContent = input.value;
+                });
+            });
+
+            // Tag chip click handlers
+            document.querySelectorAll('.tag-chip').forEach(chip => {
+                chip.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('remove-tag') || e.target.closest('.remove-tag')) {
+                        return; // Don't toggle if clicking remove
+                    }
+                    chip.classList.toggle('selected');
+                });
+            });
+
+            // Add tag on Enter key
+            document.getElementById('newTagInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    addCustomTag();
+                }
+            });
+        }
+
+        // Add custom tag
+        window.addCustomTag = function() {
+            const input = document.getElementById('newTagInput');
+            const tagText = input.value.trim();
+
+            if (!tagText) return;
+
+            const container = document.getElementById('tagsContainer');
+            const newTag = document.createElement('div');
+            newTag.className = 'tag-chip selected';
+            newTag.dataset.tag = tagText;
+            newTag.innerHTML = `${tagText} <span class="remove-tag" onclick="removeTag(this)">×</span>`;
+
+            // Insert before the input field
+            container.insertBefore(newTag, input);
+
+            // Add click handler
+            newTag.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('remove-tag') && !e.target.closest('.remove-tag')) {
+                    newTag.classList.toggle('selected');
+                }
+            });
+
+            input.value = '';
+        };
+
+        // Remove tag
+        window.removeTag = function(element) {
+            element.closest('.tag-chip').remove();
+        };
+
+        // Get selected tags
+        function getSelectedTags() {
+            const selectedChips = document.querySelectorAll('.tag-chip.selected');
+            return Array.from(selectedChips).map(chip => chip.dataset.tag);
+        }
+
+        // Handle script selection
+        function handleScriptSelection(e) {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            if (!selectedOption.value) {
+                document.getElementById('scriptInfo').classList.remove('visible');
+                document.getElementById('ratingsSection').style.display = 'none';
+                return;
+            }
+
+            currentScriptData = JSON.parse(selectedOption.dataset.scriptData);
+            displayScriptInfo(currentScriptData);
+            loadExistingRatings(currentScriptData.script_id);
+
+            document.getElementById('scriptInfo').classList.add('visible');
+            document.getElementById('ratingsSection').style.display = 'block';
+        }
+
+        // Display script information
+        function displayScriptInfo(script) {
+            console.log('Displaying script info:', script);
+            const infoGrid = document.getElementById('scriptInfoGrid');
+            const clientName = script.clients?.client_full_name || (Array.isArray(script.clients) && script.clients[0]?.client_full_name) || 'Miguel';
+
+            infoGrid.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">Script ID</div>
+                    <div class="info-value">#${script.script_id}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Title</div>
+                    <div class="info-value">${script.script_headline || 'Untitled'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Client</div>
+                    <div class="info-value">${clientName}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Keyword</div>
+                    <div class="info-value">${script.primary_keyword || 'N/A'}</div>
+                </div>
+            `;
+
+            // Pre-fill parameters if they exist
+            if (script.emotional_tone_id) document.getElementById('emotionalTone').value = script.emotional_tone_id;
+            if (script.script_structure_id) document.getElementById('scriptStructure').value = script.script_structure_id;
+            if (script.opening_hook_type_id) document.getElementById('openingHookType').value = script.opening_hook_type_id;
+
+            // Pre-fill comments if they exist
+            if (script.client_notes) {
+                document.getElementById('comments').value = script.client_notes;
+            }
+
+            // Pre-fill tags if they exist
+            if (script.tags && Array.isArray(script.tags)) {
+                script.tags.forEach(tag => {
+                    // Check if tag already exists as a chip
+                    const existingChip = document.querySelector(`.tag-chip[data-tag="${tag}"]`);
+                    if (existingChip) {
+                        existingChip.classList.add('selected');
+                    } else {
+                        // Create new custom tag chip
+                        const container = document.getElementById('tagsContainer');
+                        const input = document.getElementById('newTagInput');
+                        const newTag = document.createElement('div');
+                        newTag.className = 'tag-chip selected';
+                        newTag.dataset.tag = tag;
+                        newTag.innerHTML = `${tag} <span class="remove-tag" onclick="removeTag(this)">×</span>`;
+                        container.insertBefore(newTag, input);
+
+                        // Add click handler
+                        newTag.addEventListener('click', (e) => {
+                            if (!e.target.classList.contains('remove-tag') && !e.target.closest('.remove-tag')) {
+                                newTag.classList.toggle('selected');
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        // Load existing ratings
+        async function loadExistingRatings(scriptId) {
+            try {
+                const { data, error } = await supabase
+                    .from('ratings')
+                    .select('field_name, rating_value')
+                    .eq('table_name', 'scripts')
+                    .eq('record_id', scriptId)
+                    .in('field_name', ['script_basic_outline', 'script_content', 'opening_hook', 'overall_satisfaction']);
+
+                if (error) throw error;
+
+                // Map ratings to UI
+                const ratingMap = {
+                    'script_basic_outline': 'outline',
+                    'script_content': 'script',
+                    'opening_hook': 'hook',
+                    'overall_satisfaction': 'satisfaction'
+                };
+
+                data?.forEach(rating => {
+                    const uiName = ratingMap[rating.field_name];
+                    if (uiName) {
+                        const input = document.getElementById(`${uiName}Rating`);
+                        const display = document.getElementById(`${uiName}Value`);
+                        input.value = rating.rating_value;
+                        display.textContent = rating.rating_value;
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading ratings:', error);
+            }
+        }
+
+        // Submit feedback
+        window.submitFeedback = async function() {
+            if (!currentScriptData) {
+                showMessage('Please select a script first.', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                const scriptId = currentScriptData.script_id;
+
+                // Collect ratings
+                const ratings = [
+                    { field_name: 'script_basic_outline', rating_value: parseInt(document.getElementById('outlineRating').value) },
+                    { field_name: 'script_content', rating_value: parseInt(document.getElementById('scriptRating').value) },
+                    { field_name: 'opening_hook', rating_value: parseInt(document.getElementById('hookRating').value) },
+                    { field_name: 'overall_satisfaction', rating_value: parseInt(document.getElementById('satisfactionRating').value) }
+                ];
+
+                // Save ratings
+                for (const rating of ratings) {
+                    // Check if rating exists
+                    const { data: existing } = await supabase
+                        .from('ratings')
+                        .select('rating_id')
+                        .eq('table_name', 'scripts')
+                        .eq('record_id', scriptId)
+                        .eq('field_name', rating.field_name)
+                        .single();
+
+                    if (existing) {
+                        // Update existing
+                        await supabase
+                            .from('ratings')
+                            .update({ rating_value: rating.rating_value })
+                            .eq('rating_id', existing.rating_id);
+                    } else {
+                        // Insert new
+                        await supabase
+                            .from('ratings')
+                            .insert({
+                                table_name: 'scripts',
+                                record_id: scriptId,
+                                field_name: rating.field_name,
+                                rating_value: rating.rating_value
+                            });
+                    }
+                }
+
+                // Update script parameters (only fields that exist in database)
+                const updates = {};
+                const emotionalTone = document.getElementById('emotionalTone').value;
+                const scriptStructure = document.getElementById('scriptStructure').value;
+                const openingHook = document.getElementById('openingHookType').value;
+                const comments = document.getElementById('comments').value;
+
+                // Get selected tags
+                const tags = getSelectedTags();
+
+                if (emotionalTone) updates.emotional_tone_id = parseInt(emotionalTone);
+                if (scriptStructure) updates.script_structure_id = parseInt(scriptStructure);
+                if (openingHook) updates.opening_hook_type_id = parseInt(openingHook);
+                if (comments.trim()) updates.client_notes = comments.trim();
+                if (tags.length > 0) updates.tags = tags;
+
+                // Note: Script Length, Pacing, Target Audience, CTA Style, and Background Music
+                // are stored as preferences but not directly in the scripts table
+
+                if (Object.keys(updates).length > 0) {
+                    const { error: updateError } = await supabase
+                        .from('scripts')
+                        .update(updates)
+                        .eq('script_id', scriptId);
+
+                    if (updateError) throw updateError;
+                }
+
+                showMessage('✓ Feedback submitted successfully! Thank you for your input.', 'success');
+
+                // Show star animation reward
+                showStarAnimation();
+
+                // Refresh dashboard stats
+                await loadDashboardStats();
+
+            } catch (error) {
+                console.error('Error submitting feedback:', error);
+                showMessage('Error submitting feedback. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Feedback';
+            }
+        };
+
+        // Show message
+        function showMessage(text, type) {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.innerHTML = `<div class="message ${type}">${text}</div>`;
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageContainer.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        // Show star animation reward
+        function showStarAnimation() {
+            const button = document.getElementById('submitBtn');
+            const rect = button.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            // Create multiple stars for a burst effect
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const star = document.createElement('div');
+                    star.className = 'star-animation';
+                    star.textContent = '⭐';
+                    star.style.left = centerX + 'px';
+                    star.style.top = centerY + 'px';
+
+                    // Random slight offset for each star
+                    const offsetX = (Math.random() - 0.5) * 100;
+                    star.style.setProperty('--offset-x', offsetX + 'px');
+
+                    document.body.appendChild(star);
+
+                    // Remove star after animation completes
+                    setTimeout(() => {
+                        star.remove();
+                    }, 1500);
+                }, i * 100); // Stagger the stars
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

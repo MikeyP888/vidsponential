@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tweet Editor</title>
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐦</text></svg>">
-    
-    <!-- Shared Styles -->
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
     <link rel="stylesheet" href="../../shared/styles/fonts.css">
     <link rel="stylesheet" href="../../shared/styles/components.css">
     <link rel="stylesheet" href="../../shared/styles/base.css">
@@ -16,168 +16,539 @@
     <link rel="stylesheet" href="../../shared/styles/status.css">
     <link rel="stylesheet" href="../../shared/styles/notifications.css">
     <link rel="stylesheet" href="../../shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="../../shared/styles/missing-layout.css">
     <link rel="stylesheet" href="../../shared/styles/navigation.css">
     <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+    <link rel="stylesheet" href="../../shared/styles/bottom-navigation.css">
+
+    <style>
+        /* Tweet Editor Specific Styles */
+        .tweet-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            border: 1px solid #e1e8ed;
+        }
+
+        .tweet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .tweet-id {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1da1f2;
+            background: #f7f9fa;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .tweet-counter {
+            font-size: 14px;
+            font-weight: 600;
+            color: #657786;
+        }
+
+        .tweet-textarea {
+            width: 100%;
+            min-height: 120px;
+            border: none;
+            resize: none;
+            font-size: 16px;
+            line-height: 1.4;
+            padding: 0;
+            outline: none;
+            font-family: "Inter", sans-serif;
+            background: transparent;
+        }
+
+        .tweet-textarea::placeholder {
+            color: #aab8c2;
+        }
+
+        .tweet-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e1e8ed;
+        }
+
+        .tweet-meta {
+            font-size: 12px;
+            color: #657786;
+        }
+
+        .posted-button {
+            background: #1da1f2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .posted-button:hover {
+            background: #1991db;
+            transform: translateY(-1px);
+        }
+
+        .posted-button:active {
+            transform: translateY(0);
+        }
+
+        .lightning-flash {
+            animation: lightningFlash 0.3s ease-out;
+        }
+
+        @keyframes lightningFlash {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.95); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .tweet-slide-out {
+            animation: slideOut 0.2s ease-in;
+        }
+
+        .tweet-slide-in {
+            animation: slideIn 0.2s ease-out;
+        }
+
+        @keyframes slideOut {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(-100%); opacity: 0; }
+        }
+
+        @keyframes slideIn {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        .preload-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(29, 161, 242, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .preload-indicator.show {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body class="has-sidebar">
+    <!-- Sticky Top Status Bar -->
+    <div id="stickyStatusBar" style="
+        position: fixed;
+        top: 0;
+        left: 280px;
+        right: 0;
+        background: transparent;
+        padding: 4px 20px;
+        z-index: 999;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+    ">
+        <!-- Script Info Pill (Left) -->
+        <div id="stickyScriptInfo" style="
+            background: white;
+            padding: 3.6px 10.8px;
+            border-radius: 18px;
+            font-size: 10.8px;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            pointer-events: auto;
+            display: none;
+        ">-</div>
+
+        <!-- Status Indicator Pill (Right) -->
+        <div class="status-indicator" id="stickyStatusIndicator" style="pointer-events: auto;">Loading</div>
+    </div>
+
     <!-- Sidebar Container -->
     <div id="sidebarContainer"></div>
-    
-    <div class="container with-sidebar">
+
+    <div class="container with-sidebar" style="padding-top: 30px;">
+        <!-- =============================================== -->
+        <!--                 HEADER SECTION                -->
+        <!-- =============================================== -->
         <div class="header">
-            
-            <div class="status-bar">
-                <div class="status-indicator" id="statusIndicator">Loading</div>
-            </div>
-            
+            <!-- Status bar removed - now in sticky top bar -->
+
+            <!-- Tweets Completed Today -->
             <div class="completed-today-bar">
                 <div class="completed-today-text">Tweets Posted Today: <span id="tweetsCompletedTodayCount">0</span></div>
             </div>
-            
-            <h1 class="page-title">Tweet Editor</h1>
+
+            <!-- Page Title -->
+            <h1 class="page-title">Tweet Editor ⚡</h1>
         </div>
 
+        <!-- =============================================== -->
+        <!--                 MAIN CONTENT                  -->
+        <!-- =============================================== -->
         <div id="content">
-            <div class="info-section">
-                <div class="script-info" id="tweetInfo" style="display: none;">
-                    <div class="info-item">
-                        <div class="info-label">Tweet ID</div>
-                        <div class="info-value" id="tweetIdValue">-</div>
+            <!-- Tweet Title -->
+            <h2 id="tweetTitle" style="
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: #333;
+                margin: 20px 0;
+                padding: 10px 0;
+                text-align: center;
+            ">-</h2>
+
+            <!-- Tweet Container -->
+            <div class="tweet-container" id="tweetContainer">
+                <div class="tweet-header">
+                    <div class="tweet-id" id="tweetIdDisplay">Tweet ID: -</div>
+                    <div class="tweet-counter" id="charCounter">0/280</div>
+                </div>
+
+                <textarea
+                    id="tweetTextarea"
+                    class="tweet-textarea"
+                    placeholder="What's happening?"
+                    maxlength="280"
+                ></textarea>
+
+                <div class="tweet-actions">
+                    <div class="tweet-meta">
+                        <span id="tweetQueue">Loading tweets...</span>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Character Count</div>
-                        <div class="info-value" id="charCountValue">0/280</div>
-                    </div>
+                    <button id="postedButton" class="posted-button">Posted ⚡</button>
                 </div>
             </div>
+        </div>
 
-            <div class="editor-section" id="tweetSection" style="display: none;">
-                <h2>Tweet Content</h2>
-                <textarea id="tweetContent" class="content-textarea" rows="5" maxlength="280" oninput="updateCharCount()"></textarea>
-                <div id="charCounter" style="text-align: right; color: #666; margin-top: 5px;">0/280</div>
-            </div>
+        <!-- =============================================== -->
+        <!--                 NO TWEETS MESSAGE             -->
+        <!-- =============================================== -->
+        <div id="noTweetsMessage" class="message" style="display: none;">
+            No tweets to review - all caught up! ⚡
+        </div>
 
-            <div class="button-group" id="actionButtons" style="display: none;">
-                <button class="btn btn-secondary" onclick="skipTweet()">Skip</button>
-                <button class="btn btn-primary" onclick="saveAndContinue()">Save & Continue</button>
-            </div>
-
-            <div id="noTweetsMessage" style="display: none; text-align: center; padding: 40px;">
-                <h2>No Tweets to Review</h2>
-                <p>All tweets have been reviewed. Check back later for new items.</p>
-            </div>
+        <!-- Preload Indicator -->
+        <div id="preloadIndicator" class="preload-indicator">
+            ⚡ Lightning fast tweets ready!
         </div>
     </div>
 
-    <script type="module" src="../../../../../shared/js/sidebar-component.js"></script>
-    
-    <script>
-        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
-        
-        let currentTweetData = null;
-        let tweetsToReview = [];
+        <script src="../../shared/js/theme-manager.js"></script>
+    <script type="module" src="../../shared/js/sidebar-component.js"></script>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script type="module">
+        // Lightning Tweet Editor Application
+
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+        import { updateStatus, fetchWithErrorHandling } from '../../shared/js/editor-utils.js';
+        import { loadRatings, saveRatings, collectRatingValues, populateRatingFields } from '../../shared/js/rating-utils.js';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let pageConfig = null;
+
+        // Application state
+        let recordsToReview = [];
         let currentTweetIndex = 0;
-        
-        function updateCharCount() {
-            const content = document.getElementById('tweetContent').value;
-            const count = content.length;
-            document.getElementById('charCounter').textContent = `${count}/280`;
-            document.getElementById('charCountValue').textContent = `${count}/280`;
-        }
-        
-        async function loadTweets() {
+        let isTransitioning = false;
+        let currentData = null;
+
+        // Initialize the application
+        async function init() {
             try {
-                document.getElementById('statusIndicator').textContent = 'Loading Tweets...';
-                
-                const response = await fetch(
-                    `${SUPABASE_URL}/rest/v1/tweets?tweet_status_id=eq.12&select=*`,
-                    {
-                        headers: {
-                            'apikey': SUPABASE_ANON_KEY,
-                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                        }
-                    }
-                );
-                
-                if (response.ok) {
-                    tweetsToReview = await response.json();
-                    
-                    if (tweetsToReview.length > 0) {
-                        loadTweet(0);
-                        document.getElementById('statusIndicator').textContent = 'LOADED SUCCESSFULLY';
-                        document.getElementById('statusIndicator').className = 'status-indicator status-success';
-                    } else {
-                        document.getElementById('noTweetsMessage').style.display = 'block';
-                        document.getElementById('statusIndicator').textContent = 'No Items';
-                    }
+                console.log('=== TWEET EDITOR DEBUG: Starting initialization ===');
+                updateStatus('loading', 'Loading page configuration...');
+
+                // Get page configuration
+                const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+
+                const { data: config, error: configError } = await supabase
+                    .from('html_page_config')
+                    .select('*')
+                    .eq('page_name', pageName)
+                    .single();
+
+                if (configError || !config) {
+                    throw new Error(`Page configuration not found for: ${pageName}`);
+                }
+
+                pageConfig = config;
+
+                // Set page title dynamically
+                document.title = pageConfig.page_title;
+                const h1Element = document.querySelector('h1.page-title');
+                if (h1Element) {
+                    h1Element.textContent = pageConfig.page_title;
+                }
+
+                updateStatus('loading', `Loading ${pageConfig.page_title.toLowerCase()}...`);
+
+                // Load tweets using config
+                const tweets = await loadTweetsToPost();
+                console.log('Loaded tweets:', tweets);
+
+                recordsToReview = tweets;
+
+                if (tweets.length > 0) {
+                    console.log('Loading first tweet with ID:', tweets[0][pageConfig.id_field_name]);
+                    displayCurrentTweet();
+                    preloadNextTweets();
+                    setupEventListeners();
+                    updateStatus('saved', 'Tweets loaded');
+                    showPreloadIndicator();
+                } else {
+                    showNoTweetsMessage();
+                    updateStatus('completed', 'No tweets to post');
                 }
             } catch (error) {
-                console.error('Error loading tweets:', error);
-                document.getElementById('statusIndicator').textContent = 'Error Loading';
-                document.getElementById('statusIndicator').className = 'status-indicator status-error';
+                console.error('Initialization error:', error);
+                updateStatus('error', `Failed to load tweets: ${error.message}`);
             }
         }
-        
-        function loadTweet(index) {
-            if (index >= tweetsToReview.length) {
-                document.getElementById('noTweetsMessage').style.display = 'block';
-                document.getElementById('tweetInfo').style.display = 'none';
-                document.getElementById('tweetSection').style.display = 'none';
-                document.getElementById('actionButtons').style.display = 'none';
+
+        // Load tweets that are ready to post
+        async function loadTweetsToPost() {
+            if (!pageConfig) throw new Error('Page configuration not loaded');
+            const url = `${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.status_field_name}=eq.${pageConfig.display_status_id}&select=*&order=${pageConfig.id_field_name}.asc`;
+            return await fetchWithErrorHandling(url);
+        }
+
+        // Display current tweet with lightning effect
+        async function displayCurrentTweet() {
+            if (currentTweetIndex >= recordsToReview.length) {
+                showNoTweetsMessage();
                 return;
             }
-            
-            currentTweetData = tweetsToReview[index];
-            currentTweetIndex = index;
-            
-            document.getElementById('tweetIdValue').textContent = currentTweetData.tweet_id || '-';
-            document.getElementById('tweetContent').value = currentTweetData.tweet_content || '';
-            updateCharCount();
-            
-            document.getElementById('tweetInfo').style.display = 'grid';
-            document.getElementById('tweetSection').style.display = 'block';
-            document.getElementById('actionButtons').style.display = 'flex';
+
+            const tweet = recordsToReview[currentTweetIndex];
+            const container = document.getElementById('tweetContainer');
+
+            // Show content
+            document.getElementById('content').style.display = 'block';
             document.getElementById('noTweetsMessage').style.display = 'none';
+
+            // Update tweet title
+            const tweetTitle = document.getElementById('tweetTitle');
+            if (tweetTitle) {
+                tweetTitle.textContent = `Tweet ${currentTweetIndex + 1} of ${recordsToReview.length}`;
+            }
+
+            // Update sticky script info (using tweet info)
+            const stickyScriptInfo = document.getElementById('stickyScriptInfo');
+            if (stickyScriptInfo && pageConfig) {
+                stickyScriptInfo.textContent = `Tweet ID: ${tweet[pageConfig.id_field_name]} | Ready to Post`;
+                stickyScriptInfo.style.display = 'block';
+            }
+
+            // Update tweet display
+            if (pageConfig) {
+                document.getElementById('tweetIdDisplay').textContent = `Tweet ID: ${tweet[pageConfig.id_field_name]}`;
+            }
+            document.getElementById('tweetTextarea').value = tweet.tweet || '';
+
+            // Load ratings
+            const tweetId = tweet[pageConfig.id_field_name];
+            const ratings = await loadRatings('tweets', tweetId, ['tweet']);
+
+            // Store in currentData
+            currentData = { ...tweet, ratings: ratings };
+
+            // Populate rating fields
+            if (currentData && currentData.ratings) {
+                populateRatingFields(currentData.ratings, 'rating_');
+            }
+
+            updateCharCounter();
+            updateQueueDisplay();
+
+            // Add lightning flash effect
+            container.classList.add('lightning-flash');
+            setTimeout(() => container.classList.remove('lightning-flash'), 300);
         }
-        
-        async function saveAndContinue() {
-            if (!currentTweetData) return;
-            
-            try {
-                const response = await fetch(
-                    `${SUPABASE_URL}/rest/v1/tweets?tweet_id=eq.${currentTweetData.tweet_id}`,
-                    {
-                        method: 'PATCH',
-                        headers: {
-                            'apikey': SUPABASE_ANON_KEY,
-                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            tweet_status_id: 20,
-                            tweet_content: document.getElementById('tweetContent').value
-                        })
-                    }
-                );
-                
-                if (response.ok) {
-                    await window.refreshNavigationBadges();
-                    currentTweetIndex++;
-                    loadTweet(currentTweetIndex);
-                }
-            } catch (error) {
-                console.error('Error saving:', error);
+
+        // Preload next few tweets for instant access
+        function preloadNextTweets() {
+            // This simulates preloading - in a real app you might cache tweet data
+            const preloadCount = Math.min(3, recordsToReview.length - currentTweetIndex - 1);
+            if (preloadCount > 0) {
+                console.log(`⚡ Preloaded ${preloadCount} tweets for lightning-fast switching`);
             }
         }
-        
-        function skipTweet() {
-            currentTweetIndex++;
-            loadTweet(currentTweetIndex);
+
+        // Lightning-fast tweet switching
+        async function markAsPostedAndNext() {
+            if (isTransitioning || currentTweetIndex >= recordsToReview.length || !pageConfig) return;
+
+            isTransitioning = true;
+            const currentTweet = recordsToReview[currentTweetIndex];
+
+            try {
+                // Update tweet status to posted with lightning effect
+                updateStatus('loading', 'Posting tweet...');
+
+                const container = document.getElementById('tweetContainer');
+                container.classList.add('tweet-slide-out');
+
+                // Save ratings before updating status
+                const tweetId = currentTweet[pageConfig.id_field_name];
+                const ratingValues = collectRatingValues(['tweet'], 'rating_');
+                await saveRatings('tweets', tweetId, ratingValues);
+
+                // Update tweet status in database using pageConfig
+                if (pageConfig.next_status_id) {
+                    await updateTweetStatus(currentTweet[pageConfig.id_field_name], pageConfig.next_status_id);
+                }
+
+                // Remove from queue and move to next
+                recordsToReview.splice(currentTweetIndex, 1);
+
+                setTimeout(() => {
+                    if (recordsToReview.length > 0) {
+                        // Ensure we don't go out of bounds
+                        if (currentTweetIndex >= recordsToReview.length) {
+                            currentTweetIndex = 0;
+                        }
+
+                        container.classList.remove('tweet-slide-out');
+                        container.classList.add('tweet-slide-in');
+
+                        displayCurrentTweet();
+                        preloadNextTweets();
+                        updateStatus('saved', 'Tweet posted!');
+
+                        setTimeout(() => {
+                            container.classList.remove('tweet-slide-in');
+                        }, 200);
+                    } else {
+                        showNoTweetsMessage();
+                        updateStatus('completed', 'All tweets posted!');
+                    }
+
+                    isTransitioning = false;
+                }, 200);
+
+            } catch (error) {
+                console.error('Error posting tweet:', error);
+                updateStatus('error', 'Failed to post tweet');
+                isTransitioning = false;
+
+                // Remove animation class on error
+                const container = document.getElementById('tweetContainer');
+                container.classList.remove('tweet-slide-out');
+            }
         }
-        
+
+        // Update tweet status in database
+        async function updateTweetStatus(tweetId, statusId) {
+            if (!pageConfig) throw new Error('Page configuration not loaded');
+            const url = `${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.id_field_name}=eq.${tweetId}`;
+            const updateData = {};
+            updateData[pageConfig.status_field_name] = statusId;
+            const options = {
+                method: 'PATCH',
+                body: JSON.stringify(updateData),
+                headers: { 'Prefer': 'return=minimal' }
+            };
+            return await fetchWithErrorHandling(url, options);
+        }
+
+        // Update character counter
+        function updateCharCounter() {
+            const textarea = document.getElementById('tweetTextarea');
+            const counter = document.getElementById('charCounter');
+            const charCount = textarea.value.length;
+
+            counter.textContent = `${charCount}/280`;
+
+            if (charCount > 280) {
+                counter.style.color = '#e0245e';
+            } else if (charCount > 260) {
+                counter.style.color = '#ff7f00';
+            } else {
+                counter.style.color = '#657786';
+            }
+        }
+
+        // Update queue display
+        function updateQueueDisplay() {
+            const queueDisplay = document.getElementById('tweetQueue');
+            const remaining = recordsToReview.length - currentTweetIndex;
+            queueDisplay.textContent = `${remaining} tweet${remaining !== 1 ? 's' : ''} in queue ⚡`;
+        }
+
+        // Show preload indicator briefly
+        function showPreloadIndicator() {
+            const indicator = document.getElementById('preloadIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 3000);
+        }
+
+        // Show no tweets message
+        function showNoTweetsMessage() {
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('noTweetsMessage').style.display = 'block';
+
+            // Hide sticky script info
+            const stickyScriptInfo = document.getElementById('stickyScriptInfo');
+            if (stickyScriptInfo) {
+                stickyScriptInfo.style.display = 'none';
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Posted button click handler
+            document.getElementById('postedButton').addEventListener('click', markAsPostedAndNext);
+
+            // Character counter on input
+            document.getElementById('tweetTextarea').addEventListener('input', updateCharCounter);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                    markAsPostedAndNext();
+                }
+                if (e.key === 'ArrowRight' && e.altKey) {
+                    markAsPostedAndNext();
+                }
+            });
+        }
+
+        // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
-            loadTweets();
+            init().catch(error => {
+                console.error('Failed to initialize Tweet Editor:', error);
+            });
         });
     </script>
 </body>

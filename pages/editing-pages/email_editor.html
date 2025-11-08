@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Editor</title>
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✉️</text></svg>">
-    
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <!-- Shared Styles -->
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
     <link rel="stylesheet" href="../../shared/styles/fonts.css">
     <link rel="stylesheet" href="../../shared/styles/components.css">
     <link rel="stylesheet" href="../../shared/styles/base.css">
@@ -86,120 +90,163 @@
         </div>
     </div>
 
-    <script type="module" src="../../../../../shared/js/sidebar-component.js"></script>
+        <script src="../../shared/js/theme-manager.js"></script>
+    <script type="module" src="../../shared/js/sidebar-component.js"></script>
     
-    <script>
-        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
-        
+    <script type="module">
+        // Email Editor Application - Configuration-driven editor
+
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+        import { updateStatus, showNoScriptsMessage, fetchWithErrorHandling } from '../../shared/js/editor-utils.js';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         let currentEmailData = null;
         let emailsToReview = [];
         let currentEmailIndex = 0;
-        
-        async function loadEmails() {
+        let pageConfig = null;
+
+        async function init() {
             try {
-                document.getElementById('statusIndicator').textContent = 'Loading Emails...';
-                
-                const response = await fetch(
-                    `${SUPABASE_URL}/rest/v1/newsletters?newsletter_status_id=eq.30&select=*`,
-                    {
-                        headers: {
-                            'apikey': SUPABASE_ANON_KEY,
-                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                        }
-                    }
-                );
-                
-                if (response.ok) {
-                    emailsToReview = await response.json();
-                    
-                    if (emailsToReview.length > 0) {
-                        loadEmail(0);
-                        document.getElementById('statusIndicator').textContent = 'LOADED SUCCESSFULLY';
-                        document.getElementById('statusIndicator').className = 'status-indicator status-success';
-                    } else {
-                        document.getElementById('noEmailsMessage').style.display = 'block';
-                        document.getElementById('statusIndicator').textContent = 'No Items';
-                    }
+                updateStatus('loading', 'Loading page configuration...');
+
+                // Get page configuration
+                const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+
+                const { data: config, error: configError } = await supabase
+                    .from('html_page_config')
+                    .select('*')
+                    .eq('page_name', pageName)
+                    .single();
+
+                if (configError || !config) {
+                    throw new Error(`Page configuration not found for: ${pageName}`);
+                }
+
+                pageConfig = config;
+
+                // Set page title dynamically
+                document.title = pageConfig.page_title;
+                const h1Element = document.querySelector('h1.page-title');
+                if (h1Element) {
+                    h1Element.textContent = pageConfig.page_title;
+                }
+
+                updateStatus('loading', `Loading ${pageConfig.page_title.toLowerCase()}...`);
+
+                // Filter records using config
+                const url = `${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.status_field_name}=eq.${pageConfig.display_status_id}&select=*`;
+                const emails = await fetchWithErrorHandling(url);
+                emailsToReview = emails;
+
+                if (emails.length > 0) {
+                    loadEmail(0);
+                    updateStatus('saved', 'Loaded successfully');
+                } else {
+                    showNoScriptsMessage(`No ${pageConfig.page_title.toLowerCase()} to display - everything checked ✓`);
                 }
             } catch (error) {
-                console.error('Error loading emails:', error);
-                document.getElementById('statusIndicator').textContent = 'Error Loading';
-                document.getElementById('statusIndicator').className = 'status-indicator status-error';
+                console.error('Email Editor initialization error:', error);
+                updateStatus('error', `Failed to load emails: ${error.message}`);
             }
         }
-        
+
         function loadEmail(index) {
             if (index >= emailsToReview.length) {
-                document.getElementById('noEmailsMessage').style.display = 'block';
-                document.getElementById('emailInfo').style.display = 'none';
-                document.getElementById('emailSection').style.display = 'none';
-                document.getElementById('actionButtons').style.display = 'none';
+                showNoScriptsMessage('All emails completed!');
                 return;
             }
-            
+
             currentEmailData = emailsToReview[index];
             currentEmailIndex = index;
-            
-            document.getElementById('emailIdValue').textContent = currentEmailData.newsletter_id || '-';
+
+            const recordId = currentEmailData[pageConfig.id_field_name];
+
+            document.getElementById('emailIdValue').textContent = recordId || '-';
             document.getElementById('campaignValue').textContent = currentEmailData.campaign_name || '-';
             document.getElementById('audienceValue').textContent = currentEmailData.audience_segment || '-';
             document.getElementById('sendDateValue').textContent = currentEmailData.scheduled_send_date || 'Not scheduled';
-            
+
             document.getElementById('subjectLine').value = currentEmailData.subject_line || '';
             document.getElementById('previewText').value = currentEmailData.preview_text || '';
             document.getElementById('emailContent').value = currentEmailData.email_content || '';
             document.getElementById('ctaText').value = currentEmailData.cta_text || '';
             document.getElementById('ctaLink').value = currentEmailData.cta_link || '';
-            
+
             document.getElementById('emailInfo').style.display = 'grid';
             document.getElementById('emailSection').style.display = 'block';
             document.getElementById('actionButtons').style.display = 'flex';
             document.getElementById('noEmailsMessage').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
         }
-        
+
         async function saveAndContinue() {
             if (!currentEmailData) return;
-            
+
             try {
-                const response = await fetch(
-                    `${SUPABASE_URL}/rest/v1/newsletters?newsletter_id=eq.${currentEmailData.newsletter_id}`,
-                    {
-                        method: 'PATCH',
-                        headers: {
-                            'apikey': SUPABASE_ANON_KEY,
-                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            newsletter_status_id: 40,
-                            subject_line: document.getElementById('subjectLine').value,
-                            preview_text: document.getElementById('previewText').value,
-                            email_content: document.getElementById('emailContent').value,
-                            cta_text: document.getElementById('ctaText').value,
-                            cta_link: document.getElementById('ctaLink').value
-                        })
-                    }
-                );
-                
-                if (response.ok) {
+                updateStatus('loading', 'Saving email...');
+
+                const recordId = currentEmailData[pageConfig.id_field_name];
+                const updateData = {
+                    subject_line: document.getElementById('subjectLine').value,
+                    preview_text: document.getElementById('previewText').value,
+                    email_content: document.getElementById('emailContent').value,
+                    cta_text: document.getElementById('ctaText').value,
+                    cta_link: document.getElementById('ctaLink').value
+                };
+
+                // Update status using configuration
+                if (pageConfig && pageConfig.next_status_id) {
+                    updateData[pageConfig.status_field_name] = pageConfig.next_status_id;
+                }
+
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.id_field_name}=eq.${recordId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to save email: ${response.status}`);
+                }
+
+                updateStatus('saved', 'Email saved successfully');
+
+                if (window.refreshNavigationBadges) {
                     await window.refreshNavigationBadges();
-                    currentEmailIndex++;
+                }
+
+                emailsToReview.splice(currentEmailIndex, 1);
+
+                if (emailsToReview.length > 0) {
+                    if (currentEmailIndex >= emailsToReview.length) currentEmailIndex = 0;
                     loadEmail(currentEmailIndex);
+                } else {
+                    showNoScriptsMessage('All emails completed!');
                 }
             } catch (error) {
                 console.error('Error saving:', error);
+                updateStatus('error', `Failed to save: ${error.message}`);
             }
         }
-        
+
         function skipEmail() {
             currentEmailIndex++;
             loadEmail(currentEmailIndex);
         }
-        
+
         document.addEventListener('DOMContentLoaded', () => {
-            loadEmails();
+            console.log('DOM loaded, starting Email Editor...');
+            init();
         });
+
+        window.saveAndContinue = saveAndContinue;
+        window.skipEmail = skipEmail;
     </script>
 </body>
 </html>

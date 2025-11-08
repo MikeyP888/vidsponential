@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Portfolio - Vidsponential</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+
+    <!-- Supabase CDN -->
+    <script src="../../shared/js/theme-manager.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #fefefe 0%, #fdfdfd 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            margin-top: 40px;
+            position: relative;
+        }
+
+        .logo {
+            height: 29px;
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            margin: 0;
+            z-index: 1000;
+        }
+
+        .page-title {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        .page-subtitle {
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        /* Impact Stats */
+        .impact-banner {
+            background: linear-gradient(135deg, rgba(11, 230, 255, 0.1) 0%, rgba(175, 11, 255, 0.1) 100%);
+            border-radius: 24px;
+            padding: 48px;
+            margin-bottom: 48px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 32px;
+            text-align: center;
+        }
+
+        .impact-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .impact-value {
+            font-size: 56px;
+            font-weight: 700;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+
+        .impact-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 12px 32px;
+            font-size: 15px;
+            font-weight: 600;
+            border: 2px solid #e0e0e0;
+            border-radius: 24px;
+            background: white;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Scripts Grid */
+        .scripts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 28px;
+            margin-bottom: 40px;
+        }
+
+        .script-card {
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.025);
+            border: 0.5px solid #e0e0e0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .script-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        }
+
+        .script-header {
+            background: linear-gradient(135deg, rgba(11, 230, 255, 0.1) 0%, rgba(175, 11, 255, 0.1) 100%);
+            padding: 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .script-number {
+            font-size: 12px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .script-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .script-keyword {
+            font-size: 13px;
+            color: #888;
+            font-style: italic;
+        }
+
+        .script-body {
+            padding: 24px;
+        }
+
+        .script-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .script-progress {
+            margin-bottom: 20px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            transition: width 0.5s ease;
+        }
+
+        .script-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-button {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .action-button:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .action-button.primary {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .action-button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .status-badge.completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.in-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #888;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-subtext {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            border-radius: 24px;
+            padding: 60px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .cta-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .cta-text {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 32px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 16px 48px;
+            font-size: 18px;
+            font-weight: 600;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 36px;
+            }
+
+            .impact-banner {
+                padding: 32px 20px;
+            }
+
+            .impact-value {
+                font-size: 40px;
+            }
+
+            .scripts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-section {
+                padding: 40px 20px;
+            }
+
+            .cta-title {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <img src="../../shared/assets/vidsponential logo.png" alt="Vidsponential" class="logo">
+            <h1 class="page-title">Script Portfolio</h1>
+            <p class="page-subtitle">Browse our collection of high-performing YouTube scripts</p>
+        </div>
+
+        <!-- Impact Banner -->
+        <div class="impact-banner">
+            <div class="impact-grid">
+                <div class="impact-stat">
+                    <div class="impact-value" id="totalScripts">12</div>
+                    <div class="impact-label">Scripts Created</div>
+                </div>
+                <div class="impact-stat">
+                    <div class="impact-value">2.4M</div>
+                    <div class="impact-label">Total Views</div>
+                </div>
+                <div class="impact-stat">
+                    <div class="impact-value">4.8</div>
+                    <div class="impact-label">Avg Rating</div>
+                </div>
+                <div class="impact-stat">
+                    <div class="impact-value" id="completionRate">85%</div>
+                    <div class="impact-label">Completion Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <button class="tab-button active" onclick="filterScripts('all')">All Scripts</button>
+            <button class="tab-button" onclick="filterScripts('completed')">Completed</button>
+            <button class="tab-button" onclick="filterScripts('in-progress')">In Progress</button>
+            <button class="tab-button" onclick="filterScripts('pending')">Pending</button>
+        </div>
+
+        <!-- Scripts Grid -->
+        <div class="scripts-grid" id="scriptsGrid">
+            <!-- Sample Script Card 1 -->
+            <div class="script-card" data-status="completed">
+                <div class="script-header">
+                    <div class="script-number">Script #001</div>
+                    <div class="script-title">The Ultimate Guide to YouTube SEO in 2025</div>
+                    <div class="script-keyword">youtube seo, video optimization</div>
+                </div>
+                <div class="script-body">
+                    <span class="status-badge completed">Completed</span>
+
+                    <div class="script-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">127K</div>
+                            <div class="stat-label">Views</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">8:42</div>
+                            <div class="stat-label">Avg Watch</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">78%</div>
+                            <div class="stat-label">Engagement</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">4.9 ⭐</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                    </div>
+
+                    <div class="script-progress">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="script-actions">
+                        <a href="#" class="action-button primary">View Script</a>
+                        <a href="order_script.html" class="action-button">Order Similar</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Script Card 2 -->
+            <div class="script-card" data-status="completed">
+                <div class="script-header">
+                    <div class="script-number">Script #002</div>
+                    <div class="script-title">How I Made $10,000 in One Month on YouTube</div>
+                    <div class="script-keyword">youtube monetization, make money</div>
+                </div>
+                <div class="script-body">
+                    <span class="status-badge completed">Completed</span>
+
+                    <div class="script-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">245K</div>
+                            <div class="stat-label">Views</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">11:23</div>
+                            <div class="stat-label">Avg Watch</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">82%</div>
+                            <div class="stat-label">Engagement</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">4.8 ⭐</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                    </div>
+
+                    <div class="script-progress">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="script-actions">
+                        <a href="#" class="action-button primary">View Script</a>
+                        <a href="order_script.html" class="action-button">Order Similar</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Script Card 3 -->
+            <div class="script-card" data-status="in-progress">
+                <div class="script-header">
+                    <div class="script-number">Script #003</div>
+                    <div class="script-title">10 AI Tools That Will Change Your Life</div>
+                    <div class="script-keyword">ai tools, productivity</div>
+                </div>
+                <div class="script-body">
+                    <span class="status-badge in-progress">In Progress</span>
+
+                    <div class="script-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">89K</div>
+                            <div class="stat-label">Views</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">6:15</div>
+                            <div class="stat-label">Avg Watch</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">71%</div>
+                            <div class="stat-label">Engagement</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">4.7 ⭐</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                    </div>
+
+                    <div class="script-progress">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span>65%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 65%"></div>
+                        </div>
+                    </div>
+
+                    <div class="script-actions">
+                        <a href="#" class="action-button primary">View Script</a>
+                        <a href="order_script.html" class="action-button">Order Similar</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Script Card 4 -->
+            <div class="script-card" data-status="completed">
+                <div class="script-header">
+                    <div class="script-number">Script #004</div>
+                    <div class="script-title">The Truth About Starting a YouTube Channel in 2025</div>
+                    <div class="script-keyword">youtube tips, content creation</div>
+                </div>
+                <div class="script-body">
+                    <span class="status-badge completed">Completed</span>
+
+                    <div class="script-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">312K</div>
+                            <div class="stat-label">Views</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">9:58</div>
+                            <div class="stat-label">Avg Watch</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">85%</div>
+                            <div class="stat-label">Engagement</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">5.0 ⭐</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                    </div>
+
+                    <div class="script-progress">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="script-actions">
+                        <a href="#" class="action-button primary">View Script</a>
+                        <a href="order_script.html" class="action-button">Order Similar</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Script Card 5 -->
+            <div class="script-card" data-status="pending">
+                <div class="script-header">
+                    <div class="script-number">Script #005</div>
+                    <div class="script-title">Building a Faceless YouTube Automation Channel</div>
+                    <div class="script-keyword">faceless youtube, automation</div>
+                </div>
+                <div class="script-body">
+                    <span class="status-badge pending">Pending</span>
+
+                    <div class="script-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">0</div>
+                            <div class="stat-label">Views</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">0:00</div>
+                            <div class="stat-label">Avg Watch</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">--</div>
+                            <div class="stat-label">Engagement</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">-- ⭐</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                    </div>
+
+                    <div class="script-progress">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span>0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="script-actions">
+                        <a href="#" class="action-button primary">View Script</a>
+                        <a href="order_script.html" class="action-button">Order Similar</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Script Card 6 -->
+            <div class="script-card" data-status="completed">
+                <div class="script-header">
+                    <div class="script-number">Script #006</div>
+                    <div class="script-title">5 Mistakes That Are Killing Your YouTube Channel</div>
+                    <div class="script-keyword">youtube mistakes, channel growth</div>
+                </div>
+                <div class="script-body">
+                    <span class="status-badge completed">Completed</span>
+
+                    <div class="script-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">198K</div>
+                            <div class="stat-label">Views</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">7:33</div>
+                            <div class="stat-label">Avg Watch</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">76%</div>
+                            <div class="stat-label">Engagement</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">4.8 ⭐</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                    </div>
+
+                    <div class="script-progress">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="script-actions">
+                        <a href="#" class="action-button primary">View Script</a>
+                        <a href="order_script.html" class="action-button">Order Similar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="cta-section">
+            <h2 class="cta-title">Ready for Your Next Script?</h2>
+            <p class="cta-text">Let's create content that resonates with your audience and drives real results</p>
+            <a href="order_script.html" class="cta-button">Order New Script</a>
+        </div>
+    </div>
+
+    <script>
+        // Filter scripts by status
+        window.filterScripts = function(status) {
+            // Update button states
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Filter cards
+            const cards = document.querySelectorAll('.script-card');
+            cards.forEach(card => {
+                if (status === 'all') {
+                    card.style.display = 'block';
+                } else {
+                    if (card.dataset.status === status) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        };
+
+        // Initialize stats
+        function updateStats() {
+            const allCards = document.querySelectorAll('.script-card');
+            const completedCards = document.querySelectorAll('.script-card[data-status="completed"]');
+
+            document.getElementById('totalScripts').textContent = allCards.length;
+            const completionRate = Math.round((completedCards.length / allCards.length) * 100);
+            document.getElementById('completionRate').textContent = completionRate + '%';
+        }
+
+        document.addEventListener('DOMContentLoaded', updateStats);
+    </script>
+</body>
+</html>

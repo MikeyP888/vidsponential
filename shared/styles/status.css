@@ -5,26 +5,27 @@
     padding: 3.6px 10.8px; /* Reduced from 4px 12px (10% smaller) */
     border-radius: 18px; /* Reduced from 20px (10% smaller) */
     font-size: 10.8px; /* Reduced from 12px (10% smaller) */
-    font-weight: bold;
+    font-weight: 600;
     text-transform: uppercase;
 }
 
-.status-unsaved {
-    background: #ff9800;
-    color: white;
-}
-
-.status-saved {
-    background: #4caf50;
-    color: white;
-}
-
+/* Pastel orange for in-progress states */
+.status-unsaved,
+.status-editing,
 .status-loading {
-    background: #2196f3;
-    color: white;
+    background: #ffe4cc; /* Pastel orange */
+    color: #e67e22;
 }
 
+/* Pastel green for success states */
+.status-saved,
+.status-completed {
+    background: #d4f4dd; /* Pastel green */
+    color: #27ae60;
+}
+
+/* Pastel red for error states */
 .status-error {
-    background: #f44336;
-    color: white;
+    background: #ffd6d6; /* Pastel red */
+    color: #e74c3c;
 }

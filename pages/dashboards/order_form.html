@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Your Script - Professional Script Writing Services</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/components.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+    <link rel="stylesheet" href="../../shared/styles/layout.css">
+    <link rel="stylesheet" href="../../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../../shared/styles/forms.css">
+    <link rel="stylesheet" href="../../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+
+    <style>
+        .order-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .order-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #0be6ff 0%, #af0bff 100%);
+            color: white;
+            border-radius: 20px;
+        }
+
+        .order-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .order-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #0be6ff;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .form-label.required::after {
+            content: " *";
+            color: #ff6b6b;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #0be6ff;
+            box-shadow: 0 0 0 3px rgba(11, 230, 255, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-textarea.large {
+            min-height: 150px;
+        }
+
+        .custom-niche-input {
+            margin-top: 10px;
+            display: none;
+        }
+
+        .custom-niche-input.show {
+            display: block;
+        }
+
+        .package-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .package-option {
+            position: relative;
+        }
+
+        .package-radio {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .package-card {
+            padding: 25px;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .package-radio:checked + .package-card {
+            border-color: #0be6ff;
+            background: linear-gradient(135deg, rgba(11, 230, 255, 0.1) 0%, rgba(175, 11, 255, 0.1) 100%);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(11, 230, 255, 0.3);
+        }
+
+        .package-card:hover {
+            border-color: #0be6ff;
+            transform: translateY(-2px);
+        }
+
+        .package-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .package-price {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #af0bff;
+            margin-bottom: 10px;
+        }
+
+        .package-features {
+            font-size: 0.9rem;
+            color: #666;
+            list-style: none;
+            padding: 0;
+        }
+
+        .package-features li {
+            margin: 5px 0;
+        }
+
+        .payment-section {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .payment-section.show {
+            display: block;
+        }
+
+        .payment-notice {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+
+        .stripe-button {
+            background: #635bff;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .stripe-button:hover {
+            background: #5348e8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 91, 255, 0.3);
+        }
+
+        .submit-button {
+            background: linear-gradient(135deg, #0be6ff 0%, #af0bff 100%);
+            color: white;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 30px;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(11, 230, 255, 0.4);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-helper {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .order-title {
+                font-size: 2rem;
+            }
+
+            .form-container {
+                padding: 25px;
+            }
+
+            .package-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Include sidebar -->
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+        <div class="order-container">
+            <div class="order-header">
+                <h1 class="order-title">Order Your Script</h1>
+                <p class="order-subtitle">Let's create amazing content together</p>
+            </div>
+
+            <form class="form-container" id="orderForm">
+                <!-- Personal Information Section -->
+                <div class="form-section">
+                    <h2 class="form-section-title">Personal Information</h2>
+
+                    <div class="form-group">
+                        <label class="form-label required" for="name">Full Name</label>
+                        <input type="text" id="name" name="name" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required" for="email">Email Address</label>
+                        <input type="email" id="email" name="email" class="form-input" required>
+                        <p class="form-helper">We'll send your script and updates to this email</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required" for="youtube">YouTube Channel URL</label>
+                        <input type="url" id="youtube" name="youtube" class="form-input" placeholder="https://youtube.com/@yourchannel" required>
+                    </div>
+                </div>
+
+                <!-- Channel Information Section -->
+                <div class="form-section">
+                    <h2 class="form-section-title">Channel Information</h2>
+
+                    <div class="form-group">
+                        <label class="form-label required" for="niche">Channel Niche</label>
+                        <select id="niche" name="niche" class="form-select" required>
+                            <option value="">Select your niche...</option>
+                            <option value="tech">Technology & Gadgets</option>
+                            <option value="gaming">Gaming</option>
+                            <option value="education">Education & How-To</option>
+                            <option value="lifestyle">Lifestyle & Vlog</option>
+                            <option value="finance">Finance & Business</option>
+                            <option value="fitness">Health & Fitness</option>
+                            <option value="entertainment">Entertainment</option>
+                            <option value="cooking">Cooking & Food</option>
+                            <option value="travel">Travel</option>
+                            <option value="beauty">Beauty & Fashion</option>
+                            <option value="science">Science & Nature</option>
+                            <option value="music">Music</option>
+                            <option value="sports">Sports</option>
+                            <option value="comedy">Comedy</option>
+                            <option value="motivation">Motivation & Self-Improvement</option>
+                            <option value="other">Other (Please Specify)</option>
+                        </select>
+                        <div id="customNicheContainer" class="custom-niche-input">
+                            <input type="text" id="customNiche" name="customNiche" class="form-input" placeholder="Enter your niche...">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required" for="channelDescription">About Your Channel</label>
+                        <textarea id="channelDescription" name="channelDescription" class="form-textarea large" placeholder="Tell us about your channel and the type of videos you create..." required></textarea>
+                        <p class="form-helper">Describe your content style, topics you cover, and what makes your channel unique</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required" for="audience">Target Audience</label>
+                        <textarea id="audience" name="audience" class="form-textarea" placeholder="Describe your typical viewer..." required></textarea>
+                        <p class="form-helper">Who watches your videos? (age range, interests, demographics, etc.)</p>
+                    </div>
+                </div>
+
+                <!-- Script Details Section -->
+                <div class="form-section">
+                    <h2 class="form-section-title">Script Details</h2>
+
+                    <div class="form-group">
+                        <label class="form-label">Select Package</label>
+                        <div class="package-options">
+                            <div class="package-option">
+                                <input type="radio" id="packageFree" name="package" value="free" class="package-radio" required>
+                                <label for="packageFree" class="package-card">
+                                    <div class="package-name">Sample Script</div>
+                                    <div class="package-price">Free</div>
+                                    <ul class="package-features">
+                                        <li>6-8 minute script</li>
+                                        <li>Full research</li>
+                                        <li>2 revisions</li>
+                                        <li>24-48hr delivery</li>
+                                    </ul>
+                                </label>
+                            </div>
+
+                            <div class="package-option">
+                                <input type="radio" id="package1" name="package" value="1-script" class="package-radio">
+                                <label for="package1" class="package-card">
+                                    <div class="package-name">1 Script</div>
+                                    <div class="package-price">$29</div>
+                                    <ul class="package-features">
+                                        <li>12-15 minute script</li>
+                                        <li>In-depth research</li>
+                                        <li>Unlimited revisions</li>
+                                        <li>24-48hr delivery</li>
+                                    </ul>
+                                </label>
+                            </div>
+
+                            <div class="package-option">
+                                <input type="radio" id="package5" name="package" value="5-scripts" class="package-radio">
+                                <label for="package5" class="package-card">
+                                    <div class="package-name">5 Scripts</div>
+                                    <div class="package-price">$99</div>
+                                    <ul class="package-features">
+                                        <li>15-18 minute scripts</li>
+                                        <li>In-depth research</li>
+                                        <li>Unlimited revisions</li>
+                                        <li>3-4 days delivery</li>
+                                    </ul>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="notes">Additional Notes</label>
+                        <textarea id="notes" name="notes" class="form-textarea large" placeholder="Any specific requirements, topics, or details we should know about..."></textarea>
+                        <p class="form-helper">Share any specific ideas, keywords, or special requests for your script(s)</p>
+                    </div>
+                </div>
+
+                <!-- Payment Section (shown only for paid packages) -->
+                <div id="paymentSection" class="payment-section">
+                    <h3 class="form-section-title">Payment</h3>
+                    <p class="payment-notice">You'll be redirected to Stripe to complete your secure payment.</p>
+                    <button type="button" class="stripe-button" id="stripeButton">
+                        <span id="stripeButtonText">Proceed to Payment - $29</span>
+                    </button>
+                </div>
+
+                <!-- Submit Button (shown for free package) -->
+                <button type="submit" class="submit-button" id="submitButton">Submit Order</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Include sidebar component -->
+        <script src="../../shared/js/theme-manager.js"></script>
+    <script src="../../shared/js/sidebar-component.js"></script>
+
+    <script>
+        // Handle custom niche dropdown
+        const nicheSelect = document.getElementById('niche');
+        const customNicheContainer = document.getElementById('customNicheContainer');
+
+        nicheSelect.addEventListener('change', function() {
+            if (this.value === 'other') {
+                customNicheContainer.classList.add('show');
+                document.getElementById('customNiche').required = true;
+            } else {
+                customNicheContainer.classList.remove('show');
+                document.getElementById('customNiche').required = false;
+            }
+        });
+
+        // Handle package selection
+        const packageRadios = document.querySelectorAll('input[name="package"]');
+        const paymentSection = document.getElementById('paymentSection');
+        const submitButton = document.getElementById('submitButton');
+        const stripeButtonText = document.getElementById('stripeButtonText');
+
+        packageRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'free') {
+                    paymentSection.classList.remove('show');
+                    submitButton.style.display = 'block';
+                } else {
+                    paymentSection.classList.add('show');
+                    submitButton.style.display = 'none';
+
+                    // Update Stripe button text based on package
+                    if (this.value === '1-script') {
+                        stripeButtonText.textContent = 'Proceed to Payment - $29';
+                    } else if (this.value === '5-scripts') {
+                        stripeButtonText.textContent = 'Proceed to Payment - $99';
+                    }
+                }
+            });
+        });
+
+        // Handle Stripe payment button
+        document.getElementById('stripeButton').addEventListener('click', function() {
+            // TODO: Implement Stripe checkout
+            alert('Stripe payment integration coming soon!\n\nThis will redirect you to a secure Stripe checkout page.');
+
+            // This is where you'll add your Stripe integration
+            // Example:
+            // const selectedPackage = document.querySelector('input[name="package"]:checked').value;
+            // redirectToStripeCheckout(selectedPackage);
+        });
+
+        // Handle form submission (for free package)
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Gather form data
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                youtube: document.getElementById('youtube').value,
+                niche: document.getElementById('niche').value === 'other'
+                    ? document.getElementById('customNiche').value
+                    : document.getElementById('niche').value,
+                channelDescription: document.getElementById('channelDescription').value,
+                audience: document.getElementById('audience').value,
+                package: document.querySelector('input[name="package"]:checked').value,
+                notes: document.getElementById('notes').value
+            };
+
+            console.log('Form submitted:', formData);
+
+            // TODO: Send data to your backend/database
+            alert('Thank you for your order!\n\nWe\'ll send you an email confirmation shortly and get started on your free sample script.');
+
+            // Optionally reset form
+            // this.reset();
+        });
+
+        // Initialize sidebar
+        window.addEventListener('DOMContentLoaded', function() {
+            if (typeof initializeSidebar === 'function') {
+                initializeSidebar('order_form.html');
+            }
+        });
+    </script>
+</body>
+</html>

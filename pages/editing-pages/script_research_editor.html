@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Script Research Editor</title>
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍎</text></svg>">
-    
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
     <link rel="stylesheet" href="../../shared/styles/fonts.css">
     <link rel="stylesheet" href="../../shared/styles/components.css">
     <link rel="stylesheet" href="../../shared/styles/base.css">
@@ -21,21 +25,49 @@
     <link rel="stylesheet" href="../../shared/styles/bottom-navigation.css">
 </head>
 <body class="has-sidebar">
+    <!-- Sticky Top Status Bar -->
+    <div id="stickyStatusBar" style="
+        position: fixed;
+        top: 0;
+        left: 280px;
+        right: 0;
+        background: transparent;
+        padding: 4px 20px;
+        z-index: 999;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+    ">
+        <!-- Script Info Pill (Left) -->
+        <div id="stickyScriptInfo" style="
+            background: white;
+            padding: 3.6px 10.8px;
+            border-radius: 18px;
+            font-size: 10.8px;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            pointer-events: auto;
+            display: none;
+        ">-</div>
+
+        <!-- Status Indicator Pill (Right) -->
+        <div class="status-indicator" id="stickyStatusIndicator" style="pointer-events: auto;">Loading</div>
+    </div>
+
     <!-- Sidebar Container -->
     <div id="sidebarContainer"></div>
-    
-    <div class="container with-sidebar">
+
+    <div class="container with-sidebar" style="padding-top: 30px;">
         <!-- =============================================== -->
         <!--                 HEADER SECTION                -->
         <!-- =============================================== -->
         <div class="header">
             
-            <!-- Second horizontal container: Status Indicator -->
-            <div class="status-bar">
-                <div class="status-indicator" id="statusIndicator">Loading</div>
-            </div>
-            
-            <!-- Third horizontal container: Scripts Completed Today -->
+            <!-- Status bar removed - now in sticky top bar -->
+
+            <!-- Scripts Completed Today -->
             <div class="completed-today-bar">
                 <div class="completed-today-text">Script Research Completed Today: <span id="researchCompletedTodayCount">0</span></div>
             </div>
@@ -54,58 +86,7 @@
         <!-- =============================================== -->
         <div id="content">
             <!-- Script Info Section -->
-            <div class="info-section">
-                <div class="script-info" id="scriptInfo" style="display: none;">
-                    <div class="info-item">
-                        <div class="info-label">Script ID</div>
-                        <div class="info-value" id="scriptIdValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Words</div>
-                        <div class="info-value" id="wordsValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Client</div>
-                        <div class="info-value" id="clientValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Channel</div>
-                        <div class="info-value" id="channelValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Type</div>
-                        <div class="info-value" id="typeValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Genre</div>
-                        <div class="info-value" id="genreValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Subgenre</div>
-                        <div class="info-value" id="subgenreValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Format</div>
-                        <div class="info-value" id="formatValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Structure</div>
-                        <div class="info-value" id="structureValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Research Depth</div>
-                        <div class="info-value" id="researchValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Tone</div>
-                        <div class="info-value" id="toneValue">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Angle</div>
-                        <div class="info-value" id="angleValue">-</div>
-                    </div>
-                </div>
-            </div>
+            <div id="scriptInfoBox"></div>
 
             <!-- Research Content Section -->
             <div class="research-section">
@@ -121,10 +102,11 @@
         <!-- Bottom navigation will be added by JavaScript -->
     </div>
 
-    <script type="module" src="../../../../../shared/js/sidebar-component.js"></script>
-    <script type="module" src="../../../../../shared/js/textarea-autosize.js"></script>
+        <script src="../../shared/js/theme-manager.js"></script>
+    <script type="module" src="../../shared/js/sidebar-component.js"></script>
+    <script type="module" src="../../shared/js/textarea-autosize.js"></script>
     <script type="module">
-        import BottomNavigation from '../../../../../shared/js/bottom-navigation.js';
+        import BottomNavigation from '../../shared/js/bottom-navigation.js';
         window.bottomNav = new BottomNavigation({
             onSave: () => window.saveScript(),
             onNavigate: (direction) => window.navigateScript(direction),
@@ -145,56 +127,66 @@
             }
         };
     </script>
-    <script>
+    <script type="module">
         // Research Editor Application
         
-        // Configuration
-        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
-        
+        import { SUPABASE_URL, SUPABASE_ANON_KEY, RESEARCH_FIELDS } from '../../shared/js/config.js';
+        import { updateStatus, displayScriptInfo, loadScriptInfo, updateScriptStatus, showNoScriptsMessage, fetchWithErrorHandling } from '../../shared/js/editor-utils.js';
+        import { loadRatings, saveRatings, collectRatingValues, populateRatingFields } from '../../shared/js/rating-utils.js';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let pageConfig = null;
+
         // Application state
         let currentScriptData = null;
-        let scriptsToReview = [];
+        let recordsToReview = [];
         let currentScriptIndex = 0;
         let autoSaveTimer = null;
         let isLoading = false;
         let hasUnsavedChanges = false;
 
-        // Research fields configuration
-        const RESEARCH_FIELDS = [
-            { name: 'story_summary', label: 'STORY SUMMARY' },
-            { name: 'story_foundation', label: 'STORY FOUNDATION' },
-            { name: 'key_details', label: 'KEY DETAILS' },
-            { name: 'dramatic_elements', label: 'DRAMATIC ELEMENTS' },
-            { name: 'timeline', label: 'TIMELINE' },
-            { name: 'key_players', label: 'KEY PLAYERS' },
-            { name: 'individual_stories', label: 'INDIVIDUAL STORIES' },
-            { name: 'quotes', label: 'QUOTES' },
-            { name: 'refinement_notes', label: 'REFINEMENT NOTES' }
-        ];
 
         // Initialize the application
         async function init() {
             try {
                 console.log('=== RESEARCH EDITOR DEBUG: Starting initialization ===');
-                updateStatus('loading', 'Loading scripts...');
-                
-                // First, let's check what scripts exist in the database
-                await debugCheckAllScripts();
-                
-                // Load scripts with status_id = 12 (ready for research)
+                updateStatus('loading', 'Loading page configuration...');
+
+                // Get page configuration
+                const pageName = window.location.pathname.split('/').pop().replace('.html', '');
+
+                const { data: config, error: configError } = await supabase
+                    .from('html_page_config')
+                    .select('*')
+                    .eq('page_name', pageName)
+                    .single();
+
+                if (configError || !config) {
+                    throw new Error(`Page configuration not found for: ${pageName}`);
+                }
+
+                pageConfig = config;
+
+                // Set page title dynamically
+                document.title = pageConfig.page_title;
+                const h1Element = document.querySelector('h1.page-title');
+                if (h1Element) {
+                    h1Element.textContent = pageConfig.page_title;
+                }
+
+                updateStatus('loading', `Loading ${pageConfig.page_title.toLowerCase()}...`);
+
+                // Load scripts using config
                 const scripts = await loadScriptsToReview();
-                console.log('Loaded research scripts:', scripts);
-                
-                scriptsToReview = scripts;
-                
+
+                recordsToReview = scripts;
+
                 if (scripts.length > 0) {
-                    console.log('Loading first script with ID:', scripts[0].script_id);
+                    console.log('Loading first script with ID:', scripts[0][pageConfig.id_field_name]);
                     await loadCurrentScriptData();
-                    setupEventListeners();
                     startAutoSave();
                 } else {
-                    showNoScriptsMessage();
+                    showNoScriptsMessage(`There are no scripts ready for ${pageConfig.page_title.toLowerCase()} at this time.`);
                 }
             } catch (error) {
                 console.error('Initialization error:', error);
@@ -202,140 +194,80 @@
             }
         }
 
-        // Debug function to check all scripts and their status
-        async function debugCheckAllScripts() {
-            console.log('=== DEBUG: Checking ALL scripts in database ===');
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/scripts?select=script_id,script_status_id,script_headline&order=script_id`, {
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const allScripts = await response.json();
-                    console.log('Total scripts in database:', allScripts.length);
-                    console.log('All scripts with their status_id:', allScripts);
-                    
-                    // Check specifically for status_id = 12
-                    const status12Scripts = allScripts.filter(s => s.script_status_id === 12);
-                    console.log('Scripts with status_id = 12:', status12Scripts);
-                    
-                    // Show first 5 scripts as sample
-                    console.log('Sample of first 5 scripts:', allScripts.slice(0, 5));
-                } else {
-                    console.error('Failed to fetch all scripts:', response.status);
-                }
-            } catch (error) {
-                console.error('Error checking all scripts:', error);
-            }
-        }
 
-        // Load scripts that need research (status 12)
+        // Load scripts that need research using config
         async function loadScriptsToReview() {
-            console.log('=== DEBUG: Fetching scripts with script_status_id=12 ===');
-            console.log('URL:', `${SUPABASE_URL}/rest/v1/scripts?script_status_id=eq.12&select=script_id,script_headline`);
-            
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_status_id=eq.12&select=script_id,script_headline`, {
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Failed to load scripts:', response.status, errorText);
-                throw new Error(`Failed to load scripts: ${response.status} - ${errorText}`);
-            }
-
-            const scripts = await response.json();
-            console.log('=== DEBUG: Scripts found with status_id=12:', scripts);
-            console.log('Number of scripts:', scripts.length);
-            if (scripts.length > 0) {
-                console.log('First script:', scripts[0]);
-            }
-            return scripts;
+            if (!pageConfig) throw new Error('Page configuration not loaded');
+            const url = `${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.status_field_name}=eq.${pageConfig.display_status_id}&select=${pageConfig.id_field_name},script_headline`;
+            return await fetchWithErrorHandling(url);
         }
 
         // Load current script data and research
         async function loadCurrentScriptData() {
-            if (scriptsToReview.length === 0) {
-                showNoScriptsMessage();
+            if (recordsToReview.length === 0 || !pageConfig) {
+                showNoScriptsMessage(`There are no scripts ready for ${pageConfig?.page_title?.toLowerCase() || 'research'} at this time.`);
                 return;
             }
 
-            const scriptId = scriptsToReview[currentScriptIndex].script_id;
-            console.log('Loading research data for script ID:', scriptId);
-            
+            const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
+
             try {
                 updateStatus('loading', 'Loading script data...');
-                
-                // Load script info and research data
-                const [scriptInfo, researchData] = await Promise.all([
-                    loadScriptInfo(scriptId),
-                    loadResearchData(scriptId)
-                ]);
-                
-                currentScriptData = { script: scriptInfo, research: researchData };
-                console.log('Loaded script data:', currentScriptData);
-                
+
+                // Load script info and research data first
+                console.log('Loading script info for ID:', scriptId);
+                const scriptInfo = await loadScriptInfo(scriptId);
+                console.log('Script info loaded:', scriptInfo);
+
+                console.log('Loading research data for ID:', scriptId);
+                const researchData = await loadResearchData(scriptId);
+                console.log('Research data loaded:', researchData);
+
+                // Load centralized ratings using script_research_id (not script_id!)
+                let ratings = {};
+                if (researchData && researchData.script_research_id) {
+                    console.log('Loading ratings for script_research_id:', researchData.script_research_id);
+                    ratings = await loadRatings('script_research', researchData.script_research_id, [
+                        'angle_suggestions',
+                        'key_themes',
+                        'story_foundation',
+                        'dramatic_elements',
+                        'key_players',
+                        'quotes',
+                        'timeline',
+                        'facts_and_data',
+                        'misc_notes'
+                    ]);
+                    console.log('Ratings loaded:', ratings);
+                } else {
+                    console.log('No script_research record exists yet, ratings will be empty');
+                }
+
+                currentScriptData = { script: scriptInfo, research: researchData, ratings: ratings };
+
                 displayScriptData(currentScriptData);
                 updateNavigationButtons();
                 updateStatus('saved', 'Loaded successfully');
                 hasUnsavedChanges = false;
             } catch (error) {
                 console.error('Error loading script:', error);
-                updateStatus('error', 'Failed to load script data');
+                console.error('Error details:', error.message, error.stack);
+                updateStatus('error', 'Failed to load script data: ' + error.message);
             }
         }
 
-        // Load script information
-        async function loadScriptInfo(scriptId) {
-            console.log('=== DEBUG: Loading script info for script_id:', scriptId);
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}&select=*`, {
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                }
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Failed to load script info:', response.status, errorText);
-                throw new Error('Failed to load script info');
-            }
-
-            const data = await response.json();
-            console.log('Script info loaded:', data[0]);
-            return data[0];
-        }
+        // Use the utility function from editor-utils.js
 
         // Load research data
         async function loadResearchData(scriptId) {
-            console.log('=== DEBUG: Loading research data for script_id:', scriptId);
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/script_research?script_id=eq.${scriptId}&select=*`, {
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                }
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Failed to load research data:', response.status, errorText);
-                throw new Error('Failed to load research data');
+            const url = `${SUPABASE_URL}/rest/v1/script_research?script_id=eq.${scriptId}&select=*`;
+            try {
+                const data = await fetchWithErrorHandling(url);
+                return data[0] || {}; // Return empty object if no research data exists yet
+            } catch (error) {
+                console.warn('No research data found for script:', scriptId);
+                return {};
             }
-
-            const data = await response.json();
-            console.log('Research data loaded:', data);
-            if (data[0] && data[0].script_research_id) {
-                console.log('WARNING: Research data has script_research_id:', data[0].script_research_id, '- Make sure we display script_id instead');
-            }
-            return data[0] || {}; // Return empty object if no research data exists yet
         }
 
         // Display script data in UI
@@ -344,24 +276,56 @@
 
             document.getElementById('content').style.display = 'block';
             document.getElementById('noScriptsMessage').style.display = 'none';
-            document.getElementById('scriptInfo').style.display = 'grid';
 
-            // Update script info - Make sure we're using script_id, not script_research_id
-            document.getElementById('scriptIdValue').textContent = data.script.script_id || '-';
-            document.getElementById('wordsValue').textContent = data.script.target_word_count || '-';
-            document.getElementById('clientValue').textContent = data.script.client_name || '-';
-            document.getElementById('channelValue').textContent = data.script.channel_name || '-';
-            document.getElementById('typeValue').textContent = data.script.script_type || '-';
-            document.getElementById('genreValue').textContent = data.script.genre || '-';
-            document.getElementById('subgenreValue').textContent = data.script.subgenre || '-';
-            document.getElementById('formatValue').textContent = data.script.format || '-';
-            document.getElementById('structureValue').textContent = data.script.structure || '-';
-            document.getElementById('researchValue').textContent = data.script.research_depth || '-';
-            document.getElementById('toneValue').textContent = data.script.tone || '-';
-            document.getElementById('angleValue').textContent = data.script.angle || '-';
-            
+
+            // Update sticky script info pill
+            const stickyScriptInfo = document.getElementById('stickyScriptInfo');
+            if (stickyScriptInfo && data.script && pageConfig) {
+                const scriptId = data.script[pageConfig.id_field_name] || '-';
+                const scriptHeadline = data.script.script_headline || 'Untitled';
+                stickyScriptInfo.textContent = `Script ID: ${scriptId} | ${scriptHeadline}`;
+                stickyScriptInfo.style.display = 'block';
+            }
+
+            // Use the utility function to display script info
+            displayScriptInfo(data.script);
+
+            // Try to initialize enhanced script info box (non-blocking)
+            if (pageConfig) {
+                initializeScriptInfoBox(data.script[pageConfig.id_field_name]);
+            }
+
             // Display research fields
             displayResearchFields(data.research);
+        }
+
+        // Safely initialize enhanced script info box
+        async function initializeScriptInfoBox(scriptId) {
+            try {
+                // Dynamically import the ScriptInfoBox component
+                const { default: ScriptInfoBox } = await import('../../shared/js/script-info-box.js');
+
+                const scriptInfoBox = new ScriptInfoBox('scriptInfoBox');
+                await scriptInfoBox.init(scriptId, {
+                    autoRefresh: false,
+                    refreshRate: 30000
+                });
+
+                // Hide the old info box and show the new one
+                const oldInfoBox = document.getElementById('scriptInfo');
+                if (oldInfoBox) {
+                    oldInfoBox.style.display = 'none';
+                }
+
+                console.log('Enhanced script info box loaded successfully');
+            } catch (error) {
+                console.log('Enhanced script info box not available, using standard version:', error);
+                // Fallback: ensure the old info box is visible
+                const oldInfoBox = document.getElementById('scriptInfo');
+                if (oldInfoBox) {
+                    oldInfoBox.style.display = 'block';
+                }
+            }
         }
 
         // Display research fields
@@ -372,20 +336,20 @@
             RESEARCH_FIELDS.forEach(field => {
                 const fieldSection = document.createElement('div');
                 fieldSection.className = 'chapter-se-7a2807fb2c0d'; // Reuse existing styling
-                
+
                 fieldSection.innerHTML = `
                     <!-- Field Label Button -->
                     <button class="gradient-button">
                         <span class="gradient-button__text">${field.label}</span>
                     </button>
-                    
+
                     <!-- Field Content Row -->
                     <div class="form-row">
                         <div class="form-row__text-field">
                             <div class="text-field-multi">
                                 <div class="text-field-multi__container">
-                                    <textarea class="text-field-multi__input" 
-                                             id="research_${field.name}" 
+                                    <textarea class="text-field-multi__input"
+                                             id="research_${field.name}"
                                              data-field="${field.name}"
                                              style="min-height: 225px; height: 225px;"
                                              placeholder="Enter ${field.label.toLowerCase()}...">${researchData[field.name] || ''}</textarea>
@@ -396,49 +360,40 @@
                             <div class="rating-field">
                                 <label class="rating-field__label">Rating / 100:</label>
                                 <div class="rating-field__container">
-                                    <input type="number" 
-                                           class="rating-field__input" 
+                                    <input type="number"
+                                           class="rating-field__input"
                                            id="rating_${field.name}"
                                            data-field="${field.name}_mp_rating"
-                                           min="1" 
-                                           max="100" 
-                                           value="${researchData[field.name + '_mp_rating'] || ''}">
+                                           min="1"
+                                           max="100"
+                                           value="">
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
-                
+
                 container.appendChild(fieldSection);
             });
 
-            // Force textarea heights immediately - bypass auto-resize module issues
+            // Setup event listeners after fields are created
+            setupEventListeners();
+
+            // Auto-resize textareas
             setTimeout(() => {
-                console.log('=== DEBUG: Setting textarea heights ===');
                 const textareas = document.querySelectorAll('.text-field-multi__input');
-                console.log('Found textareas:', textareas.length);
-                
-                textareas.forEach((textarea, index) => {
-                    console.log(`Setting height for textarea ${index}:`, textarea);
-                    
-                    // Force styles directly
+                textareas.forEach((textarea) => {
                     textarea.style.minHeight = '225px';
                     textarea.style.height = '225px';
                     textarea.style.overflowY = 'hidden';
                     textarea.style.resize = 'none';
-                    textarea.style.boxSizing = 'border-box';
                     
                     if (textarea.value && textarea.value.length > 0) {
-                        console.log('Textarea has content, expanding:', textarea.value.length);
                         textarea.style.height = 'auto';
                         const newHeight = Math.max(225, textarea.scrollHeight + 15);
                         textarea.style.height = newHeight + 'px';
-                        console.log('Set height to:', newHeight);
-                    } else {
-                        console.log('Textarea is empty, using minimum height');
                     }
                     
-                    // Add input listener for real-time resizing
                     textarea.addEventListener('input', function() {
                         this.style.height = 'auto';
                         const newHeight = Math.max(225, this.scrollHeight + 15);
@@ -447,9 +402,17 @@
                     });
                 });
             }, 200);
+
+            // Populate rating fields from centralized ratings
+            if (currentScriptData && currentScriptData.ratings) {
+                console.log('Populating rating fields with data:', currentScriptData.ratings);
+                populateRatingFields(currentScriptData.ratings, 'rating_');
+            } else {
+                console.log('No ratings data to populate:', currentScriptData?.ratings);
+            }
         }
 
-        // Save script function - UPDATED to change status from 12 to 13
+        // Save script function - Updates status from 12 to 13
         async function saveScript() {
             if (isLoading) return;
             
@@ -457,36 +420,35 @@
                 isLoading = true;
                 updateStatus('loading', 'Saving research data and updating status...');
                 
-                const scriptId = scriptsToReview[currentScriptIndex].script_id;
+                const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
                 const researchData = collectResearchData();
                 
                 // Save research data AND update script status
                 await saveResearchDataAndUpdateStatus(scriptId, researchData);
                 
-                updateStatus('saved', 'Research saved and status updated to 13');
+                updateStatus('saved', 'Research saved and status updated');
                 hasUnsavedChanges = false;
                 if (window.setUnsavedChanges) {
                     window.setUnsavedChanges(false);
                 }
                 
-                // Remove this script from the review list since it's now status 13
-                scriptsToReview.splice(currentScriptIndex, 1);
-                
+                // Remove this script from the review list
+                recordsToReview.splice(currentScriptIndex, 1);
+
                 // Load next script or show completion message
-                if (scriptsToReview.length > 0) {
-                    // Adjust index if we're at the end
-                    if (currentScriptIndex >= scriptsToReview.length) {
+                if (recordsToReview.length > 0) {
+                    if (currentScriptIndex >= recordsToReview.length) {
                         currentScriptIndex = 0;
                     }
                     await loadCurrentScriptData();
                 } else {
                     updateStatus('completed', 'All research completed!');
-                    showNoScriptsMessage();
+                    showNoScriptsMessage('All research completed!');
                 }
                 
             } catch (error) {
                 console.error('Save error:', error);
-                updateStatus('error', 'Failed to save research data');
+                updateStatus('error', `Failed to save research data: ${error.message}`);
             } finally {
                 isLoading = false;
             }
@@ -495,106 +457,118 @@
         // Collect research data from form
         function collectResearchData() {
             const data = {};
-            
+
             RESEARCH_FIELDS.forEach(field => {
                 const textField = document.getElementById(`research_${field.name}`);
-                const ratingField = document.getElementById(`rating_${field.name}`);
-                
+
+                // Only collect text content, ratings handled separately
                 if (textField) data[field.name] = textField.value;
-                if (ratingField && ratingField.value) data[field.name + '_mp_rating'] = parseInt(ratingField.value);
             });
-            
+
             return data;
         }
 
         // Save research data to Supabase AND update script status to 13
         async function saveResearchDataAndUpdateStatus(scriptId, data) {
             const dataWithScript = { ...data, script_id: scriptId };
-            
-            // Save research data first
-            let response = await fetch(`${SUPABASE_URL}/rest/v1/script_research?script_id=eq.${scriptId}`, {
-                method: 'PATCH',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=representation'
-                },
-                body: JSON.stringify(dataWithScript)
-            });
 
-            if (!response.ok) {
+            // Save research data first (try update, then insert if needed)
+            let url = `${SUPABASE_URL}/rest/v1/script_research?script_id=eq.${scriptId}`;
+            let options = {
+                method: 'PATCH',
+                body: JSON.stringify(dataWithScript),
+                headers: { 'Prefer': 'return=representation' }
+            };
+
+            let savedResearch;
+            try {
+                savedResearch = await fetchWithErrorHandling(url, options);
+            } catch (error) {
                 // If update failed, try insert
-                response = await fetch(`${SUPABASE_URL}/rest/v1/script_research`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify(dataWithScript)
-                });
+                url = `${SUPABASE_URL}/rest/v1/script_research`;
+                options.method = 'POST';
+                savedResearch = await fetchWithErrorHandling(url, options);
             }
 
-            if (!response.ok) {
-                throw new Error('Failed to save research data');
+            // Get the script_research_id from the saved data
+            const researchId = savedResearch && savedResearch.length > 0
+                ? savedResearch[0].script_research_id
+                : currentScriptData?.research?.script_research_id;
+
+            if (!researchId) {
+                console.error('Could not get script_research_id for saving ratings');
+                return;
             }
 
-            // Now update the script status from 12 to 13
-            const statusResponse = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`, {
-                method: 'PATCH',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=minimal'
-                },
-                body: JSON.stringify({ script_status_id: 13 })
-            });
+            // Save ratings to centralized system using script_research_id as record_id
+            const ratingValues = collectRatingValues([
+                'angle_suggestions',
+                'key_themes',
+                'story_foundation',
+                'dramatic_elements',
+                'key_players',
+                'quotes',
+                'timeline',
+                'facts_and_data',
+                'misc_notes'
+            ], 'rating_');
 
-            if (!statusResponse.ok) {
-                throw new Error('Failed to update script status to 13');
+            await saveRatings('script_research', researchId, ratingValues, scriptId);
+
+            // Update script status using configuration
+            if (pageConfig && pageConfig.next_status_id) {
+                await updateScriptStatus(scriptId, pageConfig.next_status_id);
             }
-
-            return await response.json();
         }
 
         // Save research data to Supabase (for auto-save - no status change)
         async function saveResearchData(scriptId, data) {
             const dataWithScript = { ...data, script_id: scriptId };
-            
+
             // Try to update first, then insert if no record exists
-            let response = await fetch(`${SUPABASE_URL}/rest/v1/script_research?script_id=eq.${scriptId}`, {
+            let url = `${SUPABASE_URL}/rest/v1/script_research?script_id=eq.${scriptId}`;
+            let options = {
                 method: 'PATCH',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=representation'
-                },
-                body: JSON.stringify(dataWithScript)
-            });
+                body: JSON.stringify(dataWithScript),
+                headers: { 'Prefer': 'return=representation' }
+            };
 
-            if (!response.ok) {
+            let savedResearch;
+            try {
+                savedResearch = await fetchWithErrorHandling(url, options);
+            } catch (error) {
                 // If update failed, try insert
-                response = await fetch(`${SUPABASE_URL}/rest/v1/script_research`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify(dataWithScript)
-                });
+                url = `${SUPABASE_URL}/rest/v1/script_research`;
+                options.method = 'POST';
+                savedResearch = await fetchWithErrorHandling(url, options);
             }
 
-            if (!response.ok) {
-                throw new Error('Failed to save research data');
+            // Get the script_research_id from the saved data
+            const researchId = savedResearch && savedResearch.length > 0
+                ? savedResearch[0].script_research_id
+                : currentScriptData?.research?.script_research_id;
+
+            if (!researchId) {
+                console.error('Could not get script_research_id for saving ratings');
+                return savedResearch;
             }
 
-            return await response.json();
+            // Save ratings using script_research_id as record_id
+            const ratingValues = collectRatingValues([
+                'angle_suggestions',
+                'key_themes',
+                'story_foundation',
+                'dramatic_elements',
+                'key_players',
+                'quotes',
+                'timeline',
+                'facts_and_data',
+                'misc_notes'
+            ], 'rating_');
+
+            await saveRatings('script_research', researchId, ratingValues, scriptId);
+
+            return savedResearch;
         }
 
         // Navigate between scripts
@@ -608,7 +582,7 @@
             }
 
             const newIndex = currentScriptIndex + direction;
-            if (newIndex >= 0 && newIndex < scriptsToReview.length) {
+            if (newIndex >= 0 && newIndex < recordsToReview.length) {
                 currentScriptIndex = newIndex;
                 await loadCurrentScriptData();
             }
@@ -618,7 +592,7 @@
         function updateNavigationButtons() {
             // Update the bottom navigation component
             if (window.updateBottomNavigation) {
-                window.updateBottomNavigation(currentScriptIndex, scriptsToReview.length);
+                window.updateBottomNavigation(currentScriptIndex, recordsToReview.length);
             }
         }
 
@@ -656,59 +630,42 @@
             // Use the bottom navigation component's auto-save
             if (window.bottomNav) {
                 window.bottomNav.startAutoSave(async () => {
-                    const scriptId = scriptsToReview[currentScriptIndex].script_id;
-                    const researchData = collectResearchData();
-                    await saveResearchData(scriptId, researchData);
-                    hasUnsavedChanges = false;
+                    if (hasUnsavedChanges && recordsToReview.length > 0) {
+                        try {
+                            const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
+                            const researchData = collectResearchData();
+                            await saveResearchData(scriptId, researchData);
+                            hasUnsavedChanges = false;
+                            if (window.setUnsavedChanges) {
+                                window.setUnsavedChanges(false);
+                            }
+                            updateStatus('saved', 'Auto-saved');
+                        } catch (error) {
+                            console.error('Auto-save failed:', error);
+                            updateStatus('error', 'Auto-save failed');
+                        }
+                    }
                 });
             }
         }
 
-        // Utility functions
-        function updateStatus(status, message) {
-            const statusIndicator = document.getElementById('statusIndicator');
-            if (statusIndicator) {
-                statusIndicator.textContent = message;
-                statusIndicator.className = `status-indicator ${status}`;
-            }
-        }
 
-        function showNoScriptsMessage() {
-            document.getElementById('content').style.display = 'none';
-            document.getElementById('noScriptsMessage').style.display = 'block';
-            document.getElementById('noScriptsMessage').innerHTML = `
-                <div class="message info">
-                    <strong>No scripts found</strong><br>
-                    There are no scripts ready for research (status_id = 12) at this time.
-                </div>
-            `;
-        }
 
         function handleInitializationError(error) {
             updateStatus('error', `Failed to load scripts: ${error.message}`);
-            
-            document.getElementById('noScriptsMessage').innerHTML = `
-                <div class="message error">
-                    <strong>Error loading scripts:</strong><br>
-                    ${error.message}<br><br>
-                    <small>Check the browser console (F12) for more details.</small>
-                </div>
-            `;
-            document.getElementById('content').style.display = 'none';
-            document.getElementById('noScriptsMessage').style.display = 'block';
+            showNoScriptsMessage(`Error loading scripts: ${error.message}`);
         }
-
-        // Initialize when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM loaded, starting Research Editor initialization...');
-            init().catch(error => {
-                console.error('Failed to initialize Research Editor:', error);
-            });
-        });
 
         // Make functions available globally for HTML onclick handlers
         window.saveScript = saveScript;
         window.navigateScript = navigateScript;
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            init().catch(error => {
+                console.error('Failed to initialize Research Editor:', error);
+            });
+        });
     </script>
 </body>
 </html>

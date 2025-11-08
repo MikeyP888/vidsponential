@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Scripts - Vidsponential</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+
+        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+
+    <!-- Supabase CDN -->
+    <script src="../../shared/js/theme-manager.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #fefefe 0%, #fdfdfd 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            margin-top: 40px;
+            position: relative;
+        }
+
+        .logo {
+            height: 29px;
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            margin: 0;
+            z-index: 1000;
+        }
+
+        .page-title {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        .page-subtitle {
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        /* Impact Stats */
+        .impact-banner {
+            background: linear-gradient(135deg, rgba(11, 230, 255, 0.1) 0%, rgba(175, 11, 255, 0.1) 100%);
+            border-radius: 24px;
+            padding: 48px;
+            margin-bottom: 48px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 32px;
+            text-align: center;
+        }
+
+        .impact-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .impact-value {
+            font-size: 56px;
+            font-weight: 700;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+
+        .impact-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 12px 32px;
+            font-size: 15px;
+            font-weight: 600;
+            border: 2px solid #e0e0e0;
+            border-radius: 24px;
+            background: white;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Script Cards Grid */
+        .scripts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 28px;
+            margin-bottom: 40px;
+        }
+
+        .script-card {
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.025);
+            border: 0.5px solid #e0e0e0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .script-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        }
+
+        .script-header {
+            background: linear-gradient(135deg, rgba(11, 230, 255, 0.1) 0%, rgba(175, 11, 255, 0.1) 100%);
+            padding: 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .script-number {
+            font-size: 12px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .script-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .script-keyword {
+            font-size: 13px;
+            color: #888;
+            font-style: italic;
+        }
+
+        .script-body {
+            padding: 24px;
+        }
+
+        .script-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .script-progress {
+            margin-bottom: 20px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            transition: width 0.5s ease;
+        }
+
+        .script-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-button {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .action-button:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .action-button.primary {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .action-button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .status-badge.completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.in-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #888;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-subtext {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            border-radius: 24px;
+            padding: 60px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .cta-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .cta-text {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 32px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 16px 48px;
+            font-size: 18px;
+            font-weight: 600;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 36px;
+            }
+
+            .impact-banner {
+                padding: 32px 20px;
+            }
+
+            .impact-value {
+                font-size: 40px;
+            }
+
+            .scripts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-section {
+                padding: 40px 20px;
+            }
+
+            .cta-title {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <img src="../../shared/assets/vidsponential logo.png" alt="Vidsponential" class="logo">
+            <h1 class="page-title">Your Script Library</h1>
+            <p class="page-subtitle">Professional YouTube scripts crafted for your success</p>
+        </div>
+
+        <!-- Impact Banner -->
+        <div class="impact-banner">
+            <div class="impact-grid">
+                <div class="impact-stat">
+                    <div class="impact-value" id="totalScriptsImpact">0</div>
+                    <div class="impact-label">Scripts Created</div>
+                </div>
+                <div class="impact-stat">
+                    <div class="impact-value" id="totalViewsImpact">0</div>
+                    <div class="impact-label">Total Views</div>
+                </div>
+                <div class="impact-stat">
+                    <div class="impact-value" id="avgRatingImpact">0</div>
+                    <div class="impact-label">Avg Rating</div>
+                </div>
+                <div class="impact-stat">
+                    <div class="impact-value" id="completionRate">0%</div>
+                    <div class="impact-label">Completion Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <button class="tab-button active" onclick="filterScripts('all')">All Scripts</button>
+            <button class="tab-button" onclick="filterScripts('completed')">Completed</button>
+            <button class="tab-button" onclick="filterScripts('in-progress')">In Progress</button>
+            <button class="tab-button" onclick="filterScripts('pending')">Pending</button>
+        </div>
+
+        <!-- Scripts Grid -->
+        <div class="scripts-grid" id="scriptsGrid">
+            <!-- Will be populated dynamically -->
+        </div>
+
+        <!-- CTA Section -->
+        <div class="cta-section">
+            <h2 class="cta-title">Ready for Your Next Script?</h2>
+            <p class="cta-text">Let's create content that resonates with your audience and drives real results</p>
+            <a href="order_script.html" class="cta-button">Order New Script</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const CLIENT_ID = 3; // Miguel's scripts
+        let allScripts = [];
+
+        // Initialize page
+        async function init() {
+            await loadScripts();
+            updateImpactStats();
+            renderScripts();
+        }
+
+        // Load scripts
+        async function loadScripts() {
+            try {
+                const { data, error } = await supabase
+                    .from('scripts')
+                    .select('*, html_page_config(*)')
+                    .eq('client_id', CLIENT_ID)
+                    .order('script_id', { ascending: false });
+
+                if (error) throw error;
+
+                allScripts = data || [];
+            } catch (error) {
+                console.error('Error loading scripts:', error);
+            }
+        }
+
+        // Update impact stats
+        function updateImpactStats() {
+            const total = allScripts.length;
+            const completed = allScripts.filter(s => getStatus(s) === 'completed').length;
+            const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            document.getElementById('totalScriptsImpact').textContent = total;
+            document.getElementById('totalViewsImpact').textContent = '2.4M';
+            document.getElementById('avgRatingImpact').textContent = '4.8';
+            document.getElementById('completionRate').textContent = completionRate + '%';
+        }
+
+        // Get script status
+        function getStatus(script) {
+            const configs = Array.isArray(script.html_page_config) ? script.html_page_config : [];
+            const completedCount = configs.filter(c => c.status === 'completed').length;
+            const totalCount = configs.length;
+
+            if (completedCount === 0) return 'pending';
+            if (completedCount < totalCount) return 'in-progress';
+            return 'completed';
+        }
+
+        // Get progress percentage
+        function getProgress(script) {
+            const configs = Array.isArray(script.html_page_config) ? script.html_page_config : [];
+            if (configs.length === 0) return 0;
+
+            const completedCount = configs.filter(c => c.status === 'completed').length;
+            return Math.round((completedCount / configs.length) * 100);
+        }
+
+        // Render scripts
+        function renderScripts(filter = 'all') {
+            const grid = document.getElementById('scriptsGrid');
+            grid.innerHTML = '';
+
+            let filteredScripts = allScripts;
+
+            if (filter !== 'all') {
+                filteredScripts = allScripts.filter(s => getStatus(s) === filter);
+            }
+
+            if (filteredScripts.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div class="empty-state-text">No scripts found</div>
+                        <div class="empty-state-subtext">Start by ordering your first script!</div>
+                    </div>
+                `;
+                return;
+            }
+
+            filteredScripts.forEach(script => {
+                const card = createScriptCard(script);
+                grid.appendChild(card);
+            });
+        }
+
+        // Create script card
+        function createScriptCard(script) {
+            const card = document.createElement('div');
+            card.className = 'script-card';
+
+            const status = getStatus(script);
+            const progress = getProgress(script);
+
+            // Generate mock stats
+            const views = Math.floor(Math.random() * 100000) + 10000;
+            const watchTime = `${Math.floor(Math.random() * 6) + 3}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
+            const engagement = Math.floor(Math.random() * 30) + 50;
+            const rating = (Math.random() * 1.5 + 3.5).toFixed(1);
+
+            const statusLabels = {
+                'completed': 'Completed',
+                'in-progress': 'In Progress',
+                'pending': 'Pending'
+            };
+
+            card.innerHTML = `
+                <div class="script-header">
+                    <div class="script-number">Script #${script.script_id}</div>
+                    <div class="script-title">${script.script_headline || 'Untitled Script'}</div>
+                    <div class="script-keyword">${script.primary_keyword || 'No keyword set'}</div>
+                </div>
+                <div class="script-body">
+                    <span class="status-badge ${status}">${statusLabels[status]}</span>
+
+                    <div class="script-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${views.toLocaleString()}</div>
+                            <div class="stat-label">Views</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${watchTime}</div>
+                            <div class="stat-label">Avg Watch</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${engagement}%</div>
+                            <div class="stat-label">Engagement</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${rating} ⭐</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                    </div>
+
+                    <div class="script-progress">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span>${progress}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="script-actions">
+                        <button class="action-button primary" onclick="viewScript(${script.script_id})">View Script</button>
+                        <button class="action-button" onclick="giveFeedback(${script.script_id})">Give Feedback</button>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Filter scripts (global function)
+        window.filterScripts = function(filter) {
+            // Update button states
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Render filtered scripts
+            renderScripts(filter);
+        };
+
+        // View script (global function)
+        window.viewScript = function(scriptId) {
+            window.location.href = `../editing-pages/story_details_v2.html?script=${scriptId}`;
+        };
+
+        // Give feedback (global function)
+        window.giveFeedback = function(scriptId) {
+            window.location.href = `../dashboards/client_feedback.html?script=${scriptId}`;
+        };
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

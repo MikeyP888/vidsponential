@@ -1,0 +1,117 @@
+<!-- RATING FIELD TEMPLATE -->
+<!-- Use this for any standalone rating box with label -->
+
+<!-- Rating + Label (vertical container) -->
+<div class="rating-container-template">
+    <label class="rating-label-template">Rating / 100:</label>
+    <div class="rating-field-template">
+        <input type="number" class="rating-input-template" min="1" max="100" value="">
+    </div>
+</div>
+
+<!-- CSS for Rating Field Template -->
+<style>
+/* Rating Container */
+.rating-container-template {
+    position: relative;
+    width: 100px;
+    height: auto;
+    border-radius: 0px 0px 0px 0px;
+    display: flex;
+    align-items: start;
+    align-content: stretch;
+    justify-content: end;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-self: end;
+}
+
+/* Rating Label */
+.rating-label-template {
+    width: 100%;
+    height: 21px !important;
+    flex-shrink: 0;
+    margin: 0px 0px 3px 0px !important;
+    align-self: start;
+    color: rgba(0, 0, 0, 1);
+    font-size: 14px;
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Rating Field Container */
+.rating-field-template {
+    position: relative;
+    width: 100%;
+    height: auto;
+    background: #FFFFFFFF;
+    border: 0.5px solid #5b5a5aFF;
+    border-radius: 8px 8px 8px 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: start;
+    align-content: stretch;
+    justify-content: start;
+    padding: 0px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    min-height: 59px !important;
+    align-self: start;
+}
+
+/* Rating Input Field */
+.rating-input-template {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 59px !important;
+    text-align: center !important;
+    text-align-last: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
+    text-indent: 0 !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: textfield !important;
+    appearance: none !important;
+    outline: none !important;
+    font-family: "Inter" !important;
+    font-size: 19px;
+    color: rgba(0, 0, 0, 1);
+    font-weight: 400;
+}
+
+/* Remove number input spinners */
+.rating-input-template::-webkit-outer-spin-button,
+.rating-input-template::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+</style>
+
+<!-- USAGE INSTRUCTIONS -->
+<!--
+To use this rating field template:
+
+1. Copy the HTML structure above
+2. Copy the CSS styles to your stylesheet
+3. Replace "template" with a unique identifier for your specific use case
+4. Add any data attributes you need (e.g., data-headline-id, data-chapter-id)
+5. Set up event listeners for input changes
+6. The field will automatically be 59px height to match text fields when they have 0-1 lines
+
+Example usage:
+<div class="headline-rating-container">
+    <label class="headline-rating-label">Rating / 100:</label>
+    <div class="headline-rating-field">
+        <input type="number" class="headline-rating-input" data-headline-id="123" min="1" max="100" value="85">
+    </div>
+</div>
+-->

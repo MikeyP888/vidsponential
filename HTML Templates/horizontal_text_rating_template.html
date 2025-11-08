@@ -1,0 +1,232 @@
+<!-- HORIZONTAL TEXT + RATING CONTAINER TEMPLATE -->
+<!-- Use this for any text field with rating field side by side -->
+
+<!-- Horizontal Container (Text + Rating) -->
+<div class="horizontal-text-rating-template">
+    <!-- Text + Label (vertical container) -->
+    <div class="text-container-template">
+        <label class="text-label-template">Text Field Label:</label>
+        <div class="text-field-template">
+            <textarea class="text-input-template" placeholder="Enter text..."></textarea>
+        </div>
+    </div>
+    
+    <!-- Rating + Label (vertical container) -->
+    <div class="rating-container-template">
+        <label class="rating-label-template">Rating / 100:</label>
+        <div class="rating-field-template">
+            <input type="number" class="rating-input-template" min="1" max="100" value="">
+        </div>
+    </div>
+</div>
+
+<!-- CSS for Horizontal Text + Rating Template -->
+<style>
+/* Horizontal Container */
+.horizontal-text-rating-template {
+    position: relative;
+    width: 100%;
+    height: auto;
+    border-radius: 0px 0px 0px 0px;
+    display: flex;
+    align-items: flex-end;
+    align-content: stretch;
+    justify-content: start;
+    gap: 10px !important;
+    padding: 8px 0px 0px 0px !important;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-self: center;
+}
+
+/* Text Container */
+.text-container-template {
+    position: relative;
+    width: calc(100% - 110px);
+    height: auto;
+    border-radius: 0px 0px 0px 0px;
+    display: flex;
+    align-items: end;
+    align-content: stretch;
+    justify-content: end;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-self: end;
+}
+
+/* Text Label */
+.text-label-template {
+    width: 100%;
+    height: 21px !important;
+    flex-shrink: 0;
+    margin: 0px 0px 3px 0px !important;
+    align-self: start;
+    color: rgba(0, 0, 0, 1);
+    font-size: 14px;
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 600;
+    text-align: left;
+}
+
+/* Text Field Container */
+.text-field-template {
+    position: relative;
+    width: 100%;
+    height: auto;
+    background: #FFFFFFFF;
+    border: 0.5px solid #5b5a5aFF;
+    border-radius: 8px 8px 8px 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: start;
+    align-content: stretch;
+    justify-content: start;
+    padding: 0px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    min-height: 59px !important;
+    align-self: start;
+}
+
+/* Text Input Field */
+.text-input-template {
+    width: 100%;
+    height: auto;
+    flex-shrink: 0;
+    margin: 0px;
+    color: rgba(0, 0, 0, 1);
+    font-size: 19px;
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 400;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.6;
+    padding: 15px;
+    min-height: 59px !important;
+    box-sizing: border-box;
+}
+
+/* Rating Container */
+.rating-container-template {
+    position: relative;
+    width: 100px;
+    height: auto;
+    border-radius: 0px 0px 0px 0px;
+    display: flex;
+    align-items: start;
+    align-content: stretch;
+    justify-content: end;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-self: end;
+}
+
+/* Rating Label */
+.rating-label-template {
+    width: 100%;
+    height: 21px !important;
+    flex-shrink: 0;
+    margin: 0px 0px 3px 0px !important;
+    align-self: start;
+    color: rgba(0, 0, 0, 1);
+    font-size: 14px;
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Rating Field Container */
+.rating-field-template {
+    position: relative;
+    width: 100%;
+    height: auto;
+    background: #FFFFFFFF;
+    border: 0.5px solid #5b5a5aFF;
+    border-radius: 8px 8px 8px 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: start;
+    align-content: stretch;
+    justify-content: start;
+    padding: 0px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    min-height: 59px !important;
+    align-self: start;
+}
+
+/* Rating Input Field */
+.rating-input-template {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 59px !important;
+    text-align: center !important;
+    text-align-last: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
+    text-indent: 0 !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: textfield !important;
+    appearance: none !important;
+    outline: none !important;
+    font-family: "Inter" !important;
+    font-size: 19px;
+    color: rgba(0, 0, 0, 1);
+    font-weight: 400;
+}
+
+/* Remove number input spinners */
+.rating-input-template::-webkit-outer-spin-button,
+.rating-input-template::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+</style>
+
+<!-- USAGE INSTRUCTIONS -->
+<!--
+To use this horizontal text + rating template:
+
+1. Copy the HTML structure above
+2. Copy the CSS styles to your stylesheet
+3. Replace "template" with a unique identifier for your specific use case
+4. Update the label text as needed
+5. Add any data attributes you need
+6. Set up event listeners for input changes
+7. Add auto-resize functionality for the textarea if needed
+
+Key Features:
+- Text field automatically matches rating field height (59px) when content is short
+- Rating field is exactly 100px + 10px gap
+- Both fields have consistent styling and spacing
+- Works perfectly for headline options or any text + rating combinations
+
+Example usage for headlines:
+<div class="headline-horizontal-container">
+    <div class="headline-text-container">
+        <label class="headline-text-label">Headline_id: 123</label>
+        <div class="headline-text-field">
+            <textarea class="headline-text-input" data-headline-id="123">Sample headline text</textarea>
+        </div>
+    </div>
+    <div class="headline-rating-container">
+        <label class="headline-rating-label">Rating / 100:</label>
+        <div class="headline-rating-field">
+            <input type="number" class="headline-rating-input" data-headline-id="123" min="1" max="100" value="85">
+        </div>
+    </div>
+</div>
+-->
