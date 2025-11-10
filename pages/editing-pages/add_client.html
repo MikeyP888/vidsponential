@@ -298,14 +298,6 @@
                         <label class="form-label" for="clientSource">Source</label>
                         <input type="text" class="form-input" id="clientSource" placeholder="How did you find this client?" value="upwork">
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="exampleClient">Example Client for Dynamic Examples</label>
-                        <select class="form-select" id="exampleClient">
-                            <option value="">No example client</option>
-                            <!-- Options will be populated from database -->
-                        </select>
-                    </div>
                 </div>
 
                 <div class="form-group">
@@ -380,14 +372,6 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="editExampleClient">Example Client for Dynamic Examples</label>
-                    <select class="form-select" id="editExampleClient">
-                        <option value="">No example client</option>
-                        <!-- Options will be populated from database -->
-                    </select>
-                </div>
-
-                <div class="form-group">
                     <label class="form-label" for="editStatus">Client Status</label>
                     <select class="form-select" id="editStatus">
                         <!-- Options will be populated from database -->
@@ -423,7 +407,6 @@
             loadStatistics();
             loadActiveClients();
             loadClientStatuses();
-            loadExampleClients();
         });
         
         // Add new client
@@ -435,7 +418,6 @@
             const company = document.getElementById('clientCompany').value.trim();
             const source = document.getElementById('clientSource').value.trim();
             const notes = document.getElementById('clientNotes').value.trim();
-            const exampleClientId = document.getElementById('exampleClient').value;
 
             if (!firstName || !lastName) {
                 alert('Please enter both first name and last name');
@@ -457,11 +439,6 @@
                     created_at: new Date().toISOString()
                 };
 
-                // Only add example_client_id if a value is selected
-                if (exampleClientId) {
-                    clientData.example_client_id = parseInt(exampleClientId);
-                }
-
                 const { data, error } = await supabase
                     .from('clients')
                     .insert([clientData]);
@@ -476,7 +453,6 @@
                 document.getElementById('clientCompany').value = '';
                 document.getElementById('clientSource').value = 'upwork';
                 document.getElementById('clientNotes').value = '';
-                document.getElementById('exampleClient').value = '';
 
                 // Update status
                 updateStatus('saved', 'Client added successfully!');
@@ -487,7 +463,6 @@
                 // Reload statistics and client list
                 loadStatistics();
                 loadActiveClients();
-                loadExampleClients(); // Reload to include new client in dropdown
 
             } catch (error) {
                 console.error('Error adding client:', error);
@@ -599,41 +574,6 @@
             }
         }
 
-        // Load example clients for dropdown
-        async function loadExampleClients() {
-            try {
-                const { data: clients, error } = await supabase
-                    .from('clients')
-                    .select('client_id, client_full_name')
-                    .order('client_full_name');
-
-                if (error) throw error;
-
-                const exampleClientSelect = document.getElementById('exampleClient');
-                const editExampleClientSelect = document.getElementById('editExampleClient');
-
-                // Clear and populate both dropdowns
-                [exampleClientSelect, editExampleClientSelect].forEach(select => {
-                    // Keep the first "No example client" option and remove the rest
-                    while (select.options.length > 1) {
-                        select.remove(1);
-                    }
-
-                    if (clients) {
-                        clients.forEach(client => {
-                            const option = document.createElement('option');
-                            option.value = client.client_id;
-                            option.textContent = client.client_full_name || 'Unnamed Client';
-                            select.appendChild(option);
-                        });
-                    }
-                });
-
-            } catch (error) {
-                console.error('Error loading example clients:', error);
-            }
-        }
-        
         // Edit client
         async function editClient(clientId) {
             try {
@@ -655,7 +595,6 @@
                     document.getElementById('editEmail').value = client.client_email || '';
                     document.getElementById('editCompany').value = client.company_name || '';
                     document.getElementById('editSource').value = client.client_source || '';
-                    document.getElementById('editExampleClient').value = client.example_client_id || '';
                     document.getElementById('editStatus').value = client.client_status_id || 1;
                     document.getElementById('editNotes').value = client.client_notes || '';
 
@@ -673,8 +612,6 @@
             if (!currentEditingClientId) return;
 
             try {
-                const exampleClientId = document.getElementById('editExampleClient').value;
-
                 const updateData = {
                     client_first_name: document.getElementById('editFirstName').value.trim(),
                     client_last_name: document.getElementById('editLastName').value.trim(),
@@ -686,13 +623,6 @@
                     client_notes: document.getElementById('editNotes').value.trim()
                 };
 
-                // Only add example_client_id if a value is selected, otherwise set to null
-                if (exampleClientId) {
-                    updateData.example_client_id = parseInt(exampleClientId);
-                } else {
-                    updateData.example_client_id = null;
-                }
-
                 const { error } = await supabase
                     .from('clients')
                     .update(updateData)
@@ -703,7 +633,6 @@
                 closeModal();
                 loadStatistics();
                 loadActiveClients();
-                loadExampleClients(); // Reload in case full name changed
 
                 updateStatus('saved', 'Client updated successfully!');
                 setTimeout(() => {
