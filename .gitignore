@@ -8,6 +8,14 @@
 # Node
 node_modules/
 
+# Next.js
+.next/
+out/
+.vercel
+
+# Environment variables
+.env*.local
+
 # Backup/Archive
 archive/
 backups/
