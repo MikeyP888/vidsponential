@@ -1,19 +1,4 @@
 {
-  "buildCommand": "echo 'No build needed - static site'",
-  "outputDirectory": ".",
-  "rewrites": [
-    { "source": "/", "destination": "/pages/home.html" },
-    { "source": "/(.*)", "destination": "/$1" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    }
-  ]
+  "buildCommand": "npm run build",
+  "framework": "nextjs"
 }

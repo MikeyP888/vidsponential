@@ -8,6 +8,13 @@
 # Node
 node_modules/
 
+# Next.js
+.next/
+out/
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+
 # Backup/Archive
 archive/
 backups/
