@@ -21,7 +21,7 @@ archive/
 backups/
 
 # Local dev configs
-supabase/
+/supabase/
 cors_server.py
 
 # Build scripts
