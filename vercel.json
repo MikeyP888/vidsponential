@@ -1,11 +1,11 @@
 {
   "buildCommand": "echo 'No build needed - static site'",
   "outputDirectory": ".",
+  "cleanUrls": true,
   "rewrites": [
     { "source": "/", "destination": "/pages/home.html" },
     { "source": "/privacy-policy", "destination": "/pages/marketing/privacy-policy.html" },
-    { "source": "/terms-and-conditions", "destination": "/pages/marketing/terms-and-conditions.html" },
-    { "source": "/(.*)", "destination": "/$1" }
+    { "source": "/terms-and-conditions", "destination": "/pages/marketing/terms-and-conditions.html" }
   ],
   "headers": [
     {
