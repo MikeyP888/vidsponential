@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // No custom config - let Vercel handle Next.js 15 deployment
+  // Ensure proper build output for Vercel with middleware
+  experimental: {
+    // This ensures routes-manifest.json is generated
+    instrumentationHook: true,
+  },
 }
 
 module.exports = nextConfig
