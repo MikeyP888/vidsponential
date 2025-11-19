@@ -14,25 +14,35 @@ interface TrendingVideo {
 }
 
 export default async function Dashboard() {
-  const supabase = await createClient()
+  let user = null
+  let videos = null
+  let error = null
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.auth.getUser()
+    user = data.user
 
-  if (!user) {
+    if (!user) {
+      redirect('/')
+    }
+
+    // Fetch trending videos from the view
+    const result = await supabase
+      .from('youtube_client_trending_dashboard')
+      .select('*')
+      .order('trending_score', { ascending: false })
+      .limit(50)
+
+    videos = result.data
+    error = result.error
+
+    if (error) {
+      console.error('Error fetching trending videos:', error)
+    }
+  } catch (err) {
+    console.error('Dashboard error:', err)
     redirect('/')
-  }
-
-  // Fetch trending videos from the view
-  const { data: videos, error } = await supabase
-    .from('youtube_client_trending_dashboard')
-    .select('*')
-    .order('trending_score', { ascending: false })
-    .limit(50)
-
-  if (error) {
-    console.error('Error fetching trending videos:', error)
   }
 
   return (

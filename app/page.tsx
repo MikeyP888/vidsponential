@@ -3,14 +3,19 @@ import { redirect } from 'next/navigation'
 import GoogleSignIn from './components/GoogleSignIn'
 
 export default async function Home() {
-  const supabase = await createClient()
+  let user = null
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.auth.getUser()
+    user = data.user
 
-  if (user) {
-    redirect('/dashboard')
+    if (user) {
+      redirect('/dashboard')
+    }
+  } catch (error) {
+    console.error('Error fetching user:', error)
+    // Continue to render login page if there's an error
   }
 
   return (
