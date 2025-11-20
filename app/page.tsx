@@ -1,23 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
-import GoogleSignIn from './components/GoogleSignIn'
-
-export default async function Home() {
-  let user = null
-
-  try {
-    const supabase = await createClient()
-    const { data } = await supabase.auth.getUser()
-    user = data.user
-
-    if (user) {
-      redirect('/dashboard')
-    }
-  } catch (error) {
-    console.error('Error fetching user:', error)
-    // Continue to render login page if there's an error
-  }
-
+export default function Home() {
   return (
     <main className="min-h-screen gradient-bg flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 max-w-md w-full">
@@ -28,7 +9,12 @@ export default async function Home() {
           <p className="text-gray-600 mb-8">
             YouTube Trending Dashboard
           </p>
-          <GoogleSignIn />
+          <a
+            href="/api/auth/google"
+            className="block w-full gradient-bg text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-lg text-center"
+          >
+            Login with Google
+          </a>
         </div>
       </div>
     </main>
