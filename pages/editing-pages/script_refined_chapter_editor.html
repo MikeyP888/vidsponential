@@ -242,7 +242,7 @@
                 for (const chapter of chapterData) {
                     const ratings = await loadRatings('chapters', chapter.chapter_id, [
                         'chapter_headline',
-                        'chapter_text'
+                        'chapter_text_final'
                     ]);
                     chapterRatings[chapter.chapter_id] = ratings;
                 }
@@ -396,9 +396,9 @@
                                     <textarea class="text-field-multi__input"
                                              id="chapter_text_${chapter.chapter_id}"
                                              data-chapter-id="${chapter.chapter_id}"
-                                             data-field="chapter_text"
+                                             data-field="chapter_text_final"
                                              style="min-height: 500px; height: 500px;"
-                                             placeholder="Enter chapter content...">${chapter.chapter_text || ''}</textarea>
+                                             placeholder="Enter chapter content...">${chapter.chapter_text_final || ''}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -431,8 +431,8 @@
                     if (headlineRatingEl && ratings.chapter_headline) {
                         headlineRatingEl.value = ratings.chapter_headline;
                     }
-                    if (textRatingEl && ratings.chapter_text) {
-                        textRatingEl.value = ratings.chapter_text;
+                    if (textRatingEl && ratings.chapter_text_final) {
+                        textRatingEl.value = ratings.chapter_text_final;
                     }
                 }
             });
@@ -565,12 +565,12 @@
                     if (field.value) {
                         ratingsByChapter[chapterId].chapter_headline = parseInt(field.value);
                     }
-                } else if (fieldType === 'chapter_text') {
-                    updatesByChapter[chapterId].chapter_text = field.value;
+                } else if (fieldType === 'chapter_text_final') {
+                    updatesByChapter[chapterId].chapter_text_final = field.value;
                 } else if (fieldType === 'chapter_text_rating') {
-                    // Collect rating separately (this is for chapter_text content)
+                    // Collect rating separately (this is for chapter_text_final content)
                     if (field.value) {
-                        ratingsByChapter[chapterId].chapter_text = parseInt(field.value);
+                        ratingsByChapter[chapterId].chapter_text_final = parseInt(field.value);
                     }
                 }
             });
