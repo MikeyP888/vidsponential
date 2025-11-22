@@ -129,7 +129,7 @@
         /* Main Stats */
         .main-stats {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 16px;
             margin-bottom: 24px;
         }
@@ -147,12 +147,6 @@
         }
 
         .stat-card.scripts {
-            background: linear-gradient(135deg, #00E676 0%, #26EA8B 100%);
-            color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-
-        .stat-card.clients {
             background: linear-gradient(135deg, #448AFF 0%, #609CFF 100%);
             color: white;
             text-shadow: 0 1px 2px rgba(0,0,0,0.2);
@@ -165,7 +159,7 @@
         }
 
         .stat-card.hours {
-            background: linear-gradient(135deg, #FFD740 0%, #FFDD5D 100%);
+            background: linear-gradient(135deg, #00E676 0%, #26EA8B 100%);
             color: white;
             text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
@@ -332,17 +326,19 @@
             padding: 4px 0;
         }
 
-        @media (max-width: 1200px) {
+        @media (max-width: 1024px) {
             .main-stats {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 600px) {
             .main-stats {
                 grid-template-columns: 1fr;
             }
+        }
 
+        @media (max-width: 768px) {
             .dashboard-container {
                 padding: 20px;
             }
@@ -421,15 +417,6 @@
                 <div class="stat-value" id="scriptsValue">--</div>
                 <div class="stat-comparison" id="scriptsComparison">Loading...</div>
                 <div class="historical-list" id="scriptsHistory">
-                    <!-- Historical data will be populated here -->
-                </div>
-            </div>
-
-            <div class="stat-card clients">
-                <div class="stat-label">New Clients</div>
-                <div class="stat-value" id="clientsValue">--</div>
-                <div class="stat-comparison" id="clientsComparison">Loading...</div>
-                <div class="historical-list" id="clientsHistory">
                     <!-- Historical data will be populated here -->
                 </div>
             </div>
@@ -709,20 +696,11 @@
             };
 
             const avgScripts = calculateAverage(historicalData, 'scripts_completed');
-            const avgClients = calculateAverage(historicalData, 'new_clients');
             const avgCash = calculateAverage(historicalData, 'cash_received');
             const avgHours = calculateAverage(historicalData, 'total_hours');
 
             if (data && data.current_period) {
                 const current = data.current_period;
-
-                // Update scripts completed
-                document.getElementById('scriptsValue').textContent = current.scripts_completed || 0;
-                document.getElementById('scriptsComparison').textContent = `${period.comparison}: ${avgScripts.toFixed(1)}`;
-
-                // Update new clients
-                document.getElementById('clientsValue').textContent = current.new_clients || 0;
-                document.getElementById('clientsComparison').textContent = `${period.comparison}: ${avgClients.toFixed(1)}`;
 
                 // Update cash received
                 const cashReceived = current.cash_received || 0;
@@ -733,6 +711,10 @@
                 const totalHours = current.hours ? current.hours.total : 0;
                 document.getElementById('hoursValue').textContent = totalHours.toFixed(1);
                 document.getElementById('hoursComparison').textContent = `${period.comparison}: ${avgHours.toFixed(1)}`;
+
+                // Update scripts completed
+                document.getElementById('scriptsValue').textContent = current.scripts_completed || 0;
+                document.getElementById('scriptsComparison').textContent = `${period.comparison}: ${avgScripts.toFixed(1)}`;
 
                 // Update content metrics
                 document.getElementById('socialPosts').textContent = current.social_posts || 0;
@@ -761,10 +743,9 @@
                 }
             }
 
-            await populateHistoricalList('scriptsHistory', historicalData, 'scripts_completed');
-            await populateHistoricalList('clientsHistory', historicalData, 'new_clients');
             await populateHistoricalList('cashHistory', historicalData, 'cash_received', (val) => `$${(val || 0).toLocaleString()}`);
             await populateHistoricalList('hoursHistory', historicalData, 'total_hours', (val) => (val || 0).toFixed(1));
+            await populateHistoricalList('scriptsHistory', historicalData, 'scripts_completed');
         }
 
         // Period button handlers
