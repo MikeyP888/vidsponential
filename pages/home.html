@@ -495,11 +495,11 @@
 
         // Period definitions
         const periods = {
-            day: { label: 'Day', comparison: 'Yesterday' },
-            week: { label: 'Week', comparison: 'Last week' },
-            month: { label: 'Month', comparison: 'Last month' },
-            quarter: { label: 'Quarter', comparison: 'Last quarter' },
-            year: { label: 'Year', comparison: 'Last year' }
+            day: { label: 'Day', comparison: 'Average Last 7 Days' },
+            week: { label: 'Week', comparison: 'Average Last 7 Weeks' },
+            month: { label: 'Month', comparison: 'Average Last 7 Months' },
+            quarter: { label: 'Quarter', comparison: 'Average Last 7 Quarters' },
+            year: { label: 'Year', comparison: 'Average Last 7 Years' }
         };
 
         // Format date range for display
@@ -681,26 +681,54 @@
             // Fetch current period data from Supabase
             const data = await fetchDashboardData();
 
+            // Fetch and populate historical data for all 4 metrics
+            const historicalData = await fetchHistoricalData();
+
+            // Calculate averages from the last 7 periods (excluding current period at index 0)
+            const calculateAverage = (historicalData, field) => {
+                if (!historicalData || historicalData.length < 2) return 0;
+
+                // Skip index 0 (current period), take the next 7 periods
+                const last7 = historicalData.slice(1, 8);
+
+                const sum = last7.reduce((total, item) => {
+                    let value = 0;
+                    if (field === 'total_hours') {
+                        value = item.data?.hours?.total || 0;
+                    } else {
+                        value = item.data?.[field] || 0;
+                    }
+                    return total + value;
+                }, 0);
+
+                return sum / Math.min(last7.length, 7);
+            };
+
+            const avgScripts = calculateAverage(historicalData, 'scripts_completed');
+            const avgClients = calculateAverage(historicalData, 'new_clients');
+            const avgCash = calculateAverage(historicalData, 'cash_received');
+            const avgHours = calculateAverage(historicalData, 'total_hours');
+
             if (data && data.current_period) {
                 const current = data.current_period;
 
                 // Update scripts completed
                 document.getElementById('scriptsValue').textContent = current.scripts_completed || 0;
-                document.getElementById('scriptsComparison').textContent = `${period.comparison}: --`;
+                document.getElementById('scriptsComparison').textContent = `${period.comparison}: ${avgScripts.toFixed(1)}`;
 
                 // Update new clients
                 document.getElementById('clientsValue').textContent = current.new_clients || 0;
-                document.getElementById('clientsComparison').textContent = `${period.comparison}: --`;
+                document.getElementById('clientsComparison').textContent = `${period.comparison}: ${avgClients.toFixed(1)}`;
 
                 // Update cash received
                 const cashReceived = current.cash_received || 0;
                 document.getElementById('cashValue').textContent = `$${cashReceived.toLocaleString()}`;
-                document.getElementById('cashComparison').textContent = `${period.comparison}: --`;
+                document.getElementById('cashComparison').textContent = `${period.comparison}: $${avgCash.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
 
                 // Update hours worked (total)
                 const totalHours = current.hours ? current.hours.total : 0;
                 document.getElementById('hoursValue').textContent = totalHours.toFixed(1);
-                document.getElementById('hoursComparison').textContent = `${period.comparison}: --`;
+                document.getElementById('hoursComparison').textContent = `${period.comparison}: ${avgHours.toFixed(1)}`;
 
                 // Update content metrics
                 document.getElementById('socialPosts').textContent = current.social_posts || 0;
@@ -729,8 +757,6 @@
                 }
             }
 
-            // Fetch and populate historical data for all 4 metrics
-            const historicalData = await fetchHistoricalData();
             await populateHistoricalList('scriptsHistory', historicalData, 'scripts_completed');
             await populateHistoricalList('clientsHistory', historicalData, 'new_clients');
             await populateHistoricalList('cashHistory', historicalData, 'cash_received', (val) => `$${(val || 0).toLocaleString()}`);
