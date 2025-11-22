@@ -129,9 +129,9 @@
         /* Main Stats */
         .main-stats {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
         .stat-card {
@@ -147,116 +147,86 @@
         }
 
         .stat-card.scripts {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
             color: white;
         }
 
         .stat-card.clients {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(135deg, #5CB85C 0%, #449D44 100%);
+            color: white;
+        }
+
+        .stat-card.cash {
+            background: linear-gradient(135deg, #F0AD4E 0%, #EC971F 100%);
+            color: white;
+        }
+
+        .stat-card.hours {
+            background: linear-gradient(135deg, #D9534F 0%, #C9302C 100%);
             color: white;
         }
 
         .stat-label {
-            font-size: 13px;
-            font-weight: 500;
-            opacity: 0.9;
+            font-size: 11px;
+            font-weight: 600;
+            opacity: 0.95;
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .stat-value {
-            font-size: 40px;
+            font-size: 32px;
             font-weight: 700;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             line-height: 1;
         }
 
         .stat-comparison {
-            font-size: 12px;
+            font-size: 11px;
             opacity: 0.85;
         }
 
-        /* Hours Worked Section */
-        .hours-section {
+        /* Historical Data List */
+        .historical-list {
             background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-        }
-
-        .hours-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #e0e0e0;
-        }
-
-        .hours-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-        }
-
-        .hours-card {
-            background: #f8f9fa;
             border-radius: 8px;
-            padding: 16px;
-            text-align: center;
-            border: 2px solid transparent;
-            transition: all 0.2s ease;
+            margin-top: 12px;
+            padding: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        .hours-card:hover {
-            border-color: #3498db;
-            background: #f0f8ff;
+        .historical-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            background: #f8f9fa;
+            transition: background 0.2s ease;
         }
 
-        .hours-category {
-            font-size: 11px;
-            font-weight: 600;
-            color: #666;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .historical-item:last-child {
+            margin-bottom: 0;
         }
 
-        .hours-value {
-            font-size: 32px;
+        .historical-item:hover {
+            background: #e9ecef;
+        }
+
+        .historical-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .historical-value {
+            font-size: 14px;
             font-weight: 700;
             color: #2c3e50;
-            margin-bottom: 4px;
         }
 
-        .hours-label {
-            font-size: 12px;
-            color: #888;
-        }
-
-        .total-hours {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 2px solid #e0e0e0;
-            text-align: center;
-        }
-
-        .total-hours-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #666;
-            margin-bottom: 6px;
-        }
-
-        .total-hours-value {
-            font-size: 28px;
-            font-weight: 700;
-            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
 
         /* Section Titles */
         .section-title-header {
@@ -358,17 +328,17 @@
             padding: 4px 0;
         }
 
-        @media (max-width: 1024px) {
+        @media (max-width: 1200px) {
             .main-stats {
-                grid-template-columns: 1fr;
-            }
-
-            .hours-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
 
         @media (max-width: 768px) {
+            .main-stats {
+                grid-template-columns: 1fr;
+            }
+
             .dashboard-container {
                 padding: 20px;
             }
@@ -383,15 +353,7 @@
             }
 
             .stat-value {
-                font-size: 42px;
-            }
-
-            .hours-value {
-                font-size: 36px;
-            }
-
-            .hours-grid {
-                grid-template-columns: 1fr;
+                font-size: 28px;
             }
         }
     </style>
@@ -436,47 +398,36 @@
                 <div class="stat-label">Scripts Completed</div>
                 <div class="stat-value" id="scriptsValue">--</div>
                 <div class="stat-comparison" id="scriptsComparison">Loading...</div>
+                <div class="historical-list" id="scriptsHistory">
+                    <!-- Historical data will be populated here -->
+                </div>
             </div>
 
             <div class="stat-card clients">
                 <div class="stat-label">New Clients</div>
                 <div class="stat-value" id="clientsValue">--</div>
                 <div class="stat-comparison" id="clientsComparison">Loading...</div>
-            </div>
-        </div>
-
-        <!-- Hours Worked -->
-        <div class="hours-section">
-            <h2 class="hours-title">Hours Worked</h2>
-            <div class="hours-grid">
-                <div class="hours-card">
-                    <div class="hours-category">Getting & Doing Jobs</div>
-                    <div class="hours-value" id="hoursJobs">--</div>
-                    <div class="hours-label">hours</div>
-                </div>
-
-                <div class="hours-card">
-                    <div class="hours-category">Automating</div>
-                    <div class="hours-value" id="hoursAutomating">--</div>
-                    <div class="hours-label">hours</div>
-                </div>
-
-                <div class="hours-card">
-                    <div class="hours-category">Misc Work</div>
-                    <div class="hours-value" id="hoursMisc">--</div>
-                    <div class="hours-label">hours</div>
-                </div>
-
-                <div class="hours-card">
-                    <div class="hours-category">Claude Code</div>
-                    <div class="hours-value" id="hoursClaudeCode">--</div>
-                    <div class="hours-label">hours</div>
+                <div class="historical-list" id="clientsHistory">
+                    <!-- Historical data will be populated here -->
                 </div>
             </div>
 
-            <div class="total-hours">
-                <div class="total-hours-label">TOTAL HOURS</div>
-                <div class="total-hours-value" id="totalHours">--</div>
+            <div class="stat-card cash">
+                <div class="stat-label">Cash Received</div>
+                <div class="stat-value" id="cashValue">--</div>
+                <div class="stat-comparison" id="cashComparison">Loading...</div>
+                <div class="historical-list" id="cashHistory">
+                    <!-- Historical data will be populated here -->
+                </div>
+            </div>
+
+            <div class="stat-card hours">
+                <div class="stat-label">Hours Worked</div>
+                <div class="stat-value" id="hoursValue">--</div>
+                <div class="stat-comparison" id="hoursComparison">Loading...</div>
+                <div class="historical-list" id="hoursHistory">
+                    <!-- Historical data will be populated here -->
+                </div>
             </div>
         </div>
 
@@ -555,6 +506,8 @@
         function formatDateRange(periodType, offset = 0) {
             const now = new Date();
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const fullMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
             let start, end;
 
@@ -593,13 +546,50 @@
             }
         }
 
+        // Format label for historical list items
+        function formatHistoricalLabel(periodType, offset = 0) {
+            const now = new Date();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const fullMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            let start;
+
+            switch(periodType) {
+                case 'day':
+                    start = new Date(now);
+                    start.setDate(start.getDate() + offset);
+                    return `${days[start.getDay()]} ${months[start.getMonth()]} ${start.getDate()}`;
+
+                case 'week':
+                    start = new Date(now);
+                    const dayOfWeek = start.getDay();
+                    const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                    start.setDate(start.getDate() + daysToMonday + (offset * 7));
+                    return `Week of ${months[start.getMonth()]} ${start.getDate()}`;
+
+                case 'month':
+                    start = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+                    return `${fullMonths[start.getMonth()]}`;
+
+                case 'quarter':
+                    const quarterMonth = Math.floor(now.getMonth() / 3) * 3 + (offset * 3);
+                    start = new Date(now.getFullYear(), quarterMonth, 1);
+                    const quarter = Math.floor(start.getMonth() / 3) + 1;
+                    return `Q${quarter} ${start.getFullYear()}`;
+
+                case 'year':
+                    return `${now.getFullYear() + offset}`;
+            }
+        }
+
         // Fetch dashboard data from Supabase
         async function fetchDashboardData() {
             try {
                 const { data, error } = await supabase.rpc('get_dashboard_metrics', {
                     period_type: currentPeriodType,
                     period_offset: currentOffset,
-                    num_periods_for_graph: 10
+                    num_periods_for_graph: 7
                 });
 
                 if (error) throw error;
@@ -609,6 +599,32 @@
                 console.error('Error fetching dashboard data:', error);
                 return null;
             }
+        }
+
+        // Populate historical list
+        function populateHistoricalList(containerId, data, field, formatValue = (val) => val || 0) {
+            const container = document.getElementById(containerId);
+            if (!container || !data || !data.historical_periods) {
+                if (container) container.innerHTML = '<div class="historical-item"><div class="historical-label">No data</div></div>';
+                return;
+            }
+
+            const historicalData = data.historical_periods.slice(0, 7);
+
+            const html = historicalData.map((period, index) => {
+                const offset = currentOffset - (historicalData.length - 1) + index;
+                const label = formatHistoricalLabel(currentPeriodType, offset);
+                const value = formatValue(period[field]);
+
+                return `
+                    <div class="historical-item">
+                        <div class="historical-label">${label}</div>
+                        <div class="historical-value">${value}</div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
         }
 
         // Update dashboard with data
@@ -643,14 +659,21 @@
                 document.getElementById('clientsValue').textContent = current.new_clients || 0;
                 document.getElementById('clientsComparison').textContent = `${period.comparison}: --`;
 
-                // Update hours worked
-                if (current.hours) {
-                    document.getElementById('hoursJobs').textContent = current.hours.getting_doing_jobs.toFixed(1);
-                    document.getElementById('hoursAutomating').textContent = current.hours.automating.toFixed(1);
-                    document.getElementById('hoursMisc').textContent = current.hours.misc_work.toFixed(1);
-                    document.getElementById('hoursClaudeCode').textContent = current.hours.claude_code.toFixed(1);
-                    document.getElementById('totalHours').textContent = current.hours.total.toFixed(1);
-                }
+                // Update cash received
+                const cashReceived = current.cash_received || 0;
+                document.getElementById('cashValue').textContent = `$${cashReceived.toLocaleString()}`;
+                document.getElementById('cashComparison').textContent = `${period.comparison}: --`;
+
+                // Update hours worked (total)
+                const totalHours = current.hours ? current.hours.total : 0;
+                document.getElementById('hoursValue').textContent = totalHours.toFixed(1);
+                document.getElementById('hoursComparison').textContent = `${period.comparison}: --`;
+
+                // Populate historical lists
+                populateHistoricalList('scriptsHistory', data, 'scripts_completed');
+                populateHistoricalList('clientsHistory', data, 'new_clients');
+                populateHistoricalList('cashHistory', data, 'cash_received', (val) => `$${(val || 0).toLocaleString()}`);
+                populateHistoricalList('hoursHistory', data, 'total_hours', (val) => (val || 0).toFixed(1));
 
                 // Update content metrics
                 document.getElementById('socialPosts').textContent = current.social_posts || 0;
