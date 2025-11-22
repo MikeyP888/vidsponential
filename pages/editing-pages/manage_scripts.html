@@ -56,13 +56,39 @@
             font-size: 14px;
             min-width: 150px;
         }
-        
+
         .search-input {
             padding: 8px 12px;
             border: 0.5px solid #5b5a5a;
             border-radius: 6px;
             font-size: 14px;
             width: 300px;
+        }
+
+        .active-status-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .status-filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: "Tahoma", sans-serif;
+        }
+
+        .status-filter-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .status-filter-btn.active {
+            background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            color: white;
+            border: none;
         }
         
         .scripts-table {
@@ -417,7 +443,16 @@
                         <label class="filter-label">Search</label>
                         <input type="text" class="search-input" placeholder="Search scripts...">
                     </div>
-                    
+
+                    <div class="filter-group">
+                        <label class="filter-label">Active Status</label>
+                        <div class="active-status-buttons">
+                            <button class="status-filter-btn active" data-status="1">Active</button>
+                            <button class="status-filter-btn" data-status="2">Inactive</button>
+                            <button class="status-filter-btn" data-status="all">All</button>
+                        </div>
+                    </div>
+
                     <div class="filter-group">
                         <label class="filter-label">Status</label>
                         <select class="filter-select">
@@ -618,6 +653,7 @@
         let narrationStyles = [];
         let currentSort = { column: 'script_id', direction: 'desc' };
         let currentEditingScript = null;
+        let activeStatusFilter = '1'; // Default to showing only active scripts (active_status_id = 1)
 
         // Initialize the application
         async function init() {
@@ -809,19 +845,18 @@
                         narration_style_id,
                         created_at,
                         clients!inner(client_full_name),
-                        script_statuses!inner(script_status)
+                        script_statuses!inner(script_status, active_status_id)
                     `)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
                 allScripts = data || [];
-                filteredScripts = [...allScripts];
 
-                // Apply initial sort (script_id desc)
-                applySortToFilteredScripts();
+                // Apply filters (including default active status filter)
+                filterScripts();
+
+                // Update sort indicators
                 updateSortIndicators();
-                displayScripts();
-                updatePagination();
             } catch (error) {
                 console.error('Error loading scripts:', error);
                 allScripts = [];
@@ -994,6 +1029,11 @@
                 const matchesClient = !clientFilter ||
                     script.client_id.toString() === clientFilter;
 
+                // Active status filtering
+                const matchesActiveStatus = activeStatusFilter === 'all' ||
+                    (script.script_statuses?.active_status_id &&
+                     script.script_statuses.active_status_id.toString() === activeStatusFilter);
+
                 // Date range filtering
                 let matchesDate = true;
                 if (dateFilter) {
@@ -1004,7 +1044,7 @@
                     }
                 }
 
-                return matchesSearch && matchesStatus && matchesClient && matchesDate;
+                return matchesSearch && matchesStatus && matchesClient && matchesActiveStatus && matchesDate;
             });
 
             // Apply current sort to filtered results
@@ -1200,6 +1240,21 @@
             // Filter dropdowns
             document.querySelectorAll('.filter-select').forEach(select => {
                 select.addEventListener('change', filterScripts);
+            });
+
+            // Active status filter buttons
+            document.querySelectorAll('.status-filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active button
+                    document.querySelectorAll('.status-filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Update filter value
+                    activeStatusFilter = this.getAttribute('data-status');
+
+                    // Apply filter
+                    filterScripts();
+                });
             });
 
             // Column headers for sorting
