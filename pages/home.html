@@ -596,8 +596,8 @@
         async function fetchHistoricalData() {
             const historicalPromises = [];
 
-            // Fetch data for the last 7 periods (including current)
-            for (let i = 0; i < 7; i++) {
+            // Fetch data for the PREVIOUS 7 periods (not including current)
+            for (let i = 1; i <= 7; i++) {
                 const offset = currentOffset - i;
                 historicalPromises.push(fetchDashboardData(offset));
             }
@@ -605,7 +605,7 @@
             try {
                 const results = await Promise.all(historicalPromises);
                 return results.map((result, index) => {
-                    const offset = currentOffset - index;
+                    const offset = currentOffset - (index + 1);
                     return {
                         offset: offset,
                         data: result?.current_period || null
@@ -675,14 +675,12 @@
             // Fetch and populate historical data for all 4 metrics
             const historicalData = await fetchHistoricalData();
 
-            // Calculate averages from the last 7 periods (excluding current period at index 0)
+            // Calculate averages from the last 7 periods (excluding current period)
             const calculateAverage = (historicalData, field) => {
-                if (!historicalData || historicalData.length < 2) return 0;
+                if (!historicalData || historicalData.length === 0) return 0;
 
-                // Skip index 0 (current period), take the next 7 periods
-                const last7 = historicalData.slice(1, 8);
-
-                const sum = last7.reduce((total, item) => {
+                // All data in historicalData is already previous periods (not current)
+                const sum = historicalData.reduce((total, item) => {
                     let value = 0;
                     if (field === 'total_hours') {
                         value = item.data?.hours?.total || 0;
@@ -692,7 +690,7 @@
                     return total + value;
                 }, 0);
 
-                return sum / Math.min(last7.length, 7);
+                return sum / Math.min(historicalData.length, 7);
             };
 
             const avgScripts = calculateAverage(historicalData, 'scripts_completed');
