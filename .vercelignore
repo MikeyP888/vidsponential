@@ -1,0 +1,12 @@
+middleware.ts
+middleware.ts.backup
+app/
+utils/
+next.config.js
+next-env.d.ts
+tsconfig.json
+tailwind.config.ts
+postcss.config.js
+package.json
+package-lock.json
+.env.example
