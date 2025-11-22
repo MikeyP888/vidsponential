@@ -583,12 +583,12 @@
             }
         }
 
-        // Fetch dashboard data from Supabase
-        async function fetchDashboardData() {
+        // Fetch dashboard data from Supabase for a specific period
+        async function fetchDashboardData(offset = currentOffset) {
             try {
                 const { data, error } = await supabase.rpc('get_dashboard_metrics', {
                     period_type: currentPeriodType,
-                    period_offset: currentOffset,
+                    period_offset: offset,
                     num_periods_for_graph: 7
                 });
 
@@ -601,25 +601,58 @@
             }
         }
 
-        // Populate historical list
-        function populateHistoricalList(containerId, data, field, formatValue = (val) => val || 0) {
+        // Fetch historical data for the last 7 periods
+        async function fetchHistoricalData() {
+            const historicalPromises = [];
+
+            // Fetch data for the last 7 periods (including current)
+            for (let i = 0; i < 7; i++) {
+                const offset = currentOffset - i;
+                historicalPromises.push(fetchDashboardData(offset));
+            }
+
+            try {
+                const results = await Promise.all(historicalPromises);
+                return results.map((result, index) => {
+                    const offset = currentOffset - index;
+                    return {
+                        offset: offset,
+                        data: result?.current_period || null
+                    };
+                });
+            } catch (error) {
+                console.error('Error fetching historical data:', error);
+                return [];
+            }
+        }
+
+        // Populate historical list with fetched data
+        async function populateHistoricalList(containerId, historicalData, field, formatValue = (val) => val || 0) {
             const container = document.getElementById(containerId);
-            if (!container || !data || !data.historical_periods) {
-                if (container) container.innerHTML = '<div class="historical-item"><div class="historical-label">No data</div></div>';
+            if (!container) return;
+
+            if (!historicalData || historicalData.length === 0) {
+                container.innerHTML = '<div class="historical-item"><div class="historical-label">No data</div></div>';
                 return;
             }
 
-            const historicalData = data.historical_periods.slice(0, 7);
-
-            const html = historicalData.map((period, index) => {
-                const offset = currentOffset - (historicalData.length - 1) + index;
+            const html = historicalData.map(({ offset, data }) => {
                 const label = formatHistoricalLabel(currentPeriodType, offset);
-                const value = formatValue(period[field]);
+
+                let value;
+                if (field === 'total_hours') {
+                    // Special handling for hours
+                    value = data?.hours?.total || 0;
+                } else {
+                    value = data?.[field] || 0;
+                }
+
+                const formattedValue = formatValue(value);
 
                 return `
                     <div class="historical-item">
                         <div class="historical-label">${label}</div>
-                        <div class="historical-value">${value}</div>
+                        <div class="historical-value">${formattedValue}</div>
                     </div>
                 `;
             }).join('');
@@ -645,7 +678,7 @@
             document.getElementById('contentTitle').textContent = `Content - ${periodTitles[currentPeriodType]}`;
             document.getElementById('scriptsTitle').textContent = `Scripts Due - ${periodTitles[currentPeriodType]}`;
 
-            // Fetch data from Supabase
+            // Fetch current period data from Supabase
             const data = await fetchDashboardData();
 
             if (data && data.current_period) {
@@ -668,12 +701,6 @@
                 const totalHours = current.hours ? current.hours.total : 0;
                 document.getElementById('hoursValue').textContent = totalHours.toFixed(1);
                 document.getElementById('hoursComparison').textContent = `${period.comparison}: --`;
-
-                // Populate historical lists
-                populateHistoricalList('scriptsHistory', data, 'scripts_completed');
-                populateHistoricalList('clientsHistory', data, 'new_clients');
-                populateHistoricalList('cashHistory', data, 'cash_received', (val) => `$${(val || 0).toLocaleString()}`);
-                populateHistoricalList('hoursHistory', data, 'total_hours', (val) => (val || 0).toFixed(1));
 
                 // Update content metrics
                 document.getElementById('socialPosts').textContent = current.social_posts || 0;
@@ -701,6 +728,13 @@
                     document.getElementById('statusBreakdown').innerHTML = '';
                 }
             }
+
+            // Fetch and populate historical data for all 4 metrics
+            const historicalData = await fetchHistoricalData();
+            await populateHistoricalList('scriptsHistory', historicalData, 'scripts_completed');
+            await populateHistoricalList('clientsHistory', historicalData, 'new_clients');
+            await populateHistoricalList('cashHistory', historicalData, 'cash_received', (val) => `$${(val || 0).toLocaleString()}`);
+            await populateHistoricalList('hoursHistory', historicalData, 'total_hours', (val) => (val || 0).toFixed(1));
         }
 
         // Period button handlers
