@@ -297,15 +297,15 @@
                         option.textContent = `${client.client_id} - ${displayName}`;
                         clientSelect.appendChild(option);
                     });
-                    console.log(`✓ ${clients.length} client options added to dropdown`);
+                    console.log(`${clients.length} client options added to dropdown`);
                     document.getElementById('statusIndicator').textContent = `Loaded ${clients.length} clients`;
                 } else {
-                    console.warn('⚠ No clients found in database');
+                    console.warn('No clients found in database');
                     clientSelect.innerHTML = '<option value="">No clients available</option>';
                     document.getElementById('statusIndicator').textContent = 'No clients found';
                 }
             } catch (error) {
-                console.error('❌ Error loading clients:', error);
+                console.error('Error loading clients:', error);
                 const clientSelect = document.getElementById('clientSelect');
                 clientSelect.innerHTML = '<option value="">Error loading clients</option>';
                 document.getElementById('statusIndicator').textContent = 'Error loading clients';
