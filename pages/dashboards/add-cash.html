@@ -226,25 +226,48 @@
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Initialize page
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             console.log('DOM loaded, initializing add-cash.html...');
-            loadClients();
-            loadInvoices();
-            loadReceivingBanks();
-            loadCashSources();
+            console.log('Supabase URL:', SUPABASE_URL);
+            console.log('Supabase client initialized:', !!supabase);
+
+            // Test connection
+            try {
+                const { data, error } = await supabase.from('clients').select('count');
+                console.log('Test query result:', { data, error });
+            } catch (e) {
+                console.error('Test query failed:', e);
+            }
+
+            await loadClients();
+            await loadInvoices();
+            await loadReceivingBanks();
+            await loadCashSources();
             setDefaultReceivedDate();
+
+            console.log('All initialization complete');
+
+            // Set status back to Ready after a short delay
+            setTimeout(() => {
+                if (document.getElementById('statusIndicator').textContent !== 'Error loading clients') {
+                    document.getElementById('statusIndicator').textContent = 'Ready';
+                }
+            }, 2000);
         });
 
         // Set default received date to today
         function setDefaultReceivedDate() {
             const today = new Date();
             const dateStr = today.toISOString().split('T')[0];
-            document.getElementById('receivedDate').value = dateStr;
+            const receivedDateField = document.getElementById('receivedDate');
+            receivedDateField.value = dateStr;
+            console.log('Received date set to:', dateStr);
         }
 
         // Load clients dropdown
         async function loadClients() {
             console.log('Loading clients...');
+            document.getElementById('statusIndicator').textContent = 'Loading clients...';
             try {
                 const { data: clients, error } = await supabase
                     .from('clients')
@@ -253,10 +276,12 @@
 
                 if (error) {
                     console.error('Supabase error loading clients:', error);
+                    console.error('Error details:', JSON.stringify(error, null, 2));
                     throw error;
                 }
 
                 console.log('Clients loaded:', clients);
+                console.log('Number of clients:', clients?.length);
 
                 const clientSelect = document.getElementById('clientSelect');
                 clientSelect.innerHTML = '<option value="">Select a client...</option>';
@@ -272,16 +297,19 @@
                         option.textContent = `${client.client_id} - ${displayName}`;
                         clientSelect.appendChild(option);
                     });
-                    console.log(`${clients.length} client options added to dropdown`);
+                    console.log(`✓ ${clients.length} client options added to dropdown`);
+                    document.getElementById('statusIndicator').textContent = `Loaded ${clients.length} clients`;
                 } else {
-                    console.warn('No clients found in database');
+                    console.warn('⚠ No clients found in database');
                     clientSelect.innerHTML = '<option value="">No clients available</option>';
+                    document.getElementById('statusIndicator').textContent = 'No clients found';
                 }
             } catch (error) {
-                console.error('Error loading clients:', error);
+                console.error('❌ Error loading clients:', error);
                 const clientSelect = document.getElementById('clientSelect');
                 clientSelect.innerHTML = '<option value="">Error loading clients</option>';
-                alert('Error loading clients. Please check the console for details.');
+                document.getElementById('statusIndicator').textContent = 'Error loading clients';
+                alert('Error loading clients: ' + (error.message || 'Unknown error'));
             }
         }
 
