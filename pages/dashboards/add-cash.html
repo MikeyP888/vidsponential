@@ -226,49 +226,90 @@
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Initialize page
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             console.log('DOM loaded, initializing add-cash.html...');
-            loadClients();
-            loadInvoices();
-            loadReceivingBanks();
-            loadCashSources();
+            console.log('Supabase URL:', SUPABASE_URL);
+            console.log('Supabase client initialized:', !!supabase);
+
+            // Test connection
+            try {
+                const { data, error } = await supabase.from('clients').select('count');
+                console.log('Test query result:', { data, error });
+            } catch (e) {
+                console.error('Test query failed:', e);
+            }
+
+            await loadClients();
+            await loadInvoices();
+            await loadReceivingBanks();
+            await loadCashSources();
             setDefaultReceivedDate();
+
+            console.log('All initialization complete');
+
+            // Set status back to Ready after a short delay
+            setTimeout(() => {
+                if (document.getElementById('statusIndicator').textContent !== 'Error loading clients') {
+                    document.getElementById('statusIndicator').textContent = 'Ready';
+                }
+            }, 2000);
         });
 
         // Set default received date to today
         function setDefaultReceivedDate() {
             const today = new Date();
             const dateStr = today.toISOString().split('T')[0];
-            document.getElementById('receivedDate').value = dateStr;
+            const receivedDateField = document.getElementById('receivedDate');
+            receivedDateField.value = dateStr;
+            console.log('Received date set to:', dateStr);
         }
 
         // Load clients dropdown
         async function loadClients() {
             console.log('Loading clients...');
+            document.getElementById('statusIndicator').textContent = 'Loading clients...';
             try {
                 const { data: clients, error } = await supabase
                     .from('clients')
-                    .select('client_id, client_full_name')
+                    .select('*')
                     .order('client_id', { ascending: true });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase error loading clients:', error);
+                    console.error('Error details:', JSON.stringify(error, null, 2));
+                    throw error;
+                }
 
                 console.log('Clients loaded:', clients);
+                console.log('Number of clients:', clients?.length);
 
                 const clientSelect = document.getElementById('clientSelect');
                 clientSelect.innerHTML = '<option value="">Select a client...</option>';
 
-                if (clients) {
+                if (clients && clients.length > 0) {
                     clients.forEach(client => {
                         const option = document.createElement('option');
                         option.value = client.client_id;
-                        option.textContent = `${client.client_id} - ${client.client_full_name}`;
+                        // Try client_full_name first, fallback to first_name + last_name
+                        const displayName = client.client_full_name ||
+                                          `${client.client_first_name || ''} ${client.client_last_name || ''}`.trim() ||
+                                          'Unnamed Client';
+                        option.textContent = `${client.client_id} - ${displayName}`;
                         clientSelect.appendChild(option);
                     });
-                    console.log('Client options added to dropdown');
+                    console.log(`✓ ${clients.length} client options added to dropdown`);
+                    document.getElementById('statusIndicator').textContent = `Loaded ${clients.length} clients`;
+                } else {
+                    console.warn('⚠ No clients found in database');
+                    clientSelect.innerHTML = '<option value="">No clients available</option>';
+                    document.getElementById('statusIndicator').textContent = 'No clients found';
                 }
             } catch (error) {
-                console.error('Error loading clients:', error);
+                console.error('❌ Error loading clients:', error);
+                const clientSelect = document.getElementById('clientSelect');
+                clientSelect.innerHTML = '<option value="">Error loading clients</option>';
+                document.getElementById('statusIndicator').textContent = 'Error loading clients';
+                alert('Error loading clients: ' + (error.message || 'Unknown error'));
             }
         }
 
@@ -281,24 +322,30 @@
                     .select('invoice_id, description')
                     .order('invoice_id', { ascending: false });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase error loading invoices:', error);
+                    throw error;
+                }
 
                 console.log('Invoices loaded:', invoices);
 
                 const invoiceSelect = document.getElementById('invoiceSelect');
                 invoiceSelect.innerHTML = '<option value="">Select an invoice...</option>';
 
-                if (invoices) {
+                if (invoices && invoices.length > 0) {
                     invoices.forEach(invoice => {
                         const option = document.createElement('option');
                         option.value = invoice.invoice_id;
                         option.textContent = `${invoice.invoice_id} - ${invoice.description || 'No description'}`;
                         invoiceSelect.appendChild(option);
                     });
-                    console.log('Invoice options added to dropdown');
+                    console.log(`${invoices.length} invoice options added to dropdown`);
+                } else {
+                    console.warn('No invoices found in database');
                 }
             } catch (error) {
                 console.error('Error loading invoices:', error);
+                console.warn('Invoice dropdown will remain empty - this is optional');
             }
         }
 
@@ -311,24 +358,30 @@
                     .select('receiving_bank_id, receiving_bank_name')
                     .order('receiving_bank_id', { ascending: true });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase error loading receiving banks:', error);
+                    throw error;
+                }
 
                 console.log('Receiving banks loaded:', banks);
 
                 const bankSelect = document.getElementById('receivingBankSelect');
                 bankSelect.innerHTML = '<option value="">Select a receiving bank...</option>';
 
-                if (banks) {
+                if (banks && banks.length > 0) {
                     banks.forEach(bank => {
                         const option = document.createElement('option');
                         option.value = bank.receiving_bank_id;
                         option.textContent = `${bank.receiving_bank_id} - ${bank.receiving_bank_name}`;
                         bankSelect.appendChild(option);
                     });
-                    console.log('Receiving bank options added to dropdown');
+                    console.log(`${banks.length} receiving bank options added to dropdown`);
+                } else {
+                    console.warn('No receiving banks found in database');
                 }
             } catch (error) {
                 console.error('Error loading receiving banks:', error);
+                console.warn('Receiving bank dropdown will remain empty - this is optional');
             }
         }
 
@@ -341,24 +394,30 @@
                     .select('cash_received_source_id, received_source')
                     .order('cash_received_source_id', { ascending: true });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase error loading cash sources:', error);
+                    throw error;
+                }
 
                 console.log('Cash sources loaded:', sources);
 
                 const sourceSelect = document.getElementById('cashSourceSelect');
                 sourceSelect.innerHTML = '<option value="">Select a cash source...</option>';
 
-                if (sources) {
+                if (sources && sources.length > 0) {
                     sources.forEach(source => {
                         const option = document.createElement('option');
                         option.value = source.cash_received_source_id;
                         option.textContent = `${source.cash_received_source_id} - ${source.received_source}`;
                         sourceSelect.appendChild(option);
                     });
-                    console.log('Cash source options added to dropdown');
+                    console.log(`${sources.length} cash source options added to dropdown`);
+                } else {
+                    console.warn('No cash sources found in database');
                 }
             } catch (error) {
                 console.error('Error loading cash sources:', error);
+                console.warn('Cash source dropdown will remain empty - this is optional');
             }
         }
 
@@ -404,7 +463,7 @@
                         paymentItem.className = 'payment-item';
 
                         const receivedDate = new Date(payment.received_at).toLocaleDateString('en-GB');
-                        const amount = payment.amount_£ ? `£${parseFloat(payment.amount_£).toFixed(2)}` : 'N/A';
+                        const amount = payment['amount_£'] ? `£${parseFloat(payment['amount_£']).toFixed(2)}` : 'N/A';
                         const description = payment.description || 'No description';
                         const invoice = payment.acc_invoices?.description || 'No invoice';
                         const bank = payment.acc_receiving_banks?.receiving_bank_name || 'No bank';
