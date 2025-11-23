@@ -702,8 +702,8 @@
 
                 // Update cash received
                 const cashReceived = current.cash_received || 0;
-                document.getElementById('cashValue').textContent = `£${cashReceived.toLocaleString()}`;
-                document.getElementById('cashComparison').textContent = `${period.comparison}: £${avgCash.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+                document.getElementById('cashValue').textContent = `£${cashReceived.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                document.getElementById('cashComparison').textContent = `${period.comparison}: £${avgCash.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 
                 // Update hours worked (total)
                 const totalHours = current.hours ? current.hours.total : 0;
@@ -741,7 +741,7 @@
                 }
             }
 
-            await populateHistoricalList('cashHistory', historicalData, 'cash_received', (val) => `£${(val || 0).toLocaleString()}`);
+            await populateHistoricalList('cashHistory', historicalData, 'cash_received', (val) => `£${(val || 0).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
             await populateHistoricalList('hoursHistory', historicalData, 'total_hours', (val) => (val || 0).toFixed(1));
             await populateHistoricalList('scriptsHistory', historicalData, 'scripts_completed');
         }
