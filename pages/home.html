@@ -14,6 +14,11 @@
     <link rel="stylesheet" href="../shared/styles/sidebar.css">
 
     <style>
+        :root {
+            --comparison-better: #d4edda;
+            --comparison-worse: #f8d7da;
+        }
+
         body {
             background: #f8f9fa;
             font-family: "Inter", sans-serif;
@@ -230,6 +235,22 @@
 
         .historical-item:hover {
             background: #e9ecef;
+        }
+
+        .historical-item.better {
+            background: var(--comparison-better);
+        }
+
+        .historical-item.better:hover {
+            background: #c3e6cb;
+        }
+
+        .historical-item.worse {
+            background: var(--comparison-worse);
+        }
+
+        .historical-item.worse:hover {
+            background: #f1b0b7;
         }
 
         .historical-label {
@@ -726,6 +747,14 @@
             }
         }
 
+        // Get raw numeric value from historical data item
+        function getRawValue(data, field) {
+            if (field === 'total_hours') {
+                return data?.hours?.total || 0;
+            }
+            return data?.[field] || 0;
+        }
+
         // Populate historical list with fetched data
         async function populateHistoricalList(containerId, historicalData, field, formatValue = (val) => val || 0) {
             const container = document.getElementById(containerId);
@@ -736,21 +765,25 @@
                 return;
             }
 
-            const html = historicalData.map(({ offset, data }) => {
+            const html = historicalData.map(({ offset, data }, index) => {
                 const label = formatHistoricalLabel(currentPeriodType, offset);
 
-                let value;
-                if (field === 'total_hours') {
-                    // Special handling for hours
-                    value = data?.hours?.total || 0;
-                } else {
-                    value = data?.[field] || 0;
-                }
-
+                const value = getRawValue(data, field);
                 const formattedValue = formatValue(value);
 
+                // Compare with the NEXT item in array (which is the previous period chronologically)
+                let comparisonClass = '';
+                if (index < historicalData.length - 1) {
+                    const previousValue = getRawValue(historicalData[index + 1].data, field);
+                    if (value > previousValue) {
+                        comparisonClass = 'better';
+                    } else if (value < previousValue) {
+                        comparisonClass = 'worse';
+                    }
+                }
+
                 return `
-                    <div class="historical-item">
+                    <div class="historical-item ${comparisonClass}">
                         <div class="historical-label">${label}</div>
                         <div class="historical-value">${formattedValue}</div>
                     </div>
