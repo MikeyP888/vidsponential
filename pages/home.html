@@ -15,8 +15,10 @@
 
     <style>
         :root {
-            --comparison-better: #d4edda;
-            --comparison-worse: #f8d7da;
+            --comparison-better: #b8f5c9;
+            --comparison-better-hover: #9aefb3;
+            --comparison-worse: #ffccd5;
+            --comparison-worse-hover: #ffb3c1;
         }
 
         body {
@@ -242,7 +244,7 @@
         }
 
         .historical-item.better:hover {
-            background: #c3e6cb;
+            background: var(--comparison-better-hover);
         }
 
         .historical-item.worse {
@@ -250,7 +252,7 @@
         }
 
         .historical-item.worse:hover {
-            background: #f1b0b7;
+            background: var(--comparison-worse-hover);
         }
 
         .historical-label {
