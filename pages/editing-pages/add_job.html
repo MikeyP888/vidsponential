@@ -323,6 +323,13 @@
                         </div>
 
                         <div class="form-group">
+                            <label class="form-label" for="upworkProfile">Upwork Profile</label>
+                            <select class="form-select" id="upworkProfile">
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
                             <label class="form-label" for="jobStatus">Job Status</label>
                             <select class="form-select" id="jobStatus" required>
                                 <option value="">Loading...</option>
@@ -336,7 +343,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="submit-btn" id="submitBtn">Save Job & Create Proposal</button>
+                    <button type="submit" class="submit-btn" id="submitBtn">Save Job &amp; Create Proposal</button>
                 </div>
             </form>
 
@@ -408,6 +415,13 @@
                     <div class="form-group">
                         <label class="form-label" for="editJobType">Job Type</label>
                         <select class="form-select" id="editJobType" required>
+                            <option value="">Loading...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editUpworkProfile">Upwork Profile</label>
+                        <select class="form-select" id="editUpworkProfile">
                             <option value="">Loading...</option>
                         </select>
                     </div>
@@ -517,12 +531,34 @@
             }
         }
 
+        // Load upwork profiles
+        async function loadUpworkProfiles(selectId = 'upworkProfile') {
+            try {
+                const { data, error } = await supabase
+                    .from('upwork_profiles')
+                    .select('upwork_profile_id, upwork_profile_name')
+                    .order('upwork_profile_id');
+
+                if (error) throw error;
+
+                const profileSelect = document.getElementById(selectId);
+                profileSelect.innerHTML = '<option value="">-- Select Profile --</option>' + data.map(profile =>
+                    `<option value="${profile.upwork_profile_id}">
+                        ${profile.upwork_profile_id} - ${profile.upwork_profile_name}
+                    </option>`
+                ).join('');
+            } catch (error) {
+                console.error('Error loading upwork profiles:', error);
+                showNotification('Failed to load upwork profiles', 'error');
+            }
+        }
+
         // Load jobs list
         async function loadJobs() {
             try {
                 const { data, error } = await supabase
                     .from('upwork_jobs')
-                    .select('upwork_job_id, job_title, job_url, summary, extra_notes, price_per_script, client_first_name, connects, client_location, job_post_rating, upwork_job_status_id, upwork_job_type_id, tags')
+                    .select('upwork_job_id, job_title, job_url, summary, extra_notes, price_per_script, client_first_name, connects, client_location, job_post_rating, upwork_job_status_id, upwork_job_type_id, upwork_profile_id, tags')
                     .order('upwork_job_id', { ascending: false });
 
                 if (error) throw error;
@@ -572,6 +608,7 @@
                 document.getElementById('editConnects').value = data.connects || '';
                 document.getElementById('editJobRating').value = data.job_post_rating || '';
                 document.getElementById('editJobType').value = data.upwork_job_type_id || '1';
+                document.getElementById('editUpworkProfile').value = data.upwork_profile_id || '';
                 document.getElementById('editJobStatus').value = data.upwork_job_status_id || '5';
                 document.getElementById('editTags').value = data.tags ? data.tags.join(', ') : '';
 
@@ -609,6 +646,8 @@
                 const tagsInput = document.getElementById('tags').value.trim();
                 const tagsArray = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag) : null;
 
+                const upworkProfileValue = document.getElementById('upworkProfile').value;
+
                 const jobData = {
                     job_url: document.getElementById('jobUrl').value.trim(),
                     job_title: document.getElementById('jobTitle').value.trim(),
@@ -621,6 +660,7 @@
                     job_post_rating: document.getElementById('jobRating').value ? parseInt(document.getElementById('jobRating').value) : null,
                     upwork_job_status_id: parseInt(document.getElementById('jobStatus').value),
                     upwork_job_type_id: parseInt(document.getElementById('jobType').value),
+                    upwork_profile_id: upworkProfileValue ? parseInt(upworkProfileValue) : null,
                     tags: tagsArray
                 };
 
@@ -662,6 +702,8 @@
                 const editTagsInput = document.getElementById('editTags').value.trim();
                 const editTagsArray = editTagsInput ? editTagsInput.split(',').map(tag => tag.trim()).filter(tag => tag) : null;
 
+                const editUpworkProfileValue = document.getElementById('editUpworkProfile').value;
+
                 const jobData = {
                     job_url: document.getElementById('editJobUrl').value.trim(),
                     job_title: document.getElementById('editJobTitle').value.trim(),
@@ -674,6 +716,7 @@
                     job_post_rating: document.getElementById('editJobRating').value ? parseInt(document.getElementById('editJobRating').value) : null,
                     upwork_job_status_id: parseInt(document.getElementById('editJobStatus').value),
                     upwork_job_type_id: parseInt(document.getElementById('editJobType').value),
+                    upwork_profile_id: editUpworkProfileValue ? parseInt(editUpworkProfileValue) : null,
                     tags: editTagsArray
                 };
 
@@ -704,8 +747,10 @@
             await Promise.all([
                 loadJobTypes('jobType'),
                 loadJobStatuses('jobStatus'),
+                loadUpworkProfiles('upworkProfile'),
                 loadJobTypes('editJobType'),
                 loadJobStatuses('editJobStatus'),
+                loadUpworkProfiles('editUpworkProfile'),
                 loadJobs()
             ]);
             updateStatus('Ready');
