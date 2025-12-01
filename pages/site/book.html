@@ -9,103 +9,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="/shared/styles/website-base.css">
+    <link rel="stylesheet" href="/shared/styles/website-buttons.css">
     <style>
-        :root {
-            --gradient-primary: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
-            --text-primary: #2c3e50;
-            --text-secondary: #666666;
-            --bg-white: #ffffff;
-            --bg-light: #f8f9fa;
-            --border-light: #e0e0e0;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            color: var(--text-primary);
-            line-height: 1.6;
-        }
-
-        /* Navigation */
-        .nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-light);
-            z-index: 1000;
-            padding: 0 40px;
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 70px;
-        }
-
-        .nav-logo {
-            height: 32px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 32px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 15px;
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover,
-        .nav-links a.active {
-            color: var(--text-primary);
-        }
-
-        .nav-cta {
-            background: var(--gradient-primary);
-            color: white;
-            padding: 10px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .nav-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-        }
-
-        .mobile-menu-btn svg {
-            width: 24px;
-            height: 24px;
-            stroke: var(--text-primary);
-        }
-
         /* Hero Section */
         .hero {
             padding: 140px 40px 100px;
@@ -149,37 +56,13 @@
             margin-bottom: 40px;
         }
 
-        .btn-primary {
-            display: inline-block;
-            background: var(--gradient-primary);
-            color: white;
-            padding: 16px 32px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 16px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            display: inline-block;
+        .hero .btn-secondary {
             background: transparent;
             color: white;
-            padding: 16px 32px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 16px;
             border: 2px solid rgba(255, 255, 255, 0.3);
-            transition: border-color 0.2s;
         }
 
-        .btn-secondary:hover {
+        .hero .btn-secondary:hover {
             border-color: white;
         }
 
@@ -248,23 +131,6 @@
         .learn {
             padding: 100px 40px;
             background: white;
-        }
-
-        .section-header {
-            text-align: center;
-            max-width: 600px;
-            margin: 0 auto 60px;
-        }
-
-        .section-header h2 {
-            font-size: 40px;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-
-        .section-header p {
-            color: var(--text-secondary);
-            font-size: 18px;
         }
 
         .learn-grid {
@@ -418,31 +284,7 @@
             margin: 0;
         }
 
-        /* CTA Section */
-        .cta {
-            padding: 100px 40px;
-            background: var(--text-primary);
-            text-align: center;
-        }
-
-        .cta-container {
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        .cta h2 {
-            font-size: 40px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 16px;
-        }
-
-        .cta p {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 18px;
-            margin-bottom: 32px;
-        }
-
+        /* CTA Price */
         .cta-price {
             font-size: 48px;
             font-weight: 800;
@@ -450,41 +292,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 32px;
-        }
-
-        /* Footer */
-        .footer {
-            background: #1a1a1a;
-            padding: 32px 40px;
-        }
-
-        .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .footer-copyright {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 14px;
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 24px;
-        }
-
-        .footer-links a {
-            color: rgba(255, 255, 255, 0.6);
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.2s;
-        }
-
-        .footer-links a:hover {
-            color: white;
         }
 
         /* Mobile Responsive */
@@ -531,35 +338,6 @@
         }
 
         @media (max-width: 768px) {
-            .nav {
-                padding: 0 20px;
-            }
-
-            .nav-links {
-                display: none;
-                position: absolute;
-                top: 70px;
-                left: 0;
-                right: 0;
-                background: white;
-                flex-direction: column;
-                padding: 20px;
-                gap: 16px;
-                border-bottom: 1px solid var(--border-light);
-            }
-
-            .nav-links.active {
-                display: flex;
-            }
-
-            .nav-cta {
-                display: none;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-            }
-
             .hero {
                 padding: 120px 20px 60px;
             }
@@ -577,50 +355,16 @@
                 gap: 20px;
             }
 
-            .section-header h2 {
-                font-size: 28px;
-            }
-
             .chapter {
                 padding: 20px;
                 gap: 16px;
-            }
-
-            .cta h2 {
-                font-size: 28px;
-            }
-
-            .footer-container {
-                flex-direction: column;
-                gap: 16px;
-                text-align: center;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="nav">
-        <div class="nav-container">
-            <a href="/">
-                <img src="/shared/assets/vidsponential logo.png" alt="vidsponential" class="nav-logo">
-            </a>
-            <ul class="nav-links" id="navLinks">
-                <li><a href="/services">Services</a></li>
-                <li><a href="/portfolio">Portfolio</a></li>
-                <li><a href="/book" class="active">Book</a></li>
-                <li><a href="/about">About</a></li>
-                <li><a href="/newsletter">Newsletter</a></li>
-                <li><a href="/contact">Contact</a></li>
-            </ul>
-            <a href="/contact" class="nav-cta">Get Started</a>
-            <button class="mobile-menu-btn" onclick="toggleMenu()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 12h18M3 6h18M3 18h18"></path>
-                </svg>
-            </button>
-        </div>
-    </nav>
+    <!-- Navigation (injected by website-nav.js) -->
+    <div id="website-nav"></div>
 
     <!-- Hero -->
     <section class="hero">
@@ -812,21 +556,11 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-copyright">© 2025 vidsponential. All rights reserved.</div>
-            <div class="footer-links">
-                <a href="/terms">Terms & Conditions</a>
-                <a href="/privacy">Privacy Policy</a>
-            </div>
-        </div>
-    </footer>
+    <!-- Footer (injected by website-footer.js) -->
+    <div id="website-footer"></div>
 
-    <script>
-        function toggleMenu() {
-            document.getElementById('navLinks').classList.toggle('active');
-        }
-    </script>
+    <!-- Shared Components -->
+    <script src="/shared/components/website/website-nav.js"></script>
+    <script src="/shared/components/website/website-footer.js"></script>
 </body>
 </html>
