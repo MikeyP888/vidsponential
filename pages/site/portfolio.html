@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio - vidsponential</title>
+    <meta name="description" content="See examples of YouTube scripts that have generated millions of views across business, military, and history channels.">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✍️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gradient-primary: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            --text-primary: #2c3e50;
+            --text-secondary: #666666;
+            --bg-white: #ffffff;
+            --bg-light: #f8f9fa;
+            --border-light: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            z-index: 1000;
+            padding: 0 40px;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+        }
+
+        .nav-logo {
+            height: 32px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--text-primary);
+        }
+
+        .nav-cta {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .mobile-menu-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--text-primary);
+        }
+
+        /* Page Header */
+        .page-header {
+            padding: 140px 40px 80px;
+            background: linear-gradient(135deg, #fefefe 0%, #f8f9fa 100%);
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .page-header p {
+            font-size: 20px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Filter Tabs */
+        .filter-section {
+            padding: 40px 40px 0;
+            background: white;
+        }
+
+        .filter-tabs {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 10px 24px;
+            border: 2px solid var(--border-light);
+            background: white;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-tab:hover {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+        }
+
+        .filter-tab.active {
+            background: var(--gradient-primary);
+            border-color: transparent;
+            color: white;
+        }
+
+        /* Portfolio Grid */
+        .portfolio {
+            padding: 60px 40px 100px;
+            background: white;
+        }
+
+        .portfolio-grid {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .portfolio-card {
+            background: var(--bg-light);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .portfolio-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .portfolio-thumbnail {
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .portfolio-thumbnail .icon {
+            font-size: 48px;
+        }
+
+        .portfolio-thumbnail .play-btn {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .portfolio-card:hover .play-btn {
+            opacity: 1;
+        }
+
+        .play-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-primary);
+            margin-left: 4px;
+        }
+
+        .portfolio-content {
+            padding: 24px;
+        }
+
+        .portfolio-category {
+            display: inline-block;
+            background: rgba(11, 230, 255, 0.1);
+            color: #0be6ff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .portfolio-content h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .portfolio-content p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .portfolio-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .stat svg {
+            width: 16px;
+            height: 16px;
+            stroke: var(--text-secondary);
+        }
+
+        .stat strong {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        /* Results Section */
+        .results {
+            padding: 100px 40px;
+            background: var(--bg-light);
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 60px;
+        }
+
+        .section-header h2 {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 18px;
+        }
+
+        .results-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .result-card h3 {
+            font-size: 40px;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .result-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 100px 40px;
+            background: var(--text-primary);
+            text-align: center;
+        }
+
+        .cta-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .cta h2 {
+            font-size: 40px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .cta p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+            margin-bottom: 32px;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            background: var(--gradient-primary);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Footer */
+        .footer {
+            background: #1a1a1a;
+            padding: 32px 40px;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-copyright {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 900px) {
+            .portfolio-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                padding: 0 20px;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 20px;
+                gap: 16px;
+                border-bottom: 1px solid var(--border-light);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-cta {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .page-header {
+                padding: 120px 20px 60px;
+            }
+
+            .page-header h1 {
+                font-size: 32px;
+            }
+
+            .portfolio-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header h2 {
+                font-size: 28px;
+            }
+
+            .cta h2 {
+                font-size: 28px;
+            }
+
+            .footer-container {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/site/">
+                <img src="../../shared/assets/vidsponential logo.png" alt="vidsponential" class="nav-logo">
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/site/services.html">Services</a></li>
+                <li><a href="/site/portfolio.html" class="active">Portfolio</a></li>
+                <li><a href="/site/book.html">Book</a></li>
+                <li><a href="/site/about.html">About</a></li>
+                <li><a href="/pages/marketing/newsletter_signup.html">Newsletter</a></li>
+                <li><a href="/site/contact.html">Contact</a></li>
+            </ul>
+            <a href="/site/contact.html" class="nav-cta">Get Started</a>
+            <button class="mobile-menu-btn" onclick="toggleMenu()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12h18M3 6h18M3 18h18"></path>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <h1>Portfolio</h1>
+        <p>Scripts that have generated millions of views across multiple channels</p>
+    </section>
+
+    <!-- Filter Tabs -->
+    <section class="filter-section">
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">All</button>
+            <button class="filter-tab" data-filter="business">Business</button>
+            <button class="filter-tab" data-filter="military">Military</button>
+            <button class="filter-tab" data-filter="history">History</button>
+        </div>
+    </section>
+
+    <!-- Portfolio Grid -->
+    <section class="portfolio">
+        <div class="portfolio-grid">
+            <!-- Card 1 -->
+            <div class="portfolio-card" data-category="business">
+                <div class="portfolio-thumbnail" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <div class="icon">🏢</div>
+                    <div class="play-btn">
+                        <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"></polygon></svg>
+                    </div>
+                </div>
+                <div class="portfolio-content">
+                    <span class="portfolio-category">Business</span>
+                    <h3>The Rise and Fall of a Tech Giant</h3>
+                    <p>How one company went from startup darling to cautionary tale in just five years.</p>
+                    <div class="portfolio-stats">
+                        <div class="stat">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <strong>2.4M</strong> views
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="portfolio-card" data-category="military">
+                <div class="portfolio-thumbnail" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <div class="icon">⚔️</div>
+                    <div class="play-btn">
+                        <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"></polygon></svg>
+                    </div>
+                </div>
+                <div class="portfolio-content">
+                    <span class="portfolio-category">Military</span>
+                    <h3>The Operation That Changed Everything</h3>
+                    <p>A minute-by-minute breakdown of one of the most daring military operations in history.</p>
+                    <div class="portfolio-stats">
+                        <div class="stat">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <strong>1.8M</strong> views
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="portfolio-card" data-category="business">
+                <div class="portfolio-thumbnail" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <div class="icon">💰</div>
+                    <div class="play-btn">
+                        <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"></polygon></svg>
+                    </div>
+                </div>
+                <div class="portfolio-content">
+                    <span class="portfolio-category">Business</span>
+                    <h3>The $10 Billion Scandal</h3>
+                    <p>Inside the fraud that brought down an empire and sent executives to prison.</p>
+                    <div class="portfolio-stats">
+                        <div class="stat">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <strong>3.1M</strong> views
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="portfolio-card" data-category="history">
+                <div class="portfolio-thumbnail" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                    <div class="icon">📜</div>
+                    <div class="play-btn">
+                        <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"></polygon></svg>
+                    </div>
+                </div>
+                <div class="portfolio-content">
+                    <span class="portfolio-category">History</span>
+                    <h3>The Day That Shocked the World</h3>
+                    <p>Reconstructing the 24 hours that changed the course of history forever.</p>
+                    <div class="portfolio-stats">
+                        <div class="stat">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <strong>1.5M</strong> views
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="portfolio-card" data-category="military">
+                <div class="portfolio-thumbnail" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="icon">🎖️</div>
+                    <div class="play-btn">
+                        <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"></polygon></svg>
+                    </div>
+                </div>
+                <div class="portfolio-content">
+                    <span class="portfolio-category">Military</span>
+                    <h3>Against All Odds</h3>
+                    <p>The incredible story of a mission that should have been impossible.</p>
+                    <div class="portfolio-stats">
+                        <div class="stat">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <strong>2.2M</strong> views
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 6 -->
+            <div class="portfolio-card" data-category="business">
+                <div class="portfolio-thumbnail" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                    <div class="icon">📈</div>
+                    <div class="play-btn">
+                        <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"></polygon></svg>
+                    </div>
+                </div>
+                <div class="portfolio-content">
+                    <span class="portfolio-category">Business</span>
+                    <h3>From Garage to Global Empire</h3>
+                    <p>The untold story behind one of the most successful companies ever built.</p>
+                    <div class="portfolio-stats">
+                        <div class="stat">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <strong>1.9M</strong> views
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results -->
+    <section class="results">
+        <div class="section-header">
+            <h2>Results That Speak</h2>
+            <p>The numbers behind the scripts</p>
+        </div>
+        <div class="results-grid">
+            <div class="result-card">
+                <h3>50M+</h3>
+                <p>Total Views</p>
+            </div>
+            <div class="result-card">
+                <h3>500+</h3>
+                <p>Scripts Written</p>
+            </div>
+            <div class="result-card">
+                <h3>45%</h3>
+                <p>Avg. Retention</p>
+            </div>
+            <div class="result-card">
+                <h3>30+</h3>
+                <p>Channels Served</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+        <div class="cta-container">
+            <h2>Want Results Like These?</h2>
+            <p>Let's create content that performs</p>
+            <a href="/site/contact.html" class="btn-primary">Start Your Project</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-copyright">© 2025 vidsponential. All rights reserved.</div>
+            <div class="footer-links">
+                <a href="/marketing/terms-and-conditions.html">Terms & Conditions</a>
+                <a href="/marketing/privacy-policy.html">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('active');
+        }
+
+        // Filter functionality
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const portfolioCards = document.querySelectorAll('.portfolio-card');
+
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Filter cards
+                const filter = tab.dataset.filter;
+                portfolioCards.forEach(card => {
+                    if (filter === 'all' || card.dataset.category === filter) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
