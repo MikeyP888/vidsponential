@@ -3,6 +3,9 @@
   "outputDirectory": ".",
   "rewrites": [
     { "source": "/", "destination": "/pages/home.html" },
+    { "source": "/site", "destination": "/pages/site/index.html" },
+    { "source": "/site/", "destination": "/pages/site/index.html" },
+    { "source": "/site/:path*", "destination": "/pages/site/:path*" },
     { "source": "/privacy-policy", "destination": "/pages/marketing/privacy-policy.html" },
     { "source": "/terms-and-conditions", "destination": "/pages/marketing/terms-and-conditions.html" },
     { "source": "/:path*", "destination": "/:path*.html" }
@@ -19,4 +22,3 @@
     }
   ]
 }
- 
