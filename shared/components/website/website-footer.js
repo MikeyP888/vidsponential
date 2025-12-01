@@ -9,7 +9,7 @@
         /* Footer */
         .footer {
             background: #1a1a1a;
-            padding: 32px 40px;
+            padding: 19px 40px;
         }
 
         .footer-container {
@@ -45,7 +45,7 @@
         @media (max-width: 768px) {
             .footer-container {
                 flex-direction: column;
-                gap: 16px;
+                gap: 10px;
                 text-align: center;
             }
         }
