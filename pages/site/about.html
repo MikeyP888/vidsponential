@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - vidsponential</title>
+    <meta name="description" content="Meet Michael Pilgrim, professional YouTube script writer with over 500 scripts and 50 million views generated.">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✍️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gradient-primary: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%);
+            --text-primary: #2c3e50;
+            --text-secondary: #666666;
+            --bg-white: #ffffff;
+            --bg-light: #f8f9fa;
+            --border-light: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            z-index: 1000;
+            padding: 0 40px;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+        }
+
+        .nav-logo {
+            height: 32px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--text-primary);
+        }
+
+        .nav-cta {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .mobile-menu-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--text-primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 140px 40px 100px;
+            background: linear-gradient(135deg, #fefefe 0%, #f8f9fa 100%);
+        }
+
+        .hero-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-image {
+            width: 300px;
+            height: 300px;
+            background: var(--gradient-primary);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero-content h1 {
+            font-size: 44px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-content .tagline {
+            font-size: 20px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .hero-content p {
+            font-size: 17px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        /* Stats */
+        .stats {
+            padding: 80px 40px;
+            background: white;
+        }
+
+        .stats-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 32px 24px;
+            background: var(--bg-light);
+            border-radius: 16px;
+        }
+
+        .stat-card h3 {
+            font-size: 40px;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .stat-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Story */
+        .story {
+            padding: 100px 40px;
+            background: var(--bg-light);
+        }
+
+        .story-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .section-header h2 {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .story-content p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+
+        .story-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Values */
+        .values {
+            padding: 100px 40px;
+            background: white;
+        }
+
+        .values-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .value-card {
+            padding: 32px;
+            background: var(--bg-light);
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .value-card .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .value-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .value-card p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* Clients */
+        .clients {
+            padding: 100px 40px;
+            background: var(--bg-light);
+        }
+
+        .clients-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .testimonial {
+            background: white;
+            border-radius: 20px;
+            padding: 48px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+        }
+
+        .testimonial-content {
+            font-size: 20px;
+            line-height: 1.7;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .testimonial-avatar {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .testimonial-info h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .testimonial-info p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 100px 40px;
+            background: var(--text-primary);
+            text-align: center;
+        }
+
+        .cta-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .cta h2 {
+            font-size: 40px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .cta p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+            margin-bottom: 32px;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            background: var(--gradient-primary);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Footer */
+        .footer {
+            background: #1a1a1a;
+            padding: 32px 40px;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-copyright {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 900px) {
+            .hero-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-image {
+                margin: 0 auto;
+                width: 200px;
+                height: 200px;
+                font-size: 80px;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .values-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                padding: 0 20px;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 20px;
+                gap: 16px;
+                border-bottom: 1px solid var(--border-light);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-cta {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero {
+                padding: 120px 20px 60px;
+            }
+
+            .hero-content h1 {
+                font-size: 32px;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header h2 {
+                font-size: 28px;
+            }
+
+            .testimonial {
+                padding: 32px 24px;
+            }
+
+            .testimonial-content {
+                font-size: 17px;
+            }
+
+            .cta h2 {
+                font-size: 28px;
+            }
+
+            .footer-container {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/site/">
+                <img src="../../shared/assets/vidsponential logo.png" alt="vidsponential" class="nav-logo">
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/site/services.html">Services</a></li>
+                <li><a href="/site/portfolio.html">Portfolio</a></li>
+                <li><a href="/site/book.html">Book</a></li>
+                <li><a href="/site/about.html" class="active">About</a></li>
+                <li><a href="/pages/marketing/newsletter_signup.html">Newsletter</a></li>
+                <li><a href="/site/contact.html">Contact</a></li>
+            </ul>
+            <a href="/site/contact.html" class="nav-cta">Get Started</a>
+            <button class="mobile-menu-btn" onclick="toggleMenu()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12h18M3 6h18M3 18h18"></path>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-image">✍️</div>
+            <div class="hero-content">
+                <h1>Michael Pilgrim</h1>
+                <p class="tagline">YouTube Script Writer & Retention Specialist</p>
+                <p>I help faceless YouTube channels grow by writing scripts that viewers can't stop watching. Based in Greece, working with clients worldwide.</p>
+                <p>Every script I write is designed to hook viewers in the first 10 seconds, keep them engaged throughout, and leave them wanting more.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats">
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3>500+</h3>
+                <p>Scripts Written</p>
+            </div>
+            <div class="stat-card">
+                <h3>50M+</h3>
+                <p>Views Generated</p>
+            </div>
+            <div class="stat-card">
+                <h3>30+</h3>
+                <p>Channels Served</p>
+            </div>
+            <div class="stat-card">
+                <h3>98%</h3>
+                <p>Client Retention</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Story -->
+    <section class="story">
+        <div class="story-container">
+            <div class="section-header">
+                <h2>My Story</h2>
+            </div>
+            <div class="story-content">
+                <p>I started writing YouTube scripts after noticing something: most educational content was boring. Creators had fascinating topics but couldn't keep viewers watching past the first minute.</p>
+                <p>I became obsessed with understanding why some videos held attention while others lost it. I studied retention graphs, analysed viral scripts, and tested everything I learned on real channels.</p>
+                <p>What I discovered changed everything: great YouTube content isn't just about information—it's about storytelling. Every fact needs to earn its place. Every sentence should make viewers curious about the next one.</p>
+                <p>Today, I specialise in business stories, military operations, and historical content—niches where complex information needs to be transformed into gripping narratives that viewers binge-watch.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Values -->
+    <section class="values">
+        <div class="section-header">
+            <h2>How I Work</h2>
+        </div>
+        <div class="values-grid">
+            <div class="value-card">
+                <div class="icon">🎯</div>
+                <h3>Retention First</h3>
+                <p>Every script is structured to maximise watch time. I don't just write content—I engineer engagement.</p>
+            </div>
+            <div class="value-card">
+                <div class="icon">📚</div>
+                <h3>Deep Research</h3>
+                <p>I dig deeper than Wikipedia. Finding unique angles and surprising facts that make your content stand out.</p>
+            </div>
+            <div class="value-card">
+                <div class="icon">⚡</div>
+                <h3>Fast Delivery</h3>
+                <p>Clear communication, reliable deadlines. You'll always know where your project stands.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="clients">
+        <div class="clients-container">
+            <div class="section-header">
+                <h2>What Clients Say</h2>
+            </div>
+            <div class="testimonial">
+                <p class="testimonial-content">"Michael's scripts consistently outperform anything we've used before. Our average view duration increased by 40% after switching to his work."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">🎬</div>
+                    <div class="testimonial-info">
+                        <h4>Business Documentary Channel</h4>
+                        <p>500K+ Subscribers</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial">
+                <p class="testimonial-content">"He doesn't just write scripts—he understands YouTube. The hooks, the pacing, the story structure. Everything is designed to keep people watching."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">⚔️</div>
+                    <div class="testimonial-info">
+                        <h4>Military History Channel</h4>
+                        <p>200K+ Subscribers</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+        <div class="cta-container">
+            <h2>Let's Work Together</h2>
+            <p>Ready to take your channel to the next level?</p>
+            <a href="/site/contact.html" class="btn-primary">Get in Touch</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-copyright">© 2025 vidsponential. All rights reserved.</div>
+            <div class="footer-links">
+                <a href="/marketing/terms-and-conditions.html">Terms & Conditions</a>
+                <a href="/marketing/privacy-policy.html">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
