@@ -455,18 +455,6 @@
             </div>
 
             <div class="stat-card hours">
-                <div class="stat-label">Hours Worked</div>
-                <div class="stat-value" id="hoursValue">--</div>
-                <div class="stat-comparison" id="hoursComparison">Loading...</div>
-                <div class="historical-list" id="hoursHistory">
-                    <!-- Historical data will be populated here -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Secondary Stats Row 1 -->
-        <div class="main-stats">
-            <div class="stat-card secondary">
                 <div class="stat-label">Upwork Jobs Applied For</div>
                 <div class="stat-value" id="upworkJobsValue">--</div>
                 <div class="stat-comparison" id="upworkJobsComparison">Loading...</div>
@@ -474,7 +462,40 @@
                     <!-- Historical data will be populated here -->
                 </div>
             </div>
+        </div>
 
+        <!-- Hours Worked Row -->
+        <div class="main-stats">
+            <div class="stat-card secondary">
+                <div class="stat-label">Hours Worked (My Videos)</div>
+                <div class="stat-value" id="hoursMyVideosValue">--</div>
+                <div class="stat-comparison" id="hoursMyVideosComparison">Loading...</div>
+                <div class="historical-list" id="hoursMyVideosHistory">
+                    <!-- Historical data will be populated here -->
+                </div>
+            </div>
+
+            <div class="stat-card secondary">
+                <div class="stat-label">Hours Worked (Scriptwriting)</div>
+                <div class="stat-value" id="hoursScriptwritingValue">--</div>
+                <div class="stat-comparison" id="hoursScriptwritingComparison">Loading...</div>
+                <div class="historical-list" id="hoursScriptwritingHistory">
+                    <!-- Historical data will be populated here -->
+                </div>
+            </div>
+
+            <div class="stat-card secondary">
+                <div class="stat-label">Hours Worked (Total)</div>
+                <div class="stat-value" id="hoursTotalValue">--</div>
+                <div class="stat-comparison" id="hoursTotalComparison">Loading...</div>
+                <div class="historical-list" id="hoursTotalHistory">
+                    <!-- Historical data will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Stats Row 1 -->
+        <div class="main-stats">
             <div class="stat-card secondary">
                 <div class="stat-label">Social Posts Published</div>
                 <div class="stat-value" id="socialPostsPublishedValue">--</div>
@@ -492,10 +513,7 @@
                     <!-- Historical data will be populated here -->
                 </div>
             </div>
-        </div>
 
-        <!-- Secondary Stats Row 2 -->
-        <div class="main-stats">
             <div class="stat-card secondary">
                 <div class="stat-label">Book Sections Completed</div>
                 <div class="stat-value" id="bookSectionsValue">--</div>
@@ -504,7 +522,10 @@
                     <!-- Historical data will be populated here -->
                 </div>
             </div>
+        </div>
 
+        <!-- Secondary Stats Row 2 -->
+        <div class="main-stats">
             <div class="stat-card secondary">
                 <div class="stat-label">Posts on X</div>
                 <div class="stat-value" id="postsOnXValue">--</div>
@@ -522,10 +543,7 @@
                     <!-- Historical data will be populated here -->
                 </div>
             </div>
-        </div>
 
-        <!-- Secondary Stats Row 3 -->
-        <div class="main-stats">
             <div class="stat-card secondary">
                 <div class="stat-label">Total Email Subscribers</div>
                 <div class="stat-value" id="totalEmailSubscribersValue">--</div>
@@ -534,7 +552,10 @@
                     <!-- Historical data will be populated here -->
                 </div>
             </div>
+        </div>
 
+        <!-- Secondary Stats Row 3 -->
+        <div class="main-stats">
             <div class="stat-card secondary">
                 <div class="stat-label">New Email Subscribers</div>
                 <div class="stat-value" id="newEmailSubscribersValue">--</div>
@@ -751,8 +772,14 @@
 
         // Get raw numeric value from historical data item
         function getRawValue(data, field) {
-            if (field === 'total_hours') {
+            if (field === 'hours_total') {
                 return data?.hours?.total || 0;
+            }
+            if (field === 'hours_my_videos') {
+                return data?.hours?.my_videos || 0;
+            }
+            if (field === 'hours_scriptwriting') {
+                return data?.hours?.scriptwriting || 0;
             }
             return data?.[field] || 0;
         }
@@ -816,7 +843,7 @@
             // Fetch current period data from Supabase
             const data = await fetchDashboardData();
 
-            // Fetch and populate historical data for all 4 metrics
+            // Fetch and populate historical data for all metrics
             const historicalData = await fetchHistoricalData();
 
             // Calculate averages from the last 7 periods (excluding current period)
@@ -826,8 +853,12 @@
                 // All data in historicalData is already previous periods (not current)
                 const sum = historicalData.reduce((total, item) => {
                     let value = 0;
-                    if (field === 'total_hours') {
+                    if (field === 'hours_total') {
                         value = item.data?.hours?.total || 0;
+                    } else if (field === 'hours_my_videos') {
+                        value = item.data?.hours?.my_videos || 0;
+                    } else if (field === 'hours_scriptwriting') {
+                        value = item.data?.hours?.scriptwriting || 0;
                     } else {
                         value = item.data?.[field] || 0;
                     }
@@ -839,7 +870,9 @@
 
             const avgScripts = calculateAverage(historicalData, 'scripts_completed');
             const avgCash = calculateAverage(historicalData, 'cash_received');
-            const avgHours = calculateAverage(historicalData, 'total_hours');
+            const avgHoursTotal = calculateAverage(historicalData, 'hours_total');
+            const avgHoursMyVideos = calculateAverage(historicalData, 'hours_my_videos');
+            const avgHoursScriptwriting = calculateAverage(historicalData, 'hours_scriptwriting');
             const avgNewClients = calculateAverage(historicalData, 'new_clients');
             const avgUpworkJobs = calculateAverage(historicalData, 'upwork_jobs_applied');
             const avgSocialPostsPublished = calculateAverage(historicalData, 'social_posts_published');
@@ -858,26 +891,34 @@
                 document.getElementById('cashValue').textContent = `£${cashReceived.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                 document.getElementById('cashComparison').textContent = `${period.comparison}: £${avgCash.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 
-                // Update hours worked (total)
-                const totalHours = current.hours ? current.hours.total : 0;
-                document.getElementById('hoursValue').textContent = totalHours.toFixed(1);
-                document.getElementById('hoursComparison').textContent = `${period.comparison}: ${avgHours.toFixed(1)}`;
-
                 // Update scripts completed
                 document.getElementById('scriptsValue').textContent = current.scripts_completed || 0;
                 document.getElementById('scriptsComparison').textContent = `${period.comparison}: ${avgScripts.toFixed(1)}`;
 
-                // Update secondary metrics - Row 1
+                // Update upwork jobs (moved to main row)
                 document.getElementById('upworkJobsValue').textContent = current.upwork_jobs_applied || 0;
                 document.getElementById('upworkJobsComparison').textContent = `${period.comparison}: ${avgUpworkJobs.toFixed(1)}`;
 
+                // Update hours worked metrics
+                const hoursMyVideos = current.hours ? current.hours.my_videos : 0;
+                document.getElementById('hoursMyVideosValue').textContent = hoursMyVideos.toFixed(1);
+                document.getElementById('hoursMyVideosComparison').textContent = `${period.comparison}: ${avgHoursMyVideos.toFixed(1)}`;
+
+                const hoursScriptwriting = current.hours ? current.hours.scriptwriting : 0;
+                document.getElementById('hoursScriptwritingValue').textContent = hoursScriptwriting.toFixed(1);
+                document.getElementById('hoursScriptwritingComparison').textContent = `${period.comparison}: ${avgHoursScriptwriting.toFixed(1)}`;
+
+                const hoursTotal = current.hours ? current.hours.total : 0;
+                document.getElementById('hoursTotalValue').textContent = hoursTotal.toFixed(1);
+                document.getElementById('hoursTotalComparison').textContent = `${period.comparison}: ${avgHoursTotal.toFixed(1)}`;
+
+                // Update secondary metrics
                 document.getElementById('socialPostsPublishedValue').textContent = current.social_posts_published || 0;
                 document.getElementById('socialPostsPublishedComparison').textContent = `${period.comparison}: ${avgSocialPostsPublished.toFixed(1)}`;
 
                 document.getElementById('newClientsValue').textContent = current.new_clients || 0;
                 document.getElementById('newClientsComparison').textContent = `${period.comparison}: ${avgNewClients.toFixed(1)}`;
 
-                // Update secondary metrics - Row 2
                 document.getElementById('bookSectionsValue').textContent = current.book_sections || 0;
                 document.getElementById('bookSectionsComparison').textContent = `${period.comparison}: ${avgBookSections.toFixed(1)}`;
 
@@ -887,7 +928,6 @@
                 document.getElementById('articlesPublishedValue').textContent = current.articles_published || 0;
                 document.getElementById('articlesPublishedComparison').textContent = `${period.comparison}: ${avgArticlesPublished.toFixed(1)}`;
 
-                // Update secondary metrics - Row 3
                 document.getElementById('totalEmailSubscribersValue').textContent = current.total_email_subscribers || 0;
                 document.getElementById('totalEmailSubscribersComparison').textContent = `${period.comparison}: ${avgTotalEmailSubscribers.toFixed(1)}`;
 
@@ -924,21 +964,22 @@
                 }
             }
 
+            // Populate historical lists
             await populateHistoricalList('cashHistory', historicalData, 'cash_received', (val) => `£${(val || 0).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
-            await populateHistoricalList('hoursHistory', historicalData, 'total_hours', (val) => (val || 0).toFixed(1));
             await populateHistoricalList('scriptsHistory', historicalData, 'scripts_completed');
-
-            // Populate secondary metrics - Row 1
             await populateHistoricalList('upworkJobsHistory', historicalData, 'upwork_jobs_applied');
+
+            // Populate hours worked historical lists
+            await populateHistoricalList('hoursMyVideosHistory', historicalData, 'hours_my_videos', (val) => (val || 0).toFixed(1));
+            await populateHistoricalList('hoursScriptwritingHistory', historicalData, 'hours_scriptwriting', (val) => (val || 0).toFixed(1));
+            await populateHistoricalList('hoursTotalHistory', historicalData, 'hours_total', (val) => (val || 0).toFixed(1));
+
+            // Populate secondary metrics
             await populateHistoricalList('socialPostsPublishedHistory', historicalData, 'social_posts_published');
             await populateHistoricalList('newClientsHistory', historicalData, 'new_clients');
-
-            // Populate secondary metrics - Row 2
             await populateHistoricalList('bookSectionsHistory', historicalData, 'book_sections');
             await populateHistoricalList('postsOnXHistory', historicalData, 'posts_on_x');
             await populateHistoricalList('articlesPublishedHistory', historicalData, 'articles_published');
-
-            // Populate secondary metrics - Row 3
             await populateHistoricalList('totalEmailSubscribersHistory', historicalData, 'total_email_subscribers');
             await populateHistoricalList('newEmailSubscribersHistory', historicalData, 'new_email_subscribers');
             await populateHistoricalList('emailUnsubscribesHistory', historicalData, 'email_unsubscribes');
