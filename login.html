@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Vidsponential</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <div>
+                <h2 class="mt-6 text-center text-3xl font-bold text-gray-900">
+                    Vidsponential
+                </h2>
+                <p class="mt-2 text-center text-sm text-gray-600">
+                    Sign in to your dashboard
+                </p>
+            </div>
+            
+            <div id="auth-container" class="mt-8 space-y-6">
+                <!-- Email login form -->
+                <div id="email-form" class="bg-white py-8 px-6 shadow rounded-lg">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
+                            <input id="email" name="email" type="email" required 
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                placeholder="you@example.com">
+                        </div>
+                        
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                            <input id="password" name="password" type="password" required 
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                placeholder="••••••••">
+                        </div>
+
+                        <div id="error-message" class="hidden text-sm text-red-600"></div>
+                        <div id="success-message" class="hidden text-sm text-green-600"></div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm">
+                                <a href="#" id="toggle-mode" class="font-medium text-indigo-600 hover:text-indigo-500">
+                                    Need an account? Sign up
+                                </a>
+                            </div>
+                        </div>
+
+                        <div>
+                            <button id="submit-btn" type="button"
+                                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Sign in
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Magic link confirmation -->
+                <div id="magic-link-sent" class="hidden bg-white py-8 px-6 shadow rounded-lg">
+                    <div class="text-center">
+                        <svg class="mx-auto h-12 w-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76"/>
+                        </svg>
+                        <h3 class="mt-4 text-lg font-medium text-gray-900">Check your email</h3>
+                        <p class="mt-2 text-sm text-gray-500">
+                            We've sent a magic link to <span id="sent-email" class="font-medium"></span>
+                        </p>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Click the link in the email to sign in.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <p class="text-xs text-gray-500">
+                    By signing in, you agree to our Terms of Service and Privacy Policy
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
+        const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let isSignUp = false;
+
+        // Check if already logged in
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                window.location.href = '/';
+            }
+        });
+
+        // Toggle between sign in and sign up
+        document.getElementById('toggle-mode').addEventListener('click', (e) => {
+            e.preventDefault();
+            isSignUp = !isSignUp;
+            const btn = document.getElementById('submit-btn');
+            const toggle = document.getElementById('toggle-mode');
+            
+            if (isSignUp) {
+                btn.textContent = 'Sign up';
+                toggle.textContent = 'Already have an account? Sign in';
+            } else {
+                btn.textContent = 'Sign in';
+                toggle.textContent = 'Need an account? Sign up';
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('submit-btn').addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error-message');
+            const successDiv = document.getElementById('success-message');
+            const btn = document.getElementById('submit-btn');
+
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+            btn.disabled = true;
+            btn.textContent = isSignUp ? 'Signing up...' : 'Signing in...';
+
+            try {
+                let result;
+                if (isSignUp) {
+                    result = await supabase.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            emailRedirectTo: window.location.origin
+                        }
+                    });
+                } else {
+                    result = await supabase.auth.signInWithPassword({
+                        email,
+                        password
+                    });
+                }
+
+                if (result.error) throw result.error;
+
+                if (isSignUp) {
+                    // Show magic link confirmation
+                    document.getElementById('email-form').classList.add('hidden');
+                    document.getElementById('magic-link-sent').classList.remove('hidden');
+                    document.getElementById('sent-email').textContent = email;
+                } else {
+                    // Redirect to dashboard
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+                btn.disabled = false;
+                btn.textContent = isSignUp ? 'Sign up' : 'Sign in';
+            }
+        });
+
+        // Handle Enter key
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('submit-btn').click();
+            }
+        });
+    </script>
+</body>
+</html>
