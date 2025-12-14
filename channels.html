@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Channels - Vidsponential</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50">
+    <div x-data="channelsApp()" x-init="init()">
+        <!-- Navigation -->
+        <nav class="bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <div class="flex-shrink-0 flex items-center">
+                            <span class="text-xl font-bold text-indigo-600">Vidsponential</span>
+                        </div>
+                        <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+                            <a href="/" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Dashboard
+                            </a>
+                            <a href="channels.html" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Channels
+                            </a>
+                            <a href="reports.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Reports
+                            </a>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <span class="text-gray-700 mr-2" x-text="userEmail"></span>
+                                <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5">
+                                <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                                <a href="#" @click.prevent="signOut()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Header -->
+            <div class="mb-6 flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">
+                        MY CHANNELS 
+                        <span class="text-base font-normal text-gray-500">
+                            (<span x-text="channels.length"></span>/<span x-text="channelLimit"></span>)
+                        </span>
+                    </h1>
+                </div>
+                <button @click="showAddModal = true" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Add Channel
+                </button>
+            </div>
+
+            <!-- Filters & Search -->
+            <div class="bg-white rounded-lg shadow px-6 py-4 mb-6">
+                <div class="flex flex-wrap gap-4 items-center">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Filter</label>
+                        <select x-model="filters.status" @change="applyFilters()" class="block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="">All</option>
+                            <option value="active">Active</option>
+                            <option value="paused">Paused</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <select x-model="filters.category" @change="applyFilters()" class="block w-40 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="">All Categories</option>
+                            <template x-for="cat in categories" :key="cat.id">
+                                <option :value="cat.id" x-text="cat.name"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                        <input type="text" x-model="filters.search" @input="applyFilters()" placeholder="Search channels..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Channels List -->
+            <div class="bg-white rounded-lg shadow">
+                <!-- Loading State -->
+                <div x-show="loading" class="px-6 py-12 text-center">
+                    <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+                    <p class="mt-2 text-gray-500">Loading channels...</p>
+                </div>
+
+                <!-- Channels -->
+                <div x-show="!loading" class="divide-y divide-gray-200">
+                    <template x-for="channel in filteredChannels" :key="channel.id">
+                        <div class="px-6 py-6">
+                            <div class="flex items-start gap-4">
+                                <!-- Avatar -->
+                                <img :src="channel.channel_avatar || 'https://via.placeholder.com/80'" :alt="channel.channel_name" class="w-20 h-20 rounded-full flex-shrink-0">
+                                
+                                <!-- Channel Info -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <h3 class="text-lg font-semibold text-gray-900" x-text="channel.channel_name"></h3>
+                                            <div class="mt-1 flex items-center gap-2 text-sm text-gray-500">
+                                                <span>@<span x-text="channel.channel_id"></span></span>
+                                                <span>•</span>
+                                                <span x-text="formatNumber(channel.subscriber_count) + ' subs'"></span>
+                                                <span>•</span>
+                                                <span x-text="channel.upload_frequency + ' videos/month'"></span>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button @click="togglePause(channel.id)" :class="channel.is_paused ? 'text-green-600 hover:text-green-700' : 'text-gray-600 hover:text-gray-700'" class="text-sm font-medium">
+                                                <span x-text="channel.is_paused ? 'Resume' : 'Pause'"></span>
+                                            </button>
+                                            <button @click="removeChannel(channel.id)" class="text-sm font-medium text-red-600 hover:text-red-700">
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Category & Tags -->
+                                    <div class="mt-3">
+                                        <div class="flex items-center gap-4">
+                                            <div>
+                                                <label class="text-sm text-gray-700 mr-2">Category:</label>
+                                                <select :value="channel.category_id" @change="updateCategory(channel.id, $event.target.value)" class="text-sm rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                                                    <option value="">None</option>
+                                                    <template x-for="cat in categories" :key="cat.id">
+                                                        <option :value="cat.id" x-text="cat.name"></option>
+                                                    </template>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-2 flex items-center gap-2">
+                                            <span class="text-sm text-gray-700">Tags:</span>
+                                            <template x-for="tag in (channel.tags || [])" :key="tag">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                                    <span x-text="tag"></span>
+                                                    <button @click="removeTag(channel.id, tag)" class="ml-1 text-indigo-600 hover:text-indigo-800">×</button>
+                                                </span>
+                                            </template>
+                                            <button @click="addTagToChannel(channel.id)" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-gray-600 hover:text-gray-800">
+                                                + Add
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Status -->
+                                    <div class="mt-3 flex items-center gap-2 text-sm">
+                                        <span class="flex items-center">
+                                            <span :class="channel.is_paused ? 'bg-yellow-400' : 'bg-green-400'" class="h-2 w-2 rounded-full mr-2"></span>
+                                            <span :class="channel.is_paused ? 'text-yellow-700' : 'text-green-700'" class="font-medium" x-text="channel.is_paused ? 'Paused' : 'Active'"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Empty State -->
+                    <div x-show="!loading && filteredChannels.length === 0" class="px-6 py-12 text-center text-gray-500">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        <p class="mt-2">No channels found. Add your first channel to start monitoring!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Channel Modal -->
+        <div x-show="showAddModal" class="fixed z-10 inset-0 overflow-y-auto" x-cloak>
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showAddModal = false"></div>
+
+                <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">Add Channel</h3>
+                        <button @click="showAddModal = false" class="text-gray-400 hover:text-gray-500">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                YouTube URL or Channel ID
+                            </label>
+                            <input type="text" x-model="newChannel.url" placeholder="https://youtube.com/@channelname or channel ID" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <p class="mt-1 text-xs text-gray-500">Paste a channel URL or just the channel ID</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                            <select x-model="newChannel.category" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                <option value="">Select...</option>
+                                <template x-for="cat in categories" :key="cat.id">
+                                    <option :value="cat.id" x-text="cat.name"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tags (optional)</label>
+                            <input type="text" x-model="newChannel.tags" placeholder="competitor, inspiration, research" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <p class="mt-1 text-xs text-gray-500">Comma-separated tags</p>
+                        </div>
+
+                        <!-- Bulk Import Toggle -->
+                        <div class="border-t pt-4">
+                            <button @click="showBulkImport = !showBulkImport" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                                <span x-text="showBulkImport ? '− Hide bulk import' : '+ Bulk import multiple channels'"></span>
+                            </button>
+                            <div x-show="showBulkImport" class="mt-3">
+                                <textarea x-model="bulkChannels" rows="4" placeholder="Paste multiple YouTube URLs, one per line" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex gap-3 justify-end">
+                        <button @click="showAddModal = false" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button @click="addChannel()" :disabled="addingChannel" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
+                            <span x-show="!addingChannel">Add Channel</span>
+                            <span x-show="addingChannel">Adding...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
+        const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function channelsApp() {
+            return {
+                userEmail: '',
+                userId: '',
+                loading: true,
+                channels: [],
+                filteredChannels: [],
+                categories: [],
+                channelLimit: 5,
+                showAddModal: false,
+                showBulkImport: false,
+                addingChannel: false,
+                filters: {
+                    status: '',
+                    category: '',
+                    search: ''
+                },
+                newChannel: {
+                    url: '',
+                    category: '',
+                    tags: ''
+                },
+                bulkChannels: '',
+
+                async init() {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    this.userEmail = user.email;
+                    this.userId = user.id;
+
+                    await Promise.all([
+                        this.loadProfile(),
+                        this.loadCategories(),
+                        this.loadChannels()
+                    ]);
+                },
+
+                async loadProfile() {
+                    const { data } = await supabase
+                        .from('profiles')
+                        .select('channel_limit')
+                        .eq('id', this.userId)
+                        .single();
+                    
+                    if (data) {
+                        this.channelLimit = data.channel_limit || 5;
+                    }
+                },
+
+                async loadCategories() {
+                    const { data } = await supabase
+                        .from('categories')
+                        .select('*')
+                        .eq('user_id', this.userId)
+                        .order('name');
+                    
+                    this.categories = data || [];
+                },
+
+                async loadChannels() {
+                    this.loading = true;
+                    try {
+                        const { data, error } = await supabase
+                            .from('monitored_channels')
+                            .select(`
+                                *,
+                                categories(name, color)
+                            `)
+                            .eq('user_id', this.userId)
+                            .order('created_at', { ascending: false });
+
+                        if (error) throw error;
+
+                        this.channels = data || [];
+                        this.applyFilters();
+                    } catch (error) {
+                        console.error('Error loading channels:', error);
+                        alert('Error loading channels');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                applyFilters() {
+                    let filtered = [...this.channels];
+
+                    if (this.filters.status) {
+                        const isPaused = this.filters.status === 'paused';
+                        filtered = filtered.filter(c => c.is_paused === isPaused);
+                    }
+
+                    if (this.filters.category) {
+                        filtered = filtered.filter(c => c.category_id === this.filters.category);
+                    }
+
+                    if (this.filters.search) {
+                        const search = this.filters.search.toLowerCase();
+                        filtered = filtered.filter(c => 
+                            c.channel_name?.toLowerCase().includes(search) ||
+                            c.channel_id?.toLowerCase().includes(search)
+                        );
+                    }
+
+                    this.filteredChannels = filtered;
+                },
+
+                async addChannel() {
+                    if (this.channels.length >= this.channelLimit) {
+                        alert(`You've reached your channel limit (${this.channelLimit}). Upgrade to Pro for more channels.`);
+                        return;
+                    }
+
+                    if (!this.newChannel.url && !this.bulkChannels) {
+                        alert('Please enter a YouTube URL or channel ID');
+                        return;
+                    }
+
+                    this.addingChannel = true;
+
+                    try {
+                        let channelsToAdd = [];
+
+                        if (this.bulkChannels) {
+                            const urls = this.bulkChannels.split('\n').filter(u => u.trim());
+                            channelsToAdd = urls.map(url => ({
+                                channel_id: this.extractChannelId(url.trim())
+                            }));
+                        } else {
+                            channelsToAdd = [{
+                                channel_id: this.extractChannelId(this.newChannel.url)
+                            }];
+                        }
+
+                        const tags = this.newChannel.tags ? 
+                            this.newChannel.tags.split(',').map(t => t.trim()).filter(t => t) : 
+                            [];
+
+                        for (const channel of channelsToAdd) {
+                            const { error } = await supabase
+                                .from('monitored_channels')
+                                .insert({
+                                    user_id: this.userId,
+                                    channel_id: channel.channel_id,
+                                    category_id: this.newChannel.category || null,
+                                    tags: tags.length > 0 ? tags : null
+                                });
+
+                            if (error) {
+                                console.error('Error adding channel:', error);
+                            }
+                        }
+
+                        this.showAddModal = false;
+                        this.newChannel = { url: '', category: '', tags: '' };
+                        this.bulkChannels = '';
+                        await this.loadChannels();
+                    } catch (error) {
+                        console.error('Error adding channel:', error);
+                        alert('Error adding channel');
+                    } finally {
+                        this.addingChannel = false;
+                    }
+                },
+
+                extractChannelId(url) {
+                    // Simple extraction - can be enhanced
+                    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                        const match = url.match(/(?:@|channel\/|user\/)([a-zA-Z0-9_-]+)/);
+                        return match ? match[1] : url;
+                    }
+                    return url;
+                },
+
+                async togglePause(channelId) {
+                    const channel = this.channels.find(c => c.id === channelId);
+                    if (!channel) return;
+
+                    const { error } = await supabase
+                        .from('monitored_channels')
+                        .update({ is_paused: !channel.is_paused })
+                        .eq('id', channelId);
+
+                    if (!error) {
+                        channel.is_paused = !channel.is_paused;
+                        this.applyFilters();
+                    }
+                },
+
+                async removeChannel(channelId) {
+                    if (!confirm('Remove this channel from monitoring?')) return;
+
+                    const { error } = await supabase
+                        .from('monitored_channels')
+                        .delete()
+                        .eq('id', channelId);
+
+                    if (!error) {
+                        await this.loadChannels();
+                    }
+                },
+
+                async updateCategory(channelId, categoryId) {
+                    const { error } = await supabase
+                        .from('monitored_channels')
+                        .update({ category_id: categoryId || null })
+                        .eq('id', channelId);
+
+                    if (!error) {
+                        const channel = this.channels.find(c => c.id === channelId);
+                        if (channel) channel.category_id = categoryId;
+                    }
+                },
+
+                async addTagToChannel(channelId) {
+                    const tag = prompt('Enter tag name:');
+                    if (!tag) return;
+
+                    const channel = this.channels.find(c => c.id === channelId);
+                    const tags = [...(channel.tags || []), tag.trim()];
+
+                    const { error } = await supabase
+                        .from('monitored_channels')
+                        .update({ tags })
+                        .eq('id', channelId);
+
+                    if (!error) {
+                        channel.tags = tags;
+                    }
+                },
+
+                async removeTag(channelId, tag) {
+                    const channel = this.channels.find(c => c.id === channelId);
+                    const tags = (channel.tags || []).filter(t => t !== tag);
+
+                    const { error } = await supabase
+                        .from('monitored_channels')
+                        .update({ tags: tags.length > 0 ? tags : null })
+                        .eq('id', channelId);
+
+                    if (!error) {
+                        channel.tags = tags.length > 0 ? tags : null;
+                    }
+                },
+
+                async signOut() {
+                    await supabase.auth.signOut();
+                    window.location.href = 'login.html';
+                },
+
+                formatNumber(num) {
+                    if (!num) return '0';
+                    if (num >= 1000000) {
+                        return (num / 1000000).toFixed(1) + 'M';
+                    } else if (num >= 1000) {
+                        return (num / 1000).toFixed(0) + 'K';
+                    }
+                    return num.toString();
+                }
+            }
+        }
+    </script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</body>
+</html>
