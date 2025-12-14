@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Trending Videos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50">
+    <div x-data="dashboardApp()" x-init="init()">
+        <!-- Navigation -->
+        <nav class="bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <div class="flex-shrink-0 flex items-center">
+                            <span class="text-xl font-bold text-indigo-600">Vidsponential</span>
+                        </div>
+                        <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+                            <a href="/" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Dashboard
+                            </a>
+                            <a href="channels.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Channels
+                            </a>
+                            <a href="reports.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Reports
+                            </a>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <span class="text-gray-700 mr-2" x-text="userEmail"></span>
+                                <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5">
+                                <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                                <a href="#" @click.prevent="signOut()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Filters -->
+            <div class="bg-white rounded-lg shadow px-6 py-4 mb-6">
+                <div class="flex flex-wrap gap-4 items-center">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Niche</label>
+                        <select x-model="filters.niche" @change="applyFilters()" class="block w-48 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="">All Niches</option>
+                            <option value="business">Business</option>
+                            <option value="history">History</option>
+                            <option value="geopolitics">Geopolitics</option>
+                            <option value="entertainment">Entertainment</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Time Period</label>
+                        <select x-model="filters.timePeriod" @change="applyFilters()" class="block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="24h">24 hours</option>
+                            <option value="7d">7 days</option>
+                            <option value="30d">30 days</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                        <select x-model="filters.sortBy" @change="applyFilters()" class="block w-40 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="velocity">Velocity</option>
+                            <option value="views">Views</option>
+                            <option value="growth">Growth Rate</option>
+                            <option value="recent">Most Recent</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Min Views</label>
+                        <input type="number" x-model="filters.minViews" @change="applyFilters()" placeholder="0" class="block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    </div>
+                    <div class="flex items-end">
+                        <label class="flex items-center">
+                            <input type="checkbox" x-model="filters.monitoredOnly" @change="applyFilters()" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4">
+                            <span class="ml-2 text-sm text-gray-700">Monitored only</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trending Videos List -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">🔥 TRENDING NOW</h2>
+                </div>
+                
+                <!-- Loading State -->
+                <div x-show="loading" class="px-6 py-12 text-center">
+                    <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+                    <p class="mt-2 text-gray-500">Loading trending videos...</p>
+                </div>
+
+                <!-- Videos List -->
+                <div x-show="!loading" class="divide-y divide-gray-200">
+                    <template x-for="video in filteredVideos" :key="video.id">
+                        <div class="px-6 py-4 hover:bg-gray-50 transition">
+                            <div class="flex gap-4">
+                                <!-- Thumbnail -->
+                                <a :href="'https://youtube.com/watch?v=' + video.id" target="_blank" class="flex-shrink-0">
+                                    <img :src="video.thumbnail_url" :alt="video.title" class="w-40 h-24 object-cover rounded">
+                                </a>
+                                
+                                <!-- Video Info -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <a :href="'https://youtube.com/watch?v=' + video.id" target="_blank" class="text-base font-medium text-gray-900 hover:text-indigo-600">
+                                                <span x-text="video.title"></span>
+                                            </a>
+                                            <div class="mt-1 flex items-center gap-2 text-sm text-gray-500">
+                                                <span x-text="video.channel_name"></span>
+                                                <span>•</span>
+                                                <span x-text="formatDate(video.published_at)"></span>
+                                            </div>
+                                        </div>
+                                        <div class="ml-4 text-right">
+                                            <div class="text-base font-semibold text-gray-900" x-text="formatViews(video.view_count)"></div>
+                                            <div class="text-sm font-medium" :class="video.growth_rate >= 100 ? 'text-green-600' : 'text-orange-600'">
+                                                ↑ <span x-text="video.growth_rate + '%'"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tags & Actions -->
+                                    <div class="mt-3 flex items-center justify-between">
+                                        <div class="flex gap-2">
+                                            <template x-for="tag in (video.tags || [])" :key="tag">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800" x-text="tag"></span>
+                                            </template>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button @click="toggleSave(video.id)" class="text-gray-400 hover:text-yellow-500">
+                                                <svg class="h-5 w-5" :class="video.is_saved ? 'fill-current text-yellow-500' : 'fill-none'" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Empty State -->
+                    <div x-show="!loading && filteredVideos.length === 0" class="px-6 py-12 text-center text-gray-500">
+                        No trending videos found. Try adjusting your filters.
+                    </div>
+                </div>
+
+                <!-- Load More -->
+                <div x-show="!loading && filteredVideos.length > 0 && hasMore" class="px-6 py-4 border-t border-gray-200 text-center">
+                    <button @click="loadMore()" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Load More
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
+        const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY'; // You'll need to add this
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function dashboardApp() {
+            return {
+                userEmail: '',
+                loading: true,
+                videos: [],
+                filteredVideos: [],
+                hasMore: false,
+                filters: {
+                    niche: '',
+                    timePeriod: '7d',
+                    sortBy: 'velocity',
+                    minViews: '',
+                    monitoredOnly: false
+                },
+
+                async init() {
+                    // Check auth
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    this.userEmail = user.email;
+
+                    // Load videos
+                    await this.loadVideos();
+                },
+
+                async loadVideos() {
+                    this.loading = true;
+                    try {
+                        // This will query the trending_videos view once you create it
+                        // For now, showing the structure
+                        let query = supabase
+                            .from('videos')
+                            .select(`
+                                *,
+                                channels!inner(
+                                    name,
+                                    avatar_url,
+                                    subscriber_count
+                                )
+                            `)
+                            .order('view_count', { ascending: false })
+                            .limit(20);
+
+                        const { data, error } = await query;
+
+                        if (error) throw error;
+
+                        // Transform data
+                        this.videos = (data || []).map(v => ({
+                            id: v.id,
+                            title: v.title,
+                            thumbnail_url: v.thumbnail_url,
+                            channel_name: v.channels?.name || 'Unknown',
+                            channel_avatar: v.channels?.avatar_url,
+                            view_count: v.view_count || 0,
+                            published_at: v.published_at,
+                            tags: v.tags || [],
+                            growth_rate: Math.floor(Math.random() * 400), // Placeholder - will calculate from video_stats
+                            velocity: Math.floor(Math.random() * 10000), // Placeholder
+                            is_saved: false
+                        }));
+
+                        this.applyFilters();
+                    } catch (error) {
+                        console.error('Error loading videos:', error);
+                        alert('Error loading videos');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                applyFilters() {
+                    let filtered = [...this.videos];
+
+                    // Apply filters
+                    if (this.filters.niche) {
+                        filtered = filtered.filter(v => 
+                            v.tags?.includes(this.filters.niche)
+                        );
+                    }
+
+                    if (this.filters.minViews) {
+                        filtered = filtered.filter(v => 
+                            v.view_count >= parseInt(this.filters.minViews)
+                        );
+                    }
+
+                    // Sort
+                    switch (this.filters.sortBy) {
+                        case 'velocity':
+                            filtered.sort((a, b) => b.velocity - a.velocity);
+                            break;
+                        case 'views':
+                            filtered.sort((a, b) => b.view_count - a.view_count);
+                            break;
+                        case 'growth':
+                            filtered.sort((a, b) => b.growth_rate - a.growth_rate);
+                            break;
+                        case 'recent':
+                            filtered.sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+                            break;
+                    }
+
+                    this.filteredVideos = filtered;
+                },
+
+                async toggleSave(videoId) {
+                    const video = this.filteredVideos.find(v => v.id === videoId);
+                    if (!video) return;
+
+                    video.is_saved = !video.is_saved;
+
+                    // Save to database
+                    const { data: { user } } = await supabase.auth.getUser();
+                    
+                    if (video.is_saved) {
+                        await supabase.from('saved_videos').insert({
+                            user_id: user.id,
+                            video_id: videoId
+                        });
+                    } else {
+                        await supabase.from('saved_videos').delete()
+                            .eq('user_id', user.id)
+                            .eq('video_id', videoId);
+                    }
+                },
+
+                loadMore() {
+                    // Implement pagination
+                    console.log('Load more');
+                },
+
+                async signOut() {
+                    await supabase.auth.signOut();
+                    window.location.href = 'login.html';
+                },
+
+                formatViews(views) {
+                    if (views >= 1000000) {
+                        return (views / 1000000).toFixed(1) + 'M views';
+                    } else if (views >= 1000) {
+                        return (views / 1000).toFixed(0) + 'K views';
+                    }
+                    return views + ' views';
+                },
+
+                formatDate(dateString) {
+                    const date = new Date(dateString);
+                    const now = new Date();
+                    const diffTime = Math.abs(now - date);
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays === 0) return 'Today';
+                    if (diffDays === 1) return '1 day ago';
+                    if (diffDays < 7) return diffDays + ' days ago';
+                    if (diffDays < 30) return Math.floor(diffDays / 7) + ' weeks ago';
+                    return Math.floor(diffDays / 30) + ' months ago';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
