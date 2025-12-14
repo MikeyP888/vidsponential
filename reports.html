@@ -111,13 +111,17 @@
                 <!-- Trending Videos Chart -->
                 <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Trending Videos Over Time</h3>
-                    <canvas id="trendingChart" height="200"></canvas>
+                    <div style="height: 250px;">
+                        <canvas id="trendingChart"></canvas>
+                    </div>
                 </div>
 
                 <!-- Niche Distribution -->
                 <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Content by Niche</h3>
-                    <canvas id="nicheChart" height="200"></canvas>
+                    <div style="height: 250px;">
+                        <canvas id="nicheChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -161,54 +165,67 @@
                 ],
 
                 init() {
-                    this.initCharts();
+                    // Delay chart initialization to ensure DOM is ready
+                    setTimeout(() => this.initCharts(), 100);
                 },
 
                 initCharts() {
                     // Trending Videos Chart
-                    const trendingCtx = document.getElementById('trendingChart').getContext('2d');
-                    new Chart(trendingCtx, {
-                        type: 'line',
-                        data: {
-                            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                            datasets: [{
-                                label: 'Trending Videos',
-                                data: [12, 19, 15, 25, 32, 38, 43],
-                                borderColor: 'rgb(99, 102, 241)',
-                                backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                                tension: 0.4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: false }
+                    const trendingCtx = document.getElementById('trendingChart');
+                    if (trendingCtx) {
+                        new Chart(trendingCtx, {
+                            type: 'line',
+                            data: {
+                                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                                datasets: [{
+                                    label: 'Trending Videos',
+                                    data: [12, 19, 15, 25, 32, 38, 43],
+                                    borderColor: 'rgb(99, 102, 241)',
+                                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                    tension: 0.4,
+                                    fill: true
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                aspectRatio: 2,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true
+                                    }
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
 
                     // Niche Distribution Chart
-                    const nicheCtx = document.getElementById('nicheChart').getContext('2d');
-                    new Chart(nicheCtx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Business', 'History', 'Geopolitics', 'Entertainment'],
-                            datasets: [{
-                                data: [45, 30, 15, 10],
-                                backgroundColor: [
-                                    'rgb(99, 102, 241)',
-                                    'rgb(249, 115, 22)',
-                                    'rgb(34, 197, 94)',
-                                    'rgb(236, 72, 153)'
-                                ]
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false
-                        }
-                    });
+                    const nicheCtx = document.getElementById('nicheChart');
+                    if (nicheCtx) {
+                        new Chart(nicheCtx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Business', 'History', 'Geopolitics', 'Entertainment'],
+                                datasets: [{
+                                    data: [45, 30, 15, 10],
+                                    backgroundColor: [
+                                        'rgb(99, 102, 241)',
+                                        'rgb(249, 115, 22)',
+                                        'rgb(34, 197, 94)',
+                                        'rgb(236, 72, 153)'
+                                    ]
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                aspectRatio: 1.5
+                            }
+                        });
+                    }
                 }
             }
         }
