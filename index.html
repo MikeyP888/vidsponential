@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Trending Videos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div x-data="dashboardApp()" x-init="init()">
+        <!-- Navigation -->
+        <nav class="bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <div class="flex-shrink-0 flex items-center">
+                            <span class="text-xl font-bold text-indigo-600">Vidsponential</span>
+                        </div>
+                        <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+                            <a href="/" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Dashboard
+                            </a>
+                            <a href="channels.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Channels
+                            </a>
+                            <a href="reports.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Reports
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Filters -->
+            <div class="bg-white rounded-lg shadow px-6 py-4 mb-6">
+                <div class="flex flex-wrap gap-4 items-center">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Niche</label>
+                        <select x-model="filters.niche" @change="applyFilters()" class="block w-48 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="">All Niches</option>
+                            <option value="business">Business</option>
+                            <option value="history">History</option>
+                            <option value="geopolitics">Geopolitics</option>
+                            <option value="entertainment">Entertainment</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Time Period</label>
+                        <select x-model="filters.timePeriod" @change="applyFilters()" class="block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="24h">24 hours</option>
+                            <option value="7d">7 days</option>
+                            <option value="30d">30 days</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                        <select x-model="filters.sortBy" @change="applyFilters()" class="block w-40 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="velocity">Velocity</option>
+                            <option value="views">Views</option>
+                            <option value="growth">Growth Rate</option>
+                            <option value="recent">Most Recent</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo Videos List -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">🔥 TRENDING NOW</h2>
+                </div>
+                
+                <div class="divide-y divide-gray-200">
+                    <template x-for="video in demoVideos" :key="video.id">
+                        <div class="px-6 py-4 hover:bg-gray-50 transition">
+                            <div class="flex gap-4">
+                                <div class="flex-shrink-0 w-40 h-24 bg-gray-200 rounded flex items-center justify-center">
+                                    <span class="text-gray-400 text-xs">Thumbnail</span>
+                                </div>
+                                
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <div class="text-base font-medium text-gray-900" x-text="video.title"></div>
+                                            <div class="mt-1 flex items-center gap-2 text-sm text-gray-500">
+                                                <span x-text="video.channel"></span>
+                                                <span>•</span>
+                                                <span x-text="video.time"></span>
+                                            </div>
+                                        </div>
+                                        <div class="ml-4 text-right">
+                                            <div class="text-base font-semibold text-gray-900" x-text="video.views"></div>
+                                            <div class="text-sm font-medium text-green-600" x-text="'↑ ' + video.growth"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-3 flex items-center justify-between">
+                                        <div class="flex gap-2">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800" x-text="video.niche"></span>
+                                        </div>
+                                        <button class="text-gray-400 hover:text-yellow-500">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function dashboardApp() {
+            return {
+                filters: {
+                    niche: '',
+                    timePeriod: '7d',
+                    sortBy: 'velocity'
+                },
+                demoVideos: [
+                    {
+                        id: 1,
+                        title: 'How Tesla Went From Bankrupt to $1 Trillion',
+                        channel: 'Business Stories',
+                        time: '2 hours ago',
+                        views: '245K views',
+                        growth: '340%',
+                        niche: 'business'
+                    },
+                    {
+                        id: 2,
+                        title: 'The Fall of Silicon Valley Bank Explained',
+                        channel: 'Finance Daily',
+                        time: '5 hours ago',
+                        views: '189K views',
+                        growth: '280%',
+                        niche: 'business'
+                    },
+                    {
+                        id: 3,
+                        title: 'Why Ancient Rome Collapsed Overnight',
+                        channel: 'History Uncovered',
+                        time: '1 day ago',
+                        views: '420K views',
+                        growth: '195%',
+                        niche: 'history'
+                    }
+                ],
+
+                init() {
+                    console.log('Dashboard loaded - demo mode');
+                },
+
+                applyFilters() {
+                    console.log('Filters applied:', this.filters);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

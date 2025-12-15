@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Analytics & Insights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div x-data="reportsApp()" x-init="init()">
+        <!-- Navigation -->
+        <nav class="bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <div class="flex-shrink-0 flex items-center">
+                            <span class="text-xl font-bold text-indigo-600">Vidsponential</span>
+                        </div>
+                        <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+                            <a href="/" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Dashboard
+                            </a>
+                            <a href="channels.html" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Channels
+                            </a>
+                            <a href="reports.html" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Reports
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Header -->
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-900">Analytics & Reports</h1>
+                <p class="mt-1 text-sm text-gray-500">Track trending patterns across your monitored channels</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+                <div class="bg-white rounded-lg shadow px-6 py-4">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-500">Total Videos Tracked</div>
+                            <div class="mt-1 text-2xl font-semibold text-gray-900">1,247</div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <svg class="h-12 w-12 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-green-600">↑ 12% from last week</div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow px-6 py-4">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-500">Trending Now</div>
+                            <div class="mt-1 text-2xl font-semibold text-gray-900">43</div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <svg class="h-12 w-12 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-green-600">↑ 8 new since yesterday</div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow px-6 py-4">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-500">Avg Growth Rate</div>
+                            <div class="mt-1 text-2xl font-semibold text-gray-900">187%</div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <svg class="h-12 w-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-green-600">↑ 23% improvement</div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow px-6 py-4">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-500">Total Views</div>
+                            <div class="mt-1 text-2xl font-semibold text-gray-900">8.4M</div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <svg class="h-12 w-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-green-600">↑ 34% from last week</div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Trending Videos Chart -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Trending Videos Over Time</h3>
+                    <div style="height: 250px;">
+                        <canvas id="trendingChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Niche Distribution -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Content by Niche</h3>
+                    <div style="height: 250px;">
+                        <canvas id="nicheChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Performing Videos -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Top Performing Videos This Week</h3>
+                </div>
+                <div class="divide-y divide-gray-200">
+                    <template x-for="(video, index) in topVideos" :key="video.id">
+                        <div class="px-6 py-4">
+                            <div class="flex items-center gap-4">
+                                <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                                    <span class="text-indigo-600 font-semibold text-sm" x-text="index + 1"></span>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900" x-text="video.title"></div>
+                                    <div class="text-sm text-gray-500" x-text="video.channel"></div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-semibold text-gray-900" x-text="video.views"></div>
+                                    <div class="text-sm text-green-600" x-text="video.growth"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function reportsApp() {
+            return {
+                topVideos: [
+                    { id: 1, title: 'The Rise and Fall of WeWork', channel: 'Business Insider', views: '1.2M', growth: '↑ 450%' },
+                    { id: 2, title: 'Ancient Rome\'s Secrets Revealed', channel: 'History Hub', views: '890K', growth: '↑ 380%' },
+                    { id: 3, title: 'Tesla\'s Next Big Move', channel: 'Tech Daily', views: '756K', growth: '↑ 340%' },
+                    { id: 4, title: 'The Future of AI in 2025', channel: 'Tech Explained', views: '645K', growth: '↑ 290%' },
+                    { id: 5, title: 'How Netflix Won Streaming', channel: 'Business Stories', views: '534K', growth: '↑ 270%' }
+                ],
+
+                init() {
+                    // Delay chart initialization to ensure DOM is ready
+                    setTimeout(() => this.initCharts(), 100);
+                },
+
+                initCharts() {
+                    // Trending Videos Chart
+                    const trendingCtx = document.getElementById('trendingChart');
+                    if (trendingCtx) {
+                        new Chart(trendingCtx, {
+                            type: 'line',
+                            data: {
+                                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                                datasets: [{
+                                    label: 'Trending Videos',
+                                    data: [12, 19, 15, 25, 32, 38, 43],
+                                    borderColor: 'rgb(99, 102, 241)',
+                                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                    tension: 0.4,
+                                    fill: true
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                aspectRatio: 2,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // Niche Distribution Chart
+                    const nicheCtx = document.getElementById('nicheChart');
+                    if (nicheCtx) {
+                        new Chart(nicheCtx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Business', 'History', 'Geopolitics', 'Entertainment'],
+                                datasets: [{
+                                    data: [45, 30, 15, 10],
+                                    backgroundColor: [
+                                        'rgb(99, 102, 241)',
+                                        'rgb(249, 115, 22)',
+                                        'rgb(34, 197, 94)',
+                                        'rgb(236, 72, 153)'
+                                    ]
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                aspectRatio: 1.5
+                            }
+                        });
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
