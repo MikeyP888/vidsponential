@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breakout Videos - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+    <style>
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-light);
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--spacing-3xl);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-4xl);
+        }
+
+        .header-left h1 {
+            font-size: var(--font-3xl);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .header-left p {
+            color: var(--text-secondary);
+            font-size: var(--font-base);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--spacing-xl);
+            margin-bottom: var(--spacing-4xl);
+        }
+
+        .stat-card {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            border: 1px solid var(--border-light);
+        }
+
+        .stat-label {
+            font-size: var(--font-sm);
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: var(--letter-wide);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .stat-value {
+            font-size: var(--font-3xl);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+        }
+
+        .stat-change {
+            font-size: var(--font-sm);
+            margin-top: var(--spacing-sm);
+        }
+
+        .stat-change.positive { color: var(--color-green); }
+        .stat-change.negative { color: var(--color-red); }
+
+        /* Main Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--spacing-2xl);
+        }
+
+        /* Section Cards */
+        .section-card {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-xl) var(--spacing-2xl);
+            border-bottom: 1px solid var(--border-lighter);
+        }
+
+        .section-title {
+            font-size: var(--font-lg);
+            font-weight: var(--font-semibold);
+            color: var(--text-primary);
+        }
+
+        .section-link {
+            font-size: var(--font-sm);
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+
+        .section-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Video List */
+        .video-list {
+            padding: var(--spacing-lg);
+        }
+
+        .video-item {
+            display: flex;
+            gap: var(--spacing-lg);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            transition: var(--transition-fast);
+        }
+
+        .video-item:hover {
+            background: var(--bg-lighter);
+        }
+
+        .video-thumbnail {
+            width: 160px;
+            height: 90px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            background: var(--bg-light);
+            flex-shrink: 0;
+        }
+
+        .video-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .video-title {
+            font-size: var(--font-base);
+            font-weight: var(--font-medium);
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .video-title a:hover {
+            color: var(--color-primary);
+        }
+
+        .video-channel {
+            font-size: var(--font-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .video-meta {
+            display: flex;
+            gap: var(--spacing-lg);
+            font-size: var(--font-sm);
+            color: var(--text-tertiary);
+        }
+
+        .video-score {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-xs);
+            font-weight: var(--font-semibold);
+        }
+
+        .status-hot {
+            background: var(--color-red-light);
+            color: var(--color-red);
+        }
+
+        .status-trending {
+            background: var(--color-yellow-light);
+            color: var(--color-yellow-dark);
+        }
+
+        .status-rising {
+            background: var(--color-green-light);
+            color: var(--color-green-dark);
+        }
+
+        /* Channel List */
+        .channel-list {
+            padding: var(--spacing-lg);
+        }
+
+        .channel-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            transition: var(--transition-fast);
+        }
+
+        .channel-item:hover {
+            background: var(--bg-lighter);
+        }
+
+        .channel-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background: var(--bg-light);
+            object-fit: cover;
+        }
+
+        .channel-info {
+            flex: 1;
+        }
+
+        .channel-name {
+            font-size: var(--font-sm);
+            font-weight: var(--font-medium);
+            color: var(--text-primary);
+        }
+
+        .channel-subs {
+            font-size: var(--font-xs);
+            color: var(--text-tertiary);
+        }
+
+        .channel-videos {
+            font-size: var(--font-sm);
+            color: var(--text-secondary);
+            font-weight: var(--font-medium);
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-4xl);
+            color: var(--text-tertiary);
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border-light);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: var(--spacing-md);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-4xl);
+            color: var(--text-tertiary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                padding: var(--spacing-lg);
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .video-item {
+                flex-direction: column;
+            }
+            .video-thumbnail {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 16/9;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1>🔥 Breakout Videos</h1>
+                <p>Find proven video ideas from your competitors</p>
+            </div>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Hot Videos</div>
+                <div class="stat-value" id="stat-hot">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Trending</div>
+                <div class="stat-value" id="stat-trending">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Channels Monitored</div>
+                <div class="stat-value" id="stat-channels">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Videos Tracked</div>
+                <div class="stat-value" id="stat-videos">-</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-grid">
+            <!-- Trending Videos -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2 class="section-title">Top Breakout Videos</h2>
+                    <a href="trending.html" class="section-link">View all →</a>
+                </div>
+                <div class="video-list" id="video-list">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        Loading videos...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitored Channels -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2 class="section-title">Monitored Channels</h2>
+                    <a href="channels.html" class="section-link">Manage →</a>
+                </div>
+                <div class="channel-list" id="channel-list">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        Loading...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Status ID to name mapping
+        const STATUS_MAP = {
+            1: { name: 'Monitoring', class: '' },
+            2: { name: 'Rising', class: 'status-rising' },
+            3: { name: 'Trending', class: 'status-trending' },
+            4: { name: 'Hot', class: 'status-hot' },
+            5: { name: 'Cooling', class: '' },
+            6: { name: 'Peaked', class: '' },
+            7: { name: 'Reviewed', class: '' }
+        };
+
+        // Format numbers
+        function formatNumber(num) {
+            if (!num) return '0';
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toLocaleString();
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+            if (diffDays === 0) return 'Today';
+            if (diffDays === 1) return 'Yesterday';
+            if (diffDays < 7) return `${diffDays} days ago`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+            return date.toLocaleDateString();
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                // Hot videos (status 4)
+                const { count: hotCount } = await supabase
+                    .from('youtube_videos_trending')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('youtube_trending_status_id', 4);
+
+                // Trending videos (status 3)
+                const { count: trendingCount } = await supabase
+                    .from('youtube_videos_trending')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('youtube_trending_status_id', 3);
+
+                // Active channels
+                const { count: channelCount } = await supabase
+                    .from('youtube_monitored_channels')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('youtube_monitored_channel_status_id', 1);
+
+                // Total videos
+                const { count: videoCount } = await supabase
+                    .from('youtube_videos_trending')
+                    .select('*', { count: 'exact', head: true });
+
+                document.getElementById('stat-hot').textContent = hotCount || 0;
+                document.getElementById('stat-trending').textContent = trendingCount || 0;
+                document.getElementById('stat-channels').textContent = channelCount || 0;
+                document.getElementById('stat-videos').textContent = formatNumber(videoCount || 0);
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load trending videos
+        async function loadVideos() {
+            const container = document.getElementById('video-list');
+            
+            try {
+                const { data: videos, error } = await supabase
+                    .from('youtube_videos_trending')
+                    .select(`
+                        *,
+                        youtube_monitored_channels (
+                            channel_name,
+                            thumbnail_url,
+                            niches
+                        )
+                    `)
+                    .in('youtube_trending_status_id', [2, 3, 4])
+                    .order('trending_score', { ascending: false })
+                    .limit(8);
+
+                if (error) throw error;
+
+                if (!videos || videos.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No trending videos found</div>';
+                    return;
+                }
+
+                container.innerHTML = videos.map(video => {
+                    const status = STATUS_MAP[video.youtube_trending_status_id] || { name: 'Unknown', class: '' };
+                    const channel = video.youtube_monitored_channels || {};
+                    
+                    return `
+                        <div class="video-item">
+                            <img 
+                                class="video-thumbnail" 
+                                src="${video.thumbnail_url || ''}" 
+                                alt=""
+                                onerror="this.style.display='none'"
+                            >
+                            <div class="video-info">
+                                <div class="video-title">
+                                    <a href="${video.video_url}" target="_blank">${video.video_title || 'Untitled'}</a>
+                                </div>
+                                <div class="video-channel">${channel.channel_name || 'Unknown channel'}</div>
+                                <div class="video-meta">
+                                    <span>${formatNumber(video.view_count)} views</span>
+                                    <span>${formatDate(video.published_date)}</span>
+                                    <div class="video-score">
+                                        ${status.class ? `<span class="status-badge ${status.class}">${status.name}</span>` : ''}
+                                        <span>Score: ${video.trending_score || 0}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('Error loading videos:', error);
+                container.innerHTML = `<div class="empty-state">Error loading videos: ${error.message}</div>`;
+            }
+        }
+
+        // Load channels
+        async function loadChannels() {
+            const container = document.getElementById('channel-list');
+            
+            try {
+                // Get channels with video counts
+                const { data: channels, error } = await supabase
+                    .from('youtube_monitored_channels')
+                    .select('*')
+                    .eq('youtube_monitored_channel_status_id', 1)
+                    .order('subscriber_count', { ascending: false })
+                    .limit(8);
+
+                if (error) throw error;
+
+                if (!channels || channels.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No channels being monitored</div>';
+                    return;
+                }
+
+                // Get video counts per channel
+                const channelIds = channels.map(c => c.youtube_monitored_channel_id);
+                const { data: videoCounts } = await supabase
+                    .from('youtube_videos_trending')
+                    .select('youtube_monitored_channel_id')
+                    .in('youtube_monitored_channel_id', channelIds);
+
+                const countMap = {};
+                videoCounts?.forEach(v => {
+                    countMap[v.youtube_monitored_channel_id] = (countMap[v.youtube_monitored_channel_id] || 0) + 1;
+                });
+
+                container.innerHTML = channels.map(channel => `
+                    <div class="channel-item">
+                        <img 
+                            class="channel-avatar" 
+                            src="${channel.thumbnail_url || ''}" 
+                            alt=""
+                            onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect fill=%22%23e0e0e0%22 width=%2240%22 height=%2240%22/></svg>'"
+                        >
+                        <div class="channel-info">
+                            <div class="channel-name">${channel.channel_name}</div>
+                            <div class="channel-subs">${formatNumber(channel.subscriber_count)} subscribers</div>
+                        </div>
+                        <div class="channel-videos">${countMap[channel.youtube_monitored_channel_id] || 0} videos</div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading channels:', error);
+                container.innerHTML = `<div class="empty-state">Error loading channels</div>`;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadVideos();
+            loadChannels();
+        });
+    </script>
+</body>
+</html>

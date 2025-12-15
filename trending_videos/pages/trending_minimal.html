@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trending Videos - Minimal</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+        }
+        .video-card { 
+            border: 1px solid #ddd; 
+            margin: 15px 0; 
+            padding: 15px; 
+            border-radius: 8px; 
+            background: white;
+        }
+        .video-title { 
+            font-size: 18px; 
+            font-weight: bold; 
+            margin-bottom: 10px; 
+            color: #333;
+        }
+        .video-stats { 
+            color: #666; 
+            font-size: 14px; 
+        }
+        .loading { 
+            text-align: center; 
+            padding: 40px; 
+            color: #666;
+        }
+        .error { 
+            color: red; 
+            padding: 20px; 
+            background: #ffe6e6; 
+            border-radius: 8px; 
+            margin: 20px 0;
+        }
+        .success { 
+            color: green; 
+            padding: 20px; 
+            background: #e6ffe6; 
+            border-radius: 8px; 
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Vidsponential - Trending Videos</h1>
+        <div id="status" class="loading">Loading trending videos...</div>
+        <div id="videos"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        console.log('Starting Vidsponential Trending Videos...');
+        
+        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase client initialized');
+
+        async function loadTrendingVideos() {
+            const statusDiv = document.getElementById('status');
+            const videosDiv = document.getElementById('videos');
+
+            try {
+                console.log('Fetching trending videos...');
+                statusDiv.innerHTML = 'Connecting to database...';
+                
+                const { data, error } = await supabase
+                    .from('public_trending_videos')
+                    .select('*')
+                    .limit(20);
+
+                if (error) {
+                    console.error('Supabase error:', error);
+                    throw error;
+                }
+
+                console.log('Data received:', data?.length, 'videos');
+                
+                if (!data || data.length === 0) {
+                    statusDiv.innerHTML = '<div class="error">No videos found in database</div>';
+                    return;
+                }
+
+                statusDiv.innerHTML = `<div class="success">✅ Successfully loaded ${data.length} trending videos!</div>`;
+                
+                const videosHtml = data.map(video => `
+                    <div class="video-card">
+                        <div class="video-title">${video.video_title || 'Untitled'}</div>
+                        <div class="video-stats">
+                            <strong>Channel:</strong> ${video.channel_name || 'Unknown'} | 
+                            <strong>Genre:</strong> ${video.genre || 'Unknown'} | 
+                            <strong>Views:</strong> ${(video.view_count || 0).toLocaleString()} | 
+                            <strong>Score:</strong> ${video.trending_score || 0}
+                        </div>
+                        ${video.video_url ? `<p><a href="${video.video_url}" target="_blank">🎬 Watch Video</a></p>` : ''}
+                    </div>
+                `).join('');
+
+                videosDiv.innerHTML = videosHtml;
+
+            } catch (error) {
+                console.error('Error loading videos:', error);
+                statusDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                videosDiv.innerHTML = `
+                    <div class="error">
+                        <h3>Troubleshooting Info:</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p><strong>URL:</strong> ${SUPABASE_URL}</p>
+                        <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Start loading when page loads
+        document.addEventListener('DOMContentLoaded', loadTrendingVideos);
+        
+        // Also start immediately in case DOMContentLoaded already fired
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadTrendingVideos);
+        } else {
+            loadTrendingVideos();
+        }
+    </script>
+</body>
+</html>

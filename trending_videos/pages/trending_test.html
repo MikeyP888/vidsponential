@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trending Videos Test - Vidsponential</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .video { border: 1px solid #ccc; margin: 10px 0; padding: 15px; border-radius: 8px; }
+        .loading { text-align: center; padding: 40px; }
+        .error { color: red; padding: 20px; background: #ffe6e6; border-radius: 8px; }
+        .success { color: green; padding: 20px; background: #e6ffe6; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>Trending Videos Test</h1>
+    <div id="status" class="loading">Loading...</div>
+    <div id="videos"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://euzbpslzrimyokzvgbzk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1emJwc2x6cmlteW9renZnYnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1NDk5MTUsImV4cCI6MjA2NjEyNTkxNX0.HBznM8FVX0VnYBN8rTu6T-QOPmq0d60syavTCADl3JI';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function testConnection() {
+            const statusDiv = document.getElementById('status');
+            const videosDiv = document.getElementById('videos');
+
+            try {
+                statusDiv.innerHTML = 'Testing Supabase connection...';
+                
+                const { data, error } = await supabase
+                    .from('public_trending_videos')
+                    .select('*')
+                    .limit(5);
+
+                if (error) {
+                    throw error;
+                }
+
+                statusDiv.innerHTML = `<div class="success">✅ Success! Found ${data.length} videos</div>`;
+                
+                videosDiv.innerHTML = data.map(video => `
+                    <div class="video">
+                        <h3>${video.video_title}</h3>
+                        <p><strong>Channel:</strong> ${video.channel_name}</p>
+                        <p><strong>Genre:</strong> ${video.genre}</p>
+                        <p><strong>Views:</strong> ${video.view_count?.toLocaleString()}</p>
+                        <p><strong>Trending Score:</strong> ${video.trending_score}</p>
+                        <p><a href="${video.video_url}" target="_blank">Watch Video</a></p>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        testConnection();
+    </script>
+</body>
+</html>

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breakout Videos - All Trending</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+    <style>
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-light);
+            min-height: 100vh;
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-3xl);
+        }
+
+        /* Header */
+        .header {
+            margin-bottom: var(--spacing-3xl);
+        }
+
+        .header h1 {
+            font-size: var(--font-3xl);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .header p {
+            color: var(--text-secondary);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: var(--font-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .back-link:hover {
+            color: var(--color-primary);
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-2xl);
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-full);
+            background: var(--bg-white);
+            color: var(--text-secondary);
+            font-size: var(--font-sm);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+        }
+
+        /* Video Cards */
+        .video-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .video-card {
+            display: flex;
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            transition: var(--transition-fast);
+        }
+
+        .video-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-lighter);
+        }
+
+        /* Thumbnail Section */
+        .video-thumbnail-section {
+            flex-shrink: 0;
+            width: 320px;
+            position: relative;
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .video-duration {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: var(--font-medium);
+        }
+
+        .video-status-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: var(--font-bold);
+            text-transform: uppercase;
+        }
+
+        .status-hot {
+            background: var(--color-red);
+            color: white;
+        }
+
+        .status-trending {
+            background: var(--color-yellow);
+            color: var(--color-yellow-dark);
+        }
+
+        .status-rising {
+            background: var(--color-green);
+            color: white;
+        }
+
+        /* Content Section */
+        .video-content {
+            flex: 1;
+            padding: var(--spacing-xl);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .video-title {
+            font-size: var(--font-lg);
+            font-weight: var(--font-semibold);
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+            line-height: var(--line-tight);
+        }
+
+        .video-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .video-title a:hover {
+            color: var(--color-primary);
+        }
+
+        .video-channel {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .channel-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        .channel-name {
+            font-size: var(--font-sm);
+            color: var(--text-secondary);
+        }
+
+        .channel-subs {
+            font-size: var(--font-xs);
+            color: var(--text-tertiary);
+        }
+
+        /* Stats Grid */
+        .video-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .stat {
+            text-align: center;
+            padding: var(--spacing-sm);
+            background: var(--bg-lighter);
+            border-radius: var(--radius-sm);
+        }
+
+        .stat-value {
+            font-size: var(--font-base);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: var(--font-xs);
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+        }
+
+        /* Why Trending Section */
+        .trending-reason {
+            background: linear-gradient(135deg, rgba(11, 230, 255, 0.05) 0%, rgba(175, 11, 255, 0.05) 100%);
+            border-radius: var(--radius-sm);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .trending-reason-title {
+            font-size: var(--font-xs);
+            font-weight: var(--font-bold);
+            color: var(--color-primary);
+            text-transform: uppercase;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .trending-reason-text {
+            font-size: var(--font-sm);
+            color: var(--text-secondary);
+            line-height: var(--line-relaxed);
+        }
+
+        .trending-metric {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg-white);
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-xs);
+            font-weight: var(--font-medium);
+            margin-right: var(--spacing-sm);
+        }
+
+        .trending-metric.positive {
+            color: var(--color-green);
+        }
+
+        /* Tags */
+        .video-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .tag {
+            padding: 2px 8px;
+            background: var(--bg-lighter);
+            border-radius: var(--radius-full);
+            font-size: var(--font-xs);
+            color: var(--text-tertiary);
+        }
+
+        /* Meta Row */
+        .video-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--border-lighter);
+        }
+
+        .meta-left {
+            display: flex;
+            gap: var(--spacing-lg);
+            font-size: var(--font-sm);
+            color: var(--text-tertiary);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .score-badge {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: 6px 12px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-full);
+            color: white;
+            font-size: var(--font-sm);
+            font-weight: var(--font-bold);
+        }
+
+        /* Loading & Empty States */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-5xl);
+            color: var(--text-tertiary);
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border-light);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: var(--spacing-md);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-5xl);
+            color: var(--text-tertiary);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .video-card {
+                flex-direction: column;
+            }
+
+            .video-thumbnail-section {
+                width: 100%;
+            }
+
+            .video-thumbnail {
+                height: auto;
+                aspect-ratio: 16/9;
+            }
+
+            .video-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .page {
+                padding: var(--spacing-lg);
+            }
+
+            .video-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .meta-left {
+                flex-direction: column;
+                gap: var(--spacing-xs);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+        
+        <header class="header">
+            <h1>🔥 Breakout Videos</h1>
+            <p>Videos outperforming their channel's average - potential topics for your next video</p>
+        </header>
+
+        <!-- Filters -->
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="4">🔥 Hot</button>
+            <button class="filter-btn" data-filter="3">📈 Trending</button>
+            <button class="filter-btn" data-filter="2">🚀 Rising</button>
+        </div>
+
+        <!-- Video List -->
+        <div class="video-list" id="video-list">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                Loading breakout videos...
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const STATUS_MAP = {
+            1: { name: 'Monitoring', class: '', icon: '👁️' },
+            2: { name: 'Rising', class: 'status-rising', icon: '🚀' },
+            3: { name: 'Trending', class: 'status-trending', icon: '📈' },
+            4: { name: 'Hot', class: 'status-hot', icon: '🔥' },
+            5: { name: 'Cooling', class: '', icon: '❄️' },
+            6: { name: 'Peaked', class: '', icon: '⛰️' },
+            7: { name: 'Reviewed', class: '', icon: '✅' }
+        };
+
+        let currentFilter = 'all';
+
+        // Format numbers
+        function formatNumber(num) {
+            if (!num) return '0';
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toLocaleString();
+        }
+
+        // Format duration from ISO 8601 (PT22M12S)
+        function formatDuration(iso) {
+            if (!iso) return '';
+            const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+            if (!match) return '';
+            const hours = match[1] ? parseInt(match[1]) : 0;
+            const mins = match[2] ? parseInt(match[2]) : 0;
+            const secs = match[3] ? parseInt(match[3]) : 0;
+            if (hours > 0) {
+                return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Format date relative
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+            if (diffDays === 0) return 'Today';
+            if (diffDays === 1) return 'Yesterday';
+            if (diffDays < 7) return `${diffDays} days ago`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+            if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+            return `${Math.floor(diffDays / 365)} years ago`;
+        }
+
+        // Calculate engagement rate
+        function calcEngagement(likes, views) {
+            if (!views || views === 0) return 0;
+            return ((likes || 0) / views * 100).toFixed(2);
+        }
+
+        // Generate "why trending" explanation
+        function getTrendingReason(video) {
+            const engagement = calcEngagement(video.like_count, video.view_count);
+            const viewsPerDay = video.published_date 
+                ? Math.round(video.view_count / Math.max(1, Math.floor((Date.now() - new Date(video.published_date)) / (1000 * 60 * 60 * 24))))
+                : 0;
+            
+            const reasons = [];
+            
+            if (video.trending_score >= 80) {
+                reasons.push(`Score of ${video.trending_score}/100 indicates exceptional performance`);
+            }
+            
+            if (engagement > 4) {
+                reasons.push(`${engagement}% engagement rate (above average)`);
+            }
+            
+            if (viewsPerDay > 10000) {
+                reasons.push(`Averaging ${formatNumber(viewsPerDay)} views/day`);
+            }
+
+            if (video.view_count > 1000000) {
+                reasons.push(`${formatNumber(video.view_count)} total views`);
+            }
+
+            return reasons.length > 0 ? reasons.join(' • ') : 'Tracking performance metrics';
+        }
+
+        // Render video card
+        function renderVideoCard(video) {
+            const status = STATUS_MAP[video.youtube_trending_status_id] || STATUS_MAP[1];
+            const channel = video.youtube_monitored_channels || {};
+            const engagement = calcEngagement(video.like_count, video.view_count);
+            const tags = video.tags?.slice(0, 5) || [];
+            const niches = channel.niches || [];
+
+            return `
+                <div class="video-card" data-status="${video.youtube_trending_status_id}">
+                    <div class="video-thumbnail-section">
+                        <img 
+                            class="video-thumbnail" 
+                            src="${video.thumbnail_url || ''}" 
+                            alt="${video.video_title}"
+                            onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 320 180%22><rect fill=%22%23e0e0e0%22 width=%22320%22 height=%22180%22/><text x=%22160%22 y=%2290%22 text-anchor=%22middle%22 fill=%22%23999%22>No thumbnail</text></svg>'"
+                        >
+                        ${video.duration ? `<span class="video-duration">${formatDuration(video.duration)}</span>` : ''}
+                        ${status.class ? `<span class="video-status-badge ${status.class}">${status.icon} ${status.name}</span>` : ''}
+                    </div>
+                    
+                    <div class="video-content">
+                        <h3 class="video-title">
+                            <a href="${video.video_url}" target="_blank">${video.video_title || 'Untitled'}</a>
+                        </h3>
+                        
+                        <div class="video-channel">
+                            <img 
+                                class="channel-avatar" 
+                                src="${channel.thumbnail_url || ''}" 
+                                alt=""
+                                onerror="this.style.display='none'"
+                            >
+                            <span class="channel-name">${channel.channel_name || 'Unknown'}</span>
+                            <span class="channel-subs">• ${formatNumber(channel.subscriber_count)} subs</span>
+                        </div>
+
+                        <div class="video-stats">
+                            <div class="stat">
+                                <div class="stat-value">${formatNumber(video.view_count)}</div>
+                                <div class="stat-label">Views</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${formatNumber(video.like_count)}</div>
+                                <div class="stat-label">Likes</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${engagement}%</div>
+                                <div class="stat-label">Engagement</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${formatNumber(video.comment_count)}</div>
+                                <div class="stat-label">Comments</div>
+                            </div>
+                        </div>
+
+                        <div class="trending-reason">
+                            <div class="trending-reason-title">Why it's breaking out</div>
+                            <div class="trending-reason-text">${getTrendingReason(video)}</div>
+                        </div>
+
+                        ${tags.length > 0 || niches.length > 0 ? `
+                            <div class="video-tags">
+                                ${niches.map(n => `<span class="tag">#${n}</span>`).join('')}
+                                ${tags.map(t => `<span class="tag">${t}</span>`).join('')}
+                            </div>
+                        ` : ''}
+
+                        <div class="video-meta">
+                            <div class="meta-left">
+                                <span class="meta-item">📅 Published ${formatDate(video.published_date)}</span>
+                                <span class="meta-item">🔍 Discovered ${formatDate(video.discovered_date)}</span>
+                            </div>
+                            <div class="score-badge">
+                                Score: ${video.trending_score || 0}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+
+        // Load videos
+        async function loadVideos() {
+            const container = document.getElementById('video-list');
+            
+            try {
+                let query = supabase
+                    .from('youtube_videos_trending')
+                    .select(`
+                        *,
+                        youtube_monitored_channels (
+                            channel_name,
+                            thumbnail_url,
+                            subscriber_count,
+                            niches
+                        )
+                    `)
+                    .order('trending_score', { ascending: false })
+                    .limit(50);
+
+                // Apply filter if not "all"
+                if (currentFilter !== 'all') {
+                    query = query.eq('youtube_trending_status_id', parseInt(currentFilter));
+                }
+
+                const { data: videos, error } = await query;
+
+                if (error) throw error;
+
+                if (!videos || videos.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No videos found matching your filter</div>';
+                    return;
+                }
+
+                container.innerHTML = videos.map(renderVideoCard).join('');
+
+            } catch (error) {
+                console.error('Error loading videos:', error);
+                container.innerHTML = `<div class="empty-state">Error loading videos: ${error.message}</div>`;
+            }
+        }
+
+        // Filter handling
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                loadVideos();
+            });
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadVideos);
+    </script>
+</body>
+</html>

@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitored Channels</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📺</text></svg>">
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/fonts.css">
+    <link rel="stylesheet" href="../../shared/styles/components.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+    <link rel="stylesheet" href="../../shared/styles/layout.css">
+    <link rel="stylesheet" href="../../shared/styles/buttons.css">
+    <link rel="stylesheet" href="../../shared/styles/forms.css">
+    <link rel="stylesheet" href="../../shared/styles/status.css">
+    <link rel="stylesheet" href="../../shared/styles/notifications.css">
+    <link rel="stylesheet" href="../../shared/styles/navigation.css">
+    <link rel="stylesheet" href="../../shared/styles/sidebar.css">
+
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-4xl);
+        }
+
+        .header-content h1 {
+            font-size: var(--font-4xl);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .header-content p {
+            color: var(--text-secondary);
+            font-size: var(--font-md);
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-3xl);
+            margin-bottom: var(--spacing-3xl);
+            box-shadow: var(--shadow-md);
+            border: 0.5px solid var(--border-light);
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .filter-group label {
+            font-size: var(--font-sm);
+            font-weight: var(--font-semibold);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 12px 16px;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: var(--font-base);
+            font-family: var(--font-family);
+            color: var(--text-primary);
+            background: var(--bg-white);
+            transition: var(--transition-all);
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-focus);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: flex-end;
+        }
+
+        .btn-filter {
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-size: var(--font-base);
+            font-weight: var(--font-semibold);
+            font-family: var(--font-family);
+            cursor: pointer;
+            transition: var(--transition-all);
+            border: none;
+        }
+
+        .btn-filter-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-filter-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn-filter-secondary {
+            background: var(--bg-white);
+            color: var(--text-secondary);
+            border: 2px solid var(--border-light);
+        }
+
+        .btn-filter-secondary:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .btn-add-channel {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 14px 32px;
+            border-radius: var(--radius-md);
+            font-size: var(--font-md);
+            font-weight: var(--font-semibold);
+            border: none;
+            cursor: pointer;
+            transition: var(--transition-all);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .btn-add-channel:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn-add-channel svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Channels List */
+        .channels-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .channel-card {
+            display: flex;
+            align-items: center;
+            background: var(--bg-white);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 0.5px solid var(--border-light);
+            transition: var(--transition-all);
+            min-height: 60px;
+        }
+
+        .channel-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .channel-thumbnail {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .channel-thumbnail-placeholder {
+            width: 80px;
+            height: 60px;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .channel-thumbnail-placeholder svg {
+            width: 30px;
+            height: 30px;
+            color: white;
+            opacity: 0.8;
+        }
+
+        .channel-content {
+            flex: 1;
+            padding: var(--spacing-md) var(--spacing-2xl);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .channel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .channel-name {
+            font-size: var(--font-xl);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .channel-url {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            color: var(--color-primary);
+            text-decoration: none;
+            font-size: var(--font-sm);
+            font-weight: var(--font-medium);
+            transition: var(--transition-base);
+        }
+
+        .channel-url:hover {
+            text-decoration: underline;
+        }
+
+        .channel-url svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .channel-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+            font-size: var(--font-xs);
+            color: var(--text-secondary);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .meta-item svg {
+            width: 14px;
+            height: 14px;
+            color: var(--text-tertiary);
+        }
+
+        .meta-item strong {
+            color: var(--text-primary);
+            font-weight: var(--font-semibold);
+        }
+
+        .channel-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+            margin-top: 2px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--gradient-primary-light);
+            border-radius: var(--radius-full);
+            font-size: 10px;
+            font-weight: var(--font-semibold);
+            color: var(--color-primary);
+        }
+
+        /* Loading State */
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: var(--spacing-6xl);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-light);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-6xl);
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            border: 2px dashed var(--border-light);
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            color: var(--text-tertiary);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .empty-state h3 {
+            font-size: var(--font-xl);
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-3xl);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: var(--z-modal-backdrop);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-4xl);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-3xl);
+        }
+
+        .modal-header h2 {
+            font-size: var(--font-2xl);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            transition: var(--transition-base);
+        }
+
+        .modal-close:hover {
+            background: var(--bg-light);
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .form-group label {
+            display: block;
+            font-size: var(--font-sm);
+            font-weight: var(--font-semibold);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: var(--font-base);
+            font-family: var(--font-family);
+            color: var(--text-primary);
+            background: var(--bg-white);
+            transition: var(--transition-all);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-focus);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: flex-end;
+            margin-top: var(--spacing-3xl);
+        }
+
+        .subscriber-count {
+            font-weight: var(--font-bold);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @media (max-width: 768px) {
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .channel-card {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .channel-thumbnail,
+            .channel-thumbnail-placeholder {
+                width: 100%;
+                height: 200px;
+            }
+
+            .channel-name {
+                font-size: var(--font-xl);
+            }
+
+            .channel-meta {
+                flex-direction: column;
+                gap: var(--spacing-sm);
+            }
+        }
+    </style>
+</head>
+<body class="has-sidebar">
+    <!-- Sidebar Container -->
+    <div id="sidebarContainer"></div>
+
+    <div class="container with-sidebar">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="header-content">
+                <h1>Monitored Channels</h1>
+                <p>Track YouTube channels for trending videos and insights</p>
+            </div>
+            <button class="btn-add-channel" onclick="openAddChannelModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Channel
+            </button>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label>Search</label>
+                    <input type="text" id="searchInput" placeholder="Search channels...">
+                </div>
+                <div class="filter-group">
+                    <label>Niche</label>
+                    <select id="nicheFilter">
+                        <option value="">All Niches</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Client</label>
+                    <select id="clientFilter">
+                        <option value="">All Clients</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Channel Type</label>
+                    <select id="channelTypeFilter">
+                        <option value="">All Types</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn-filter btn-filter-secondary" onclick="resetFilters()">Reset</button>
+                <button class="btn-filter btn-filter-primary" onclick="applyFilters()">Apply Filters</button>
+            </div>
+        </div>
+
+        <!-- Channels Container -->
+        <div id="channelsContainer" class="channels-container">
+            <!-- Loading State -->
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Channel Modal -->
+    <div id="addChannelModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Channel</h2>
+                <button class="modal-close" onclick="closeAddChannelModal()">&times;</button>
+            </div>
+            <form id="addChannelForm" onsubmit="handleAddChannel(event)">
+                <div class="form-group">
+                    <label>Channel Name *</label>
+                    <input type="text" id="channelName" required>
+                </div>
+                <div class="form-group">
+                    <label>Channel URL *</label>
+                    <input type="url" id="channelUrl" placeholder="https://youtube.com/@channel" required>
+                </div>
+                <div class="form-group">
+                    <label>Thumbnail URL</label>
+                    <input type="url" id="thumbnailUrl" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label>Subscriber Count</label>
+                    <input type="number" id="subscriberCount" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Niches (comma separated)</label>
+                    <input type="text" id="niches" placeholder="Technology, Education">
+                </div>
+                <div class="form-group">
+                    <label>Channel Type</label>
+                    <select id="channelType">
+                        <option value="">Select Type</option>
+                        <option value="competitor">Competitor</option>
+                        <option value="inspiration">Inspiration</option>
+                        <option value="client">Client</option>
+                        <option value="research">Research</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-filter btn-filter-secondary" onclick="closeAddChannelModal()">Cancel</button>
+                    <button type="submit" class="btn-filter btn-filter-primary">Add Channel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../shared/js/theme-manager.js"></script>
+    <script type="module" src="../../shared/js/sidebar-component.js"></script>
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
+
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let channels = [];
+        let filteredChannels = [];
+
+        // Load channels on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadChannels();
+            loadFilterOptions();
+        });
+
+        async function loadChannels() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('youtube_monitored_channels')
+                    .select('*')
+                    .eq('youtube_monitored_channel_status_id', 1)
+                    .order('channel_name', { ascending: true });
+
+                if (error) throw error;
+
+                channels = data || [];
+                filteredChannels = [...channels];
+                renderChannels();
+            } catch (error) {
+                console.error('Error loading channels:', error);
+                showError('Failed to load channels');
+            }
+        }
+
+        async function loadFilterOptions() {
+            try {
+                // Load unique niches, clients, and channel types from the data
+                const { data, error } = await supabaseClient
+                    .from('youtube_monitored_channels')
+                    .select('niches, channel_type')
+                    .eq('youtube_monitored_channel_status_id', 1);
+
+                if (error) throw error;
+
+                // Extract unique values
+                const niches = new Set();
+                const channelTypes = new Set();
+
+                data.forEach(channel => {
+                    if (channel.niches) {
+                        channel.niches.split(',').forEach(niche => {
+                            niches.add(niche.trim());
+                        });
+                    }
+                    if (channel.channel_type) {
+                        channelTypes.add(channel.channel_type);
+                    }
+                });
+
+                // Populate niche filter
+                const nicheFilter = document.getElementById('nicheFilter');
+                niches.forEach(niche => {
+                    const option = document.createElement('option');
+                    option.value = niche;
+                    option.textContent = niche;
+                    nicheFilter.appendChild(option);
+                });
+
+                // Populate channel type filter
+                const channelTypeFilter = document.getElementById('channelTypeFilter');
+                channelTypes.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+                    channelTypeFilter.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('Error loading filter options:', error);
+            }
+        }
+
+        function renderChannels() {
+            const container = document.getElementById('channelsContainer');
+
+            if (filteredChannels.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="5,3 19,12 5,21 5,3"></polygon>
+                        </svg>
+                        <h3>No channels found</h3>
+                        <p>Start by adding a YouTube channel to monitor</p>
+                        <button class="btn-add-channel" onclick="openAddChannelModal()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Add Your First Channel
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredChannels.map(channel => `
+                <div class="channel-card">
+                    ${channel.thumbnail_url ?
+                        `<img src="${channel.thumbnail_url}" alt="${channel.channel_name}" class="channel-thumbnail" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="channel-thumbnail-placeholder" style="display: none;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="5,3 19,12 5,21 5,3"></polygon>
+                            </svg>
+                        </div>` :
+                        `<div class="channel-thumbnail-placeholder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="5,3 19,12 5,21 5,3"></polygon>
+                            </svg>
+                        </div>`
+                    }
+                    <div class="channel-content">
+                        <div class="channel-header">
+                            <div>
+                                <div class="channel-name">${channel.channel_name}</div>
+                                ${channel.channel_url ?
+                                    `<a href="${channel.channel_url}" target="_blank" class="channel-url">
+                                        Visit Channel
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                            <polyline points="15,3 21,3 21,9"></polyline>
+                                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                                        </svg>
+                                    </a>` : ''
+                                }
+                            </div>
+                        </div>
+                        <div class="channel-meta">
+                            ${channel.subscriber_count ?
+                                `<div class="meta-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="9" cy="7" r="4"></circle>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                    </svg>
+                                    <span><strong class="subscriber-count">${formatNumber(channel.subscriber_count)}</strong> subscribers</span>
+                                </div>` : ''
+                            }
+                            ${channel.channel_type ?
+                                `<div class="meta-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                        <line x1="7" y1="7" x2="7" y2="7"></line>
+                                    </svg>
+                                    <span>${channel.channel_type.charAt(0).toUpperCase() + channel.channel_type.slice(1)}</span>
+                                </div>` : ''
+                            }
+                        </div>
+                        ${channel.niches ?
+                            `<div class="channel-tags">
+                                ${channel.niches.split(',').map(niche =>
+                                    `<span class="tag">${niche.trim()}</span>`
+                                ).join('')}
+                            </div>` : ''
+                        }
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+
+        window.applyFilters = function() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const nicheFilter = document.getElementById('nicheFilter').value;
+            const clientFilter = document.getElementById('clientFilter').value;
+            const channelTypeFilter = document.getElementById('channelTypeFilter').value;
+
+            filteredChannels = channels.filter(channel => {
+                const matchesSearch = !searchTerm ||
+                    channel.channel_name.toLowerCase().includes(searchTerm);
+
+                const matchesNiche = !nicheFilter ||
+                    (channel.niches && channel.niches.toLowerCase().includes(nicheFilter.toLowerCase()));
+
+                const matchesChannelType = !channelTypeFilter ||
+                    channel.channel_type === channelTypeFilter;
+
+                return matchesSearch && matchesNiche && matchesChannelType;
+            });
+
+            renderChannels();
+        };
+
+        window.resetFilters = function() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('nicheFilter').value = '';
+            document.getElementById('clientFilter').value = '';
+            document.getElementById('channelTypeFilter').value = '';
+            filteredChannels = [...channels];
+            renderChannels();
+        };
+
+        window.openAddChannelModal = function() {
+            document.getElementById('addChannelModal').classList.add('active');
+        };
+
+        window.closeAddChannelModal = function() {
+            document.getElementById('addChannelModal').classList.remove('active');
+            document.getElementById('addChannelForm').reset();
+        };
+
+        window.handleAddChannel = async function(event) {
+            event.preventDefault();
+
+            const channelData = {
+                channel_name: document.getElementById('channelName').value,
+                channel_url: document.getElementById('channelUrl').value,
+                thumbnail_url: document.getElementById('thumbnailUrl').value || null,
+                subscriber_count: parseInt(document.getElementById('subscriberCount').value) || null,
+                niches: document.getElementById('niches').value || null,
+                channel_type: document.getElementById('channelType').value || null,
+                youtube_monitored_channel_status_id: 1
+            };
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('youtube_monitored_channels')
+                    .insert([channelData])
+                    .select();
+
+                if (error) throw error;
+
+                // Reload channels
+                await loadChannels();
+                closeAddChannelModal();
+
+                // Show success message
+                alert('Channel added successfully!');
+            } catch (error) {
+                console.error('Error adding channel:', error);
+                alert('Failed to add channel: ' + error.message);
+            }
+        };
+
+        function showError(message) {
+            const container = document.getElementById('channelsContainer');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12" y2="16"></line>
+                    </svg>
+                    <h3>Error</h3>
+                    <p>${message}</p>
+                    <button class="btn-filter btn-filter-primary" onclick="location.reload()">Retry</button>
+                </div>
+            `;
+        }
+
+        // Apply filters on Enter key in search
+        document.getElementById('searchInput')?.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                applyFilters();
+            }
+        });
+    </script>
+</body>
+</html>
