@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>😎 Sunshine Home - Jokes</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .header h1 span {
+            font-size: 28px;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .stat-box {
+            background: #f0f4ff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-box .number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-box .label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-group label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .filter-group input,
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+        
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .jokes-table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            border-bottom: 2px solid #eee;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        
+        tr:hover {
+            background: #f8f9ff;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .joke-title {
+            font-weight: 500;
+            color: #333;
+            max-width: 300px;
+        }
+        
+        .joke-title a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .joke-title a:hover {
+            text-decoration: underline;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #e8eaff;
+            color: #667eea;
+            border-radius: 4px;
+            font-size: 11px;
+            margin: 2px;
+        }
+        
+        .rating-stars {
+            color: #ffc107;
+        }
+        
+        .character-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #fff3e0;
+            color: #f57c00;
+            border-radius: 4px;
+            font-size: 11px;
+            margin: 2px;
+        }
+        
+        .episode-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #e8f5e9;
+            color: #43a047;
+            border-radius: 4px;
+            font-size: 11px;
+            margin: 2px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            background: white;
+            border-radius: 0 0 12px 12px;
+        }
+        
+        .page-btn {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .page-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .truncate {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span>😎</span> The Sunshine Home - Jokes Database</h1>
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="number" id="totalJokes">-</div>
+                    <div class="label">Total Jokes</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" id="ratedJokes">-</div>
+                    <div class="label">Rated</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label>Search</label>
+                <input type="text" id="searchInput" placeholder="Search jokes...">
+            </div>
+            <div class="filter-group">
+                <label>Character</label>
+                <select id="characterFilter">
+                    <option value="">All Characters</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Episode</label>
+                <select id="episodeFilter">
+                    <option value="">All Episodes</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Rating</label>
+                <select id="ratingFilter">
+                    <option value="">Any Rating</option>
+                    <option value="5">⭐️⭐️⭐️⭐️⭐️ (5 stars)</option>
+                    <option value="4">⭐️⭐️⭐️⭐️ (4+ stars)</option>
+                    <option value="3">⭐️⭐️⭐️ (3+ stars)</option>
+                    <option value="unrated">Unrated</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="loadJokes()">Apply Filters</button>
+            <button class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+        </div>
+        
+        <div class="jokes-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Rating</th>
+                        <th>Characters</th>
+                        <th>Episodes</th>
+                        <th>Tags</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody id="jokesTableBody">
+                    <tr>
+                        <td colspan="7" class="loading">Loading jokes...</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Supabase config - The Sunshine Home
+        const SUPABASE_URL = 'https://mbyccygpszfpqwatwtuo.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ieWNjeWdwc3pmcHF3YXR3dHVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUxNDg1MDcsImV4cCI6MjA1MDcyNDUwN30.fl3XwS0VmAT9TxPbxz0ouV6CWs-iCVYORIeQJEiKb5I';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentPage = 1;
+        const pageSize = 25;
+        let allCharacters = [];
+        let allEpisodes = [];
+        
+        async function init() {
+            await loadCharacters();
+            await loadEpisodes();
+            await loadJokes();
+            await loadStats();
+        }
+        
+        async function loadStats() {
+            const { count: total } = await supabase
+                .from('jokes')
+                .select('*', { count: 'exact', head: true });
+            
+            const { count: rated } = await supabase
+                .from('jokes')
+                .select('*', { count: 'exact', head: true })
+                .not('rating_star_id', 'is', null);
+            
+            document.getElementById('totalJokes').textContent = total || 0;
+            document.getElementById('ratedJokes').textContent = rated || 0;
+        }
+        
+        async function loadCharacters() {
+            const { data } = await supabase
+                .from('characters')
+                .select('character_id, character_first_name')
+                .order('character_first_name');
+            
+            allCharacters = data || [];
+            const select = document.getElementById('characterFilter');
+            allCharacters.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.character_id;
+                option.textContent = c.character_first_name;
+                select.appendChild(option);
+            });
+        }
+        
+        async function loadEpisodes() {
+            const { data } = await supabase
+                .from('episodes')
+                .select('episode_id, episode_title, episode_code')
+                .order('episode_title');
+            
+            allEpisodes = data || [];
+            const select = document.getElementById('episodeFilter');
+            allEpisodes.forEach(e => {
+                const option = document.createElement('option');
+                option.value = e.episode_id;
+                option.textContent = e.episode_title || e.episode_code || `Episode ${e.episode_id}`;
+                select.appendChild(option);
+            });
+        }
+        
+        async function loadJokes() {
+            const search = document.getElementById('searchInput').value;
+            const characterId = document.getElementById('characterFilter').value;
+            const episodeId = document.getElementById('episodeFilter').value;
+            const rating = document.getElementById('ratingFilter').value;
+            
+            let query = supabase
+                .from('jokes')
+                .select(`
+                    joke_id,
+                    joke_title,
+                    rating_star_id,
+                    tags,
+                    created_at,
+                    rating_stars(stars),
+                    jokes_characters(characters(character_first_name)),
+                    jokes_episodes(episodes(episode_title))
+                `, { count: 'exact' })
+                .order('joke_id', { ascending: false })
+                .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
+            
+            if (search) {
+                query = query.ilike('joke_title', `%${search}%`);
+            }
+            
+            if (rating === 'unrated') {
+                query = query.is('rating_star_id', null);
+            } else if (rating) {
+                query = query.gte('rating_star_id', parseInt(rating));
+            }
+            
+            const { data, error, count } = await query;
+            
+            if (error) {
+                console.error('Error loading jokes:', error);
+                return;
+            }
+            
+            // Filter by character/episode (client-side for junction tables)
+            let filteredData = data;
+            if (characterId) {
+                filteredData = filteredData.filter(j => 
+                    j.jokes_characters?.some(jc => 
+                        jc.characters?.character_first_name && 
+                        allCharacters.find(c => c.character_id == characterId)?.character_first_name === jc.characters.character_first_name
+                    )
+                );
+            }
+            if (episodeId) {
+                filteredData = filteredData.filter(j => 
+                    j.jokes_episodes?.some(je => 
+                        allEpisodes.find(e => e.episode_id == episodeId)?.episode_title === je.episodes?.episode_title
+                    )
+                );
+            }
+            
+            renderJokes(filteredData);
+            renderPagination(count);
+        }
+        
+        function renderJokes(jokes) {
+            const tbody = document.getElementById('jokesTableBody');
+            
+            if (!jokes || jokes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">No jokes found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = jokes.map(joke => {
+                const characters = joke.jokes_characters
+                    ?.map(jc => jc.characters?.character_first_name)
+                    .filter(Boolean)
+                    .map(name => `<span class="character-badge">${name}</span>`)
+                    .join('') || '-';
+                
+                const episodes = joke.jokes_episodes
+                    ?.map(je => je.episodes?.episode_title)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map(title => `<span class="episode-badge">${title.substring(0, 20)}${title.length > 20 ? '...' : ''}</span>`)
+                    .join('') || '-';
+                
+                const tags = joke.tags
+                    ?.slice(0, 3)
+                    .map(tag => `<span class="tag">${tag}</span>`)
+                    .join('') || '-';
+                
+                const rating = joke.rating_stars?.stars || '-';
+                const created = joke.created_at ? new Date(joke.created_at).toLocaleDateString() : '-';
+                
+                return `
+                    <tr>
+                        <td>${joke.joke_id}</td>
+                        <td class="joke-title">
+                            <a href="joke-edit.html?id=${joke.joke_id}">${joke.joke_title || 'Untitled'}</a>
+                        </td>
+                        <td class="rating-stars">${rating}</td>
+                        <td>${characters}</td>
+                        <td>${episodes}</td>
+                        <td>${tags}</td>
+                        <td>${created}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function renderPagination(total) {
+            const totalPages = Math.ceil(total / pageSize);
+            const pagination = document.getElementById('pagination');
+            
+            let html = '';
+            
+            if (currentPage > 1) {
+                html += `<button class="page-btn" onclick="goToPage(${currentPage - 1})">← Prev</button>`;
+            }
+            
+            for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+            
+            if (currentPage < totalPages) {
+                html += `<button class="page-btn" onclick="goToPage(${currentPage + 1})">Next →</button>`;
+            }
+            
+            pagination.innerHTML = html;
+        }
+        
+        function goToPage(page) {
+            currentPage = page;
+            loadJokes();
+        }
+        
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('characterFilter').value = '';
+            document.getElementById('episodeFilter').value = '';
+            document.getElementById('ratingFilter').value = '';
+            currentPage = 1;
+            loadJokes();
+        }
+        
+        // Search on Enter
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadJokes();
+        });
+        
+        // Initialize
+        init();
+    </script>
+</body>
+</html>

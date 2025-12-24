@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>😎 The Sunshine Home</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+        
+        .nav-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 25px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .nav-link .icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .nav-link .label {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .nav-link .count {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .nav-link.disabled {
+            background: #ccc;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="logo">😎</div>
+            <h1>The Sunshine Home</h1>
+            <p class="subtitle">Comedy Series Database</p>
+            
+            <div class="nav-grid">
+                <a href="jokes.html" class="nav-link">
+                    <span class="icon">🎭</span>
+                    <span class="label">Jokes</span>
+                    <span class="count">View & Edit</span>
+                </a>
+                
+                <a href="characters.html" class="nav-link disabled">
+                    <span class="icon">👥</span>
+                    <span class="label">Characters</span>
+                    <span class="count">Coming Soon</span>
+                </a>
+                
+                <a href="episodes.html" class="nav-link disabled">
+                    <span class="icon">📺</span>
+                    <span class="label">Episodes</span>
+                    <span class="count">Coming Soon</span>
+                </a>
+                
+                <a href="#" class="nav-link disabled">
+                    <span class="icon">📊</span>
+                    <span class="label">Stats</span>
+                    <span class="count">Coming Soon</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

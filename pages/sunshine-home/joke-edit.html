@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>😎 Edit Joke - Sunshine Home</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 20px;
+        }
+        
+        .back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 6px;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group textarea {
+            min-height: 200px;
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .tags-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            min-height: 50px;
+        }
+        
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            background: #e8eaff;
+            color: #667eea;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        .tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .tag-input {
+            border: none;
+            outline: none;
+            flex: 1;
+            min-width: 100px;
+            font-size: 14px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .checkbox-item:hover {
+            background: #e8eaff;
+        }
+        
+        .checkbox-item input {
+            width: auto;
+        }
+        
+        .checkbox-item.selected {
+            background: #e8eaff;
+            border: 1px solid #667eea;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: space-between;
+        }
+        
+        .actions-left {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .status-message {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status-message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .rating-select {
+            font-size: 18px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        .meta-info {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <a href="jokes.html" class="back-link">← Back to Jokes List</a>
+                <h1 id="pageTitle">Loading...</h1>
+            </div>
+            <div>
+                <span id="jokeId" style="color: #999; font-size: 14px;"></span>
+            </div>
+        </div>
+        
+        <div id="statusMessage" class="status-message"></div>
+        
+        <div class="card">
+            <div class="card-title">Basic Information</div>
+            
+            <div class="form-group">
+                <label>Joke Title</label>
+                <input type="text" id="jokeTitle" placeholder="Enter joke title...">
+            </div>
+            
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label>Rating</label>
+                    <select id="ratingStarId" class="rating-select">
+                        <option value="">No rating</option>
+                        <option value="1">⭐️ (1 star)</option>
+                        <option value="2">⭐️⭐️ (2 stars)</option>
+                        <option value="3">⭐️⭐️⭐️ (3 stars)</option>
+                        <option value="4">⭐️⭐️⭐️⭐️ (4 stars)</option>
+                        <option value="5">⭐️⭐️⭐️⭐️⭐️ (5 stars)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Season</label>
+                    <select id="seasonId">
+                        <option value="">No season</option>
+                        <option value="1">Season 1</option>
+                        <option value="2">Season 2</option>
+                        <option value="3">Season 3</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="jokeStatusId">
+                        <option value="1">New</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">Joke Content</div>
+            
+            <div class="form-group">
+                <label>Joke Text / Notes</label>
+                <textarea id="jokeText" placeholder="Enter the joke content, notes, or ideas..."></textarea>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">Characters</div>
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Select characters involved in this joke</p>
+            
+            <div class="checkbox-group" id="charactersCheckboxes">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">Episodes</div>
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Select episodes this joke appears in</p>
+            
+            <div class="checkbox-group" id="episodesCheckboxes">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">Tags</div>
+            
+            <div class="form-group">
+                <label>Tags (press Enter to add)</label>
+                <div class="tags-input" id="tagsContainer">
+                    <input type="text" class="tag-input" id="tagInput" placeholder="Add a tag...">
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">Additional Info</div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Google Drive Link</label>
+                    <input type="text" id="googleDrive" placeholder="https://drive.google.com/...">
+                </div>
+                
+                <div class="form-group">
+                    <label>Coda Doc Link</label>
+                    <input type="text" id="codaDoc" placeholder="https://coda.io/...">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Order Notes</label>
+                <input type="text" id="orderNotes" placeholder="Notes about ordering/sequencing...">
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="actions">
+                <div class="actions-left">
+                    <button class="btn btn-primary" onclick="saveJoke()">💾 Save Changes</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='jokes.html'">Cancel</button>
+                </div>
+                <button class="btn btn-danger" onclick="deleteJoke()">🗑️ Delete</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Supabase config - The Sunshine Home
+        const SUPABASE_URL = 'https://mbyccygpszfpqwatwtuo.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ieWNjeWdwc3pmcHF3YXR3dHVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUxNDg1MDcsImV4cCI6MjA1MDcyNDUwN30.fl3XwS0VmAT9TxPbxz0ouV6CWs-iCVYORIeQJEiKb5I';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const jokeId = urlParams.get('id');
+        
+        let currentTags = [];
+        let selectedCharacters = [];
+        let selectedEpisodes = [];
+        let allCharacters = [];
+        let allEpisodes = [];
+        let allStatuses = [];
+        
+        async function init() {
+            if (!jokeId) {
+                document.getElementById('pageTitle').textContent = 'Joke not found';
+                return;
+            }
+            
+            await loadCharacters();
+            await loadEpisodes();
+            await loadStatuses();
+            await loadJoke();
+            setupTagInput();
+        }
+        
+        async function loadCharacters() {
+            const { data } = await supabase
+                .from('characters')
+                .select('character_id, character_first_name')
+                .order('character_first_name');
+            
+            allCharacters = data || [];
+            renderCharacterCheckboxes();
+        }
+        
+        async function loadEpisodes() {
+            const { data } = await supabase
+                .from('episodes')
+                .select('episode_id, episode_title, episode_code')
+                .order('episode_title');
+            
+            allEpisodes = data || [];
+            renderEpisodeCheckboxes();
+        }
+        
+        async function loadStatuses() {
+            const { data } = await supabase
+                .from('jokes_statuses')
+                .select('joke_status_id, joke_status')
+                .order('joke_status_id');
+            
+            allStatuses = data || [];
+            const select = document.getElementById('jokeStatusId');
+            select.innerHTML = allStatuses.map(s => 
+                `<option value="${s.joke_status_id}">${s.joke_status || 'Status ' + s.joke_status_id}</option>`
+            ).join('');
+        }
+        
+        function renderCharacterCheckboxes() {
+            const container = document.getElementById('charactersCheckboxes');
+            container.innerHTML = allCharacters.map(c => `
+                <label class="checkbox-item" data-id="${c.character_id}">
+                    <input type="checkbox" value="${c.character_id}" onchange="toggleCharacter(${c.character_id})">
+                    ${c.character_first_name}
+                </label>
+            `).join('');
+        }
+        
+        function renderEpisodeCheckboxes() {
+            const container = document.getElementById('episodesCheckboxes');
+            container.innerHTML = allEpisodes.map(e => `
+                <label class="checkbox-item" data-id="${e.episode_id}">
+                    <input type="checkbox" value="${e.episode_id}" onchange="toggleEpisode(${e.episode_id})">
+                    ${e.episode_title || e.episode_code || 'Episode ' + e.episode_id}
+                </label>
+            `).join('');
+        }
+        
+        function toggleCharacter(id) {
+            const idx = selectedCharacters.indexOf(id);
+            if (idx > -1) {
+                selectedCharacters.splice(idx, 1);
+            } else {
+                selectedCharacters.push(id);
+            }
+            updateCheckboxStyles();
+        }
+        
+        function toggleEpisode(id) {
+            const idx = selectedEpisodes.indexOf(id);
+            if (idx > -1) {
+                selectedEpisodes.splice(idx, 1);
+            } else {
+                selectedEpisodes.push(id);
+            }
+            updateCheckboxStyles();
+        }
+        
+        function updateCheckboxStyles() {
+            document.querySelectorAll('#charactersCheckboxes .checkbox-item').forEach(item => {
+                const id = parseInt(item.dataset.id);
+                item.classList.toggle('selected', selectedCharacters.includes(id));
+            });
+            document.querySelectorAll('#episodesCheckboxes .checkbox-item').forEach(item => {
+                const id = parseInt(item.dataset.id);
+                item.classList.toggle('selected', selectedEpisodes.includes(id));
+            });
+        }
+        
+        async function loadJoke() {
+            const { data: joke, error } = await supabase
+                .from('jokes')
+                .select(`
+                    *,
+                    jokes_characters(character_id),
+                    jokes_episodes(episode_id)
+                `)
+                .eq('joke_id', jokeId)
+                .single();
+            
+            if (error || !joke) {
+                document.getElementById('pageTitle').textContent = 'Joke not found';
+                return;
+            }
+            
+            document.getElementById('pageTitle').textContent = joke.joke_title || 'Untitled Joke';
+            document.getElementById('jokeId').textContent = `ID: ${joke.joke_id}`;
+            document.getElementById('jokeTitle').value = joke.joke_title || '';
+            document.getElementById('jokeText').value = joke.joke_text || '';
+            document.getElementById('ratingStarId').value = joke.rating_star_id || '';
+            document.getElementById('seasonId').value = joke.season_id || '';
+            document.getElementById('jokeStatusId').value = joke.joke_status_id || '1';
+            document.getElementById('googleDrive').value = joke.google_drive || '';
+            document.getElementById('codaDoc').value = joke.coda_doc || '';
+            document.getElementById('orderNotes').value = joke.order_notes || '';
+            
+            // Tags
+            currentTags = joke.tags || [];
+            renderTags();
+            
+            // Characters
+            selectedCharacters = joke.jokes_characters?.map(jc => jc.character_id) || [];
+            selectedCharacters.forEach(id => {
+                const checkbox = document.querySelector(`#charactersCheckboxes input[value="${id}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+            updateCheckboxStyles();
+            
+            // Episodes
+            selectedEpisodes = joke.jokes_episodes?.map(je => je.episode_id) || [];
+            selectedEpisodes.forEach(id => {
+                const checkbox = document.querySelector(`#episodesCheckboxes input[value="${id}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+            updateCheckboxStyles();
+        }
+        
+        function setupTagInput() {
+            const input = document.getElementById('tagInput');
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && input.value.trim()) {
+                    e.preventDefault();
+                    addTag(input.value.trim());
+                    input.value = '';
+                }
+            });
+        }
+        
+        function addTag(tag) {
+            if (!currentTags.includes(tag)) {
+                currentTags.push(tag);
+                renderTags();
+            }
+        }
+        
+        function removeTag(tag) {
+            currentTags = currentTags.filter(t => t !== tag);
+            renderTags();
+        }
+        
+        function renderTags() {
+            const container = document.getElementById('tagsContainer');
+            const input = document.getElementById('tagInput');
+            
+            const tagsHtml = currentTags.map(tag => `
+                <span class="tag">
+                    ${tag}
+                    <span class="remove" onclick="removeTag('${tag}')">×</span>
+                </span>
+            `).join('');
+            
+            container.innerHTML = tagsHtml;
+            container.appendChild(input);
+        }
+        
+        async function saveJoke() {
+            const jokeData = {
+                joke_title: document.getElementById('jokeTitle').value || null,
+                joke_text: document.getElementById('jokeText').value || null,
+                rating_star_id: document.getElementById('ratingStarId').value || null,
+                season_id: document.getElementById('seasonId').value || null,
+                joke_status_id: document.getElementById('jokeStatusId').value || 1,
+                tags: currentTags.length > 0 ? currentTags : null,
+                google_drive: document.getElementById('googleDrive').value || null,
+                coda_doc: document.getElementById('codaDoc').value || null,
+                order_notes: document.getElementById('orderNotes').value || null
+            };
+            
+            // Update joke
+            const { error: jokeError } = await supabase
+                .from('jokes')
+                .update(jokeData)
+                .eq('joke_id', jokeId);
+            
+            if (jokeError) {
+                showStatus('Error saving joke: ' + jokeError.message, 'error');
+                return;
+            }
+            
+            // Update characters
+            await supabase.from('jokes_characters').delete().eq('joke_id', jokeId);
+            if (selectedCharacters.length > 0) {
+                await supabase.from('jokes_characters').insert(
+                    selectedCharacters.map(cid => ({ joke_id: parseInt(jokeId), character_id: cid }))
+                );
+            }
+            
+            // Update episodes
+            await supabase.from('jokes_episodes').delete().eq('joke_id', jokeId);
+            if (selectedEpisodes.length > 0) {
+                await supabase.from('jokes_episodes').insert(
+                    selectedEpisodes.map(eid => ({ joke_id: parseInt(jokeId), episode_id: eid }))
+                );
+            }
+            
+            showStatus('Joke saved successfully!', 'success');
+            document.getElementById('pageTitle').textContent = jokeData.joke_title || 'Untitled Joke';
+        }
+        
+        async function deleteJoke() {
+            if (!confirm('Are you sure you want to delete this joke? This cannot be undone.')) {
+                return;
+            }
+            
+            // Delete related records first
+            await supabase.from('jokes_characters').delete().eq('joke_id', jokeId);
+            await supabase.from('jokes_episodes').delete().eq('joke_id', jokeId);
+            await supabase.from('jokes_places_things').delete().eq('joke_id', jokeId);
+            
+            // Delete joke
+            const { error } = await supabase
+                .from('jokes')
+                .delete()
+                .eq('joke_id', jokeId);
+            
+            if (error) {
+                showStatus('Error deleting joke: ' + error.message, 'error');
+                return;
+            }
+            
+            window.location.href = 'jokes.html';
+        }
+        
+        function showStatus(message, type) {
+            const el = document.getElementById('statusMessage');
+            el.textContent = message;
+            el.className = 'status-message ' + type;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    el.className = 'status-message';
+                }, 3000);
+            }
+        }
+        
+        init();
+    </script>
+</body>
+</html>
