@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>😎 Sunshine Home - Current Processing</title>
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        window.supabaseClient = createClient;
+    </script>
+    <style>
+        :root {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-dark: #1a1a2e;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --text-muted: #9aa0a6;
+            --border-color: #e8eaed;
+            --accent: #1a73e8;
+            --accent-light: #e8f0fe;
+            --green: #2b8a3e;
+            --green-light: #d3f9d8;
+            --orange: #d9480f;
+            --orange-light: #ffe8cc;
+            --purple: #7048e8;
+            --purple-light: #e5dbff;
+            --red: #e03131;
+            --shadow-card: 0 1px 2px rgba(60,64,67,0.1), 0 2px 6px rgba(60,64,67,0.05);
+            --radius-md: 8px;
+            --radius-lg: 12px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            font-size: 14px;
+        }
+        .app-container { display: flex; height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar-header h1 { font-size: 16px; font-weight: 600; }
+        .sidebar-nav { padding: 12px; }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            margin-bottom: 4px;
+            transition: all 0.15s;
+        }
+        .nav-item:hover { background: var(--bg-primary); }
+        .nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+        .nav-item .icon { font-size: 18px; }
+        
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+        .live-text { font-size: 12px; font-weight: 600; color: var(--green); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .sidebar-stats {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+        }
+        .stat-row .label { color: var(--text-muted); }
+        .stat-row .value { font-weight: 600; color: var(--text-primary); }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            overflow: auto;
+        }
+        
+        /* Next Processing Card */
+        .countdown-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            margin-bottom: 24px;
+            color: white;
+            text-align: center;
+        }
+        .countdown-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+        .countdown-timer {
+            font-size: 72px;
+            font-weight: 700;
+            font-family: 'SF Mono', Monaco, monospace;
+            letter-spacing: 4px;
+            margin-bottom: 8px;
+        }
+        .countdown-timer .seconds {
+            color: #4ade80;
+        }
+        .countdown-sublabel {
+            font-size: 14px;
+            opacity: 0.6;
+        }
+        .progress-bar-container {
+            margin-top: 24px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            height: 8px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+            border-radius: 8px;
+            transition: width 0.1s linear;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-card);
+        }
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .stat-card .label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-top: 4px;
+        }
+        .stat-card.green .number { color: var(--green); }
+        .stat-card.orange .number { color: var(--orange); }
+        .stat-card.purple .number { color: var(--purple); }
+        
+        /* Processing Queue */
+        .panel {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+            margin-bottom: 24px;
+        }
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .panel-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        .panel-badge {
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .panel-body { padding: 0; }
+        
+        /* Queue Item */
+        .queue-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.15s;
+        }
+        .queue-item:last-child { border-bottom: none; }
+        .queue-item:hover { background: var(--bg-primary); }
+        .queue-item.processing { background: #fffbeb; }
+        .queue-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 14px;
+        }
+        .queue-icon.joke { background: var(--purple-light); }
+        .queue-icon.episode { background: var(--green-light); }
+        .queue-info { flex: 1; }
+        .queue-title { font-weight: 500; font-size: 13px; color: var(--text-primary); }
+        .queue-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .queue-status {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .queue-status.processing {
+            background: #fef3c7;
+            color: #d97706;
+            animation: statusPulse 1s infinite;
+        }
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .queue-status.queued { background: var(--bg-primary); color: var(--text-muted); }
+        .queue-status.completed { background: var(--green-light); color: var(--green); }
+        
+        /* Activity Log */
+        .log-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 12px;
+        }
+        .log-item:last-child { border-bottom: none; }
+        .log-time {
+            color: var(--text-muted);
+            font-family: 'SF Mono', Monaco, monospace;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        .log-message { color: var(--text-secondary); }
+        .log-message strong { color: var(--text-primary); font-weight: 500; }
+        .log-message .success { color: var(--green); }
+        .log-message .error { color: var(--red); }
+        
+        /* Two Column Layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        @media (max-width: 1200px) {
+            .two-col { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <span style="font-size: 22px;">😎</span>
+                <h1>The Sunshine Home</h1>
+            </div>
+            <div class="live-indicator">
+                <div class="live-dot"></div>
+                <span class="live-text">Live Processing</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item"><span class="icon">🏠</span> Home</a>
+                <a href="jokes.html" class="nav-item"><span class="icon">😂</span> Jokes</a>
+                <a href="current.html" class="nav-item active"><span class="icon">⚡</span> Current</a>
+                <a href="#" class="nav-item"><span class="icon">👥</span> Characters</a>
+                <a href="#" class="nav-item"><span class="icon">📺</span> Episodes</a>
+            </nav>
+            <div class="sidebar-stats">
+                <div class="stat-row">
+                    <span class="label">Uptime</span>
+                    <span class="value" id="uptime">0:00:00</span>
+                </div>
+                <div class="stat-row">
+                    <span class="label">Cycle Rate</span>
+                    <span class="value">30s</span>
+                </div>
+                <div class="stat-row">
+                    <span class="label">Queue Depth</span>
+                    <span class="value" id="queueDepth">0</span>
+                </div>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <div class="countdown-card">
+                <div class="countdown-label">Next Processing Cycle In</div>
+                <div class="countdown-timer">
+                    <span id="countdownMinutes">00</span>:<span id="countdownSeconds" class="seconds">30</span>
+                </div>
+                <div class="countdown-sublabel">Processing jokes and episodes every 30 seconds</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar" style="width: 100%"></div>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card green">
+                    <div class="number" id="processedToday">0</div>
+                    <div class="label">Processed Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="totalJokes">0</div>
+                    <div class="label">Total Jokes</div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="number" id="inQueue">0</div>
+                    <div class="label">In Queue</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="number" id="completedCycles">0</div>
+                    <div class="label">Cycles Complete</div>
+                </div>
+            </div>
+            
+            <div class="two-col">
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Processing Queue</span>
+                        <span class="panel-badge" id="queueCount">0 items</span>
+                    </div>
+                    <div class="panel-body" id="queueList">
+                        <!-- Queue items populated by JS -->
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Activity Log</span>
+                        <span class="panel-badge">Live</span>
+                    </div>
+                    <div class="panel-body" id="activityLog">
+                        <!-- Log items populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script type="module">
+        const SUPABASE_URL = 'https://mbyccygpszfpqwatwtuo.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ieWNjeWdwc3pmcHF3YXR3dHVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUxNDg1MDcsImV4cCI6MjA1MDcyNDUwN30.o7MbmjNXOW9EEA7CHx9DYZlHhtIWt4wVcclwm3ogCGU';
+        
+        const supabase = window.supabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // State
+        let countdown = 30;
+        let processedToday = 0;
+        let completedCycles = 0;
+        let uptimeSeconds = 0;
+        let jokes = [];
+        let queue = [];
+        let activityLog = [];
+        
+        // Initialize
+        async function init() {
+            await loadJokes();
+            generateQueue();
+            startCountdown();
+            startUptime();
+            updateStats();
+        }
+        
+        async function loadJokes() {
+            const { data, error, count } = await supabase
+                .from('jokes')
+                .select('joke_id, joke_title', { count: 'exact' })
+                .order('created_at', { ascending: false })
+                .limit(100);
+            
+            if (!error) {
+                jokes = data || [];
+                document.getElementById('totalJokes').textContent = count || 0;
+            }
+        }
+        
+        function generateQueue() {
+            // Simulate a queue of items to process
+            const types = ['joke', 'joke', 'joke', 'episode'];
+            queue = [];
+            
+            for (let i = 0; i < 6; i++) {
+                const type = types[Math.floor(Math.random() * types.length)];
+                const joke = jokes[Math.floor(Math.random() * jokes.length)];
+                
+                queue.push({
+                    id: i + 1,
+                    type: type,
+                    title: type === 'joke' ? (joke?.joke_title || 'Untitled Joke') : `Episode ${Math.floor(Math.random() * 20) + 1}`,
+                    status: i === 0 ? 'processing' : 'queued',
+                    meta: type === 'joke' ? `Joke #${joke?.joke_id || '?'}` : 'Season 1'
+                });
+            }
+            
+            renderQueue();
+        }
+        
+        function renderQueue() {
+            const container = document.getElementById('queueList');
+            document.getElementById('queueCount').textContent = `${queue.length} items`;
+            document.getElementById('queueDepth').textContent = queue.length;
+            document.getElementById('inQueue').textContent = queue.length;
+            
+            container.innerHTML = queue.map(item => `
+                <div class="queue-item ${item.status === 'processing' ? 'processing' : ''}">
+                    <div class="queue-icon ${item.type}">${item.type === 'joke' ? '😂' : '📺'}</div>
+                    <div class="queue-info">
+                        <div class="queue-title">${escapeHtml(item.title)}</div>
+                        <div class="queue-meta">${item.meta}</div>
+                    </div>
+                    <span class="queue-status ${item.status}">${item.status === 'processing' ? '⚙️ Processing' : item.status === 'completed' ? '✓ Done' : '⏳ Queued'}</span>
+                </div>
+            `).join('');
+        }
+        
+        function addLogEntry(message) {
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-US', { hour12: false });
+            
+            activityLog.unshift({ time, message });
+            if (activityLog.length > 20) activityLog.pop();
+            
+            renderLog();
+        }
+        
+        function renderLog() {
+            const container = document.getElementById('activityLog');
+            container.innerHTML = activityLog.map(entry => `
+                <div class="log-item">
+                    <span class="log-time">${entry.time}</span>
+                    <span class="log-message">${entry.message}</span>
+                </div>
+            `).join('');
+        }
+        
+        function startCountdown() {
+            setInterval(() => {
+                countdown--;
+                
+                if (countdown <= 0) {
+                    processCycle();
+                    countdown = 30;
+                }
+                
+                const mins = Math.floor(countdown / 60).toString().padStart(2, '0');
+                const secs = (countdown % 60).toString().padStart(2, '0');
+                
+                document.getElementById('countdownMinutes').textContent = mins;
+                document.getElementById('countdownSeconds').textContent = secs;
+                document.getElementById('progressBar').style.width = `${(countdown / 30) * 100}%`;
+            }, 1000);
+        }
+        
+        function processCycle() {
+            completedCycles++;
+            
+            // Process first item in queue
+            if (queue.length > 0) {
+                const processed = queue.shift();
+                processedToday++;
+                
+                addLogEntry(`<span class="success">✓</span> Completed <strong>${escapeHtml(processed.title)}</strong>`);
+                
+                // Add new item to queue
+                const type = Math.random() > 0.3 ? 'joke' : 'episode';
+                const joke = jokes[Math.floor(Math.random() * jokes.length)];
+                queue.push({
+                    id: Date.now(),
+                    type: type,
+                    title: type === 'joke' ? (joke?.joke_title || 'Untitled Joke') : `Episode ${Math.floor(Math.random() * 20) + 1}`,
+                    status: 'queued',
+                    meta: type === 'joke' ? `Joke #${joke?.joke_id || '?'}` : 'Season 1'
+                });
+                
+                // Mark next item as processing
+                if (queue.length > 0) {
+                    queue[0].status = 'processing';
+                }
+            }
+            
+            updateStats();
+            renderQueue();
+        }
+        
+        function startUptime() {
+            setInterval(() => {
+                uptimeSeconds++;
+                const hrs = Math.floor(uptimeSeconds / 3600);
+                const mins = Math.floor((uptimeSeconds % 3600) / 60);
+                const secs = uptimeSeconds % 60;
+                document.getElementById('uptime').textContent = 
+                    `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+        
+        function updateStats() {
+            document.getElementById('processedToday').textContent = processedToday;
+            document.getElementById('completedCycles').textContent = completedCycles;
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+        
+        // Add initial log entries
+        addLogEntry('🚀 Processing engine started');
+        addLogEntry('📡 Connected to Supabase');
+        
+        init();
+    </script>
+</body>
+</html>
