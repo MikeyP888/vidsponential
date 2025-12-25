@@ -6,136 +6,138 @@
     <title>😎 Sunshine Home - Jokes</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        :root {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-hover: #f1f3f4;
+            --bg-selected: #e8f0fe;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --text-muted: #9aa0a6;
+            --border-color: #e8eaed;
+            --accent: #1a73e8;
+            --accent-light: #e8f0fe;
+            --shadow-sm: 0 1px 2px rgba(60,64,67,0.1);
+            --shadow-md: 0 1px 3px rgba(60,64,67,0.15), 0 1px 2px rgba(60,64,67,0.1);
+            --shadow-card: 0 1px 2px rgba(60,64,67,0.1), 0 2px 6px rgba(60,64,67,0.05);
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
         }
-        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding: 20px;
+            font-size: 14px;
+            line-height: 1.5;
         }
+        .app-container { display: flex; height: 100vh; }
         
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            background: white;
-            padding: 20px 30px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .header h1 {
-            color: #333;
-            font-size: 24px;
-        }
-        
-        .header h1 span {
-            font-size: 28px;
-        }
-        
-        .stats {
-            display: flex;
-            gap: 20px;
-        }
-        
-        .stat-box {
-            background: #f0f4ff;
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        
-        .stat-box .number {
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
-        }
-        
-        .stat-box .label {
-            font-size: 12px;
-            color: #666;
-        }
-        
-        .filters {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        
-        .filter-group {
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            flex-shrink: 0;
         }
-        
-        .filter-group label {
-            font-size: 12px;
-            color: #666;
-            font-weight: 500;
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        
-        .filter-group input,
-        .filter-group select {
+        .sidebar-header h1 { font-size: 16px; font-weight: 600; }
+        .sidebar-section { 
+            padding: 16px 20px; 
+            border-bottom: 1px solid var(--border-color); 
+        }
+        .sidebar-section label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 6px;
+        }
+        .sidebar-section input, .sidebar-section select {
+            width: 100%;
             padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            min-width: 150px;
-        }
-        
-        .filter-group input:focus,
-        .filter-group select:focus {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            background: var(--bg-primary);
             outline: none;
-            border-color: #667eea;
+            margin-bottom: 12px;
         }
-        
+        .sidebar-section input:last-child, .sidebar-section select:last-child { margin-bottom: 0; }
+        .sidebar-section input:focus, .sidebar-section select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-light);
+        }
+        .sidebar-stats {
+            padding: 16px 20px;
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .sidebar-stats span { font-weight: 600; color: var(--text-secondary); }
+        .sidebar-actions {
+            padding: 16px 20px;
+            display: flex;
+            gap: 10px;
+        }
         .btn {
-            padding: 10px 20px;
+            padding: 10px 16px;
             border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
             font-weight: 500;
-            transition: all 0.2s;
+            cursor: pointer;
+            transition: all 0.15s;
         }
-        
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--accent);
             color: white;
+            flex: 1;
         }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        
+        .btn-primary:hover { background: #1557b0; }
         .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover { background: var(--bg-hover); }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            overflow: auto;
         }
         
-        .jokes-table {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        /* Jokes Table Card */
+        .jokes-panel {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
             overflow: hidden;
+        }
+        .jokes-panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
         
         table {
@@ -144,24 +146,25 @@
         }
         
         th {
-            background: #f8f9fa;
-            padding: 15px;
+            background: var(--bg-primary);
+            padding: 12px 16px;
             text-align: left;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            color: #666;
+            color: var(--text-muted);
             text-transform: uppercase;
-            border-bottom: 2px solid #eee;
+            letter-spacing: 0.3px;
+            border-bottom: 1px solid var(--border-color);
         }
         
         td {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
         }
         
         tr:hover {
-            background: #f8f9ff;
+            background: var(--bg-hover);
         }
         
         tr:last-child td {
@@ -170,12 +173,12 @@
         
         .joke-title {
             font-weight: 500;
-            color: #333;
+            color: var(--text-primary);
             max-width: 300px;
         }
         
         .joke-title a {
-            color: #667eea;
+            color: var(--accent);
             text-decoration: none;
         }
         
@@ -185,143 +188,156 @@
         
         .tag {
             display: inline-block;
-            padding: 3px 8px;
-            background: #e8eaff;
-            color: #667eea;
-            border-radius: 4px;
+            padding: 2px 10px;
+            border-radius: 12px;
             font-size: 11px;
+            font-weight: 500;
             margin: 2px;
+            background: #e5dbff;
+            color: #7048e8;
         }
         
-        .rating-stars {
-            color: #ffc107;
+        .stars {
+            color: #fab005;
+            font-size: 12px;
+            letter-spacing: -1px;
         }
         
         .character-badge {
             display: inline-block;
-            padding: 3px 8px;
-            background: #fff3e0;
-            color: #f57c00;
-            border-radius: 4px;
+            padding: 2px 10px;
+            background: #d0ebff;
+            color: #1971c2;
+            border-radius: 12px;
             font-size: 11px;
+            font-weight: 500;
             margin: 2px;
         }
         
         .episode-badge {
             display: inline-block;
-            padding: 3px 8px;
-            background: #e8f5e9;
-            color: #43a047;
-            border-radius: 4px;
+            padding: 2px 10px;
+            background: #d3f9d8;
+            color: #2b8a3e;
+            border-radius: 12px;
             font-size: 11px;
+            font-weight: 500;
             margin: 2px;
         }
         
         .loading {
             text-align: center;
             padding: 50px;
-            color: #666;
+            color: var(--text-muted);
         }
         
         .pagination {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            padding: 20px;
-            background: white;
-            border-radius: 0 0 12px 12px;
+            gap: 8px;
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
         }
         
         .page-btn {
-            padding: 8px 15px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 6px;
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
             cursor: pointer;
+            font-size: 12px;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+        
+        .page-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+            color: var(--accent);
         }
         
         .page-btn.active {
-            background: #667eea;
+            background: var(--accent);
             color: white;
-            border-color: #667eea;
+            border-color: var(--accent);
         }
         
-        .truncate {
-            max-width: 200px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .error-message {
+            background: #fff5f5;
+            color: #c92a2a;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 16px;
+            font-size: 13px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><span>😎</span> The Sunshine Home - Jokes Database</h1>
-            <div class="stats">
-                <div class="stat-box">
-                    <div class="number" id="totalJokes">-</div>
-                    <div class="label">Total Jokes</div>
-                </div>
-                <div class="stat-box">
-                    <div class="number" id="ratedJokes">-</div>
-                    <div class="label">Rated</div>
-                </div>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <span style="font-size: 22px;">😎</span>
+                <h1>The Sunshine Home</h1>
             </div>
-        </div>
-        
-        <div class="filters">
-            <div class="filter-group">
+            <div class="sidebar-section">
                 <label>Search</label>
                 <input type="text" id="searchInput" placeholder="Search jokes...">
-            </div>
-            <div class="filter-group">
+                
                 <label>Character</label>
                 <select id="characterFilter">
                     <option value="">All Characters</option>
                 </select>
-            </div>
-            <div class="filter-group">
+                
                 <label>Episode</label>
                 <select id="episodeFilter">
                     <option value="">All Episodes</option>
                 </select>
-            </div>
-            <div class="filter-group">
+                
                 <label>Rating</label>
                 <select id="ratingFilter">
                     <option value="">Any Rating</option>
-                    <option value="5">⭐️⭐️⭐️⭐️⭐️ (5 stars)</option>
-                    <option value="4">⭐️⭐️⭐️⭐️ (4+ stars)</option>
-                    <option value="3">⭐️⭐️⭐️ (3+ stars)</option>
+                    <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
+                    <option value="4">⭐⭐⭐⭐ (4+ stars)</option>
+                    <option value="3">⭐⭐⭐ (3+ stars)</option>
                     <option value="unrated">Unrated</option>
                 </select>
             </div>
-            <button class="btn btn-primary" onclick="loadJokes()">Apply Filters</button>
-            <button class="btn btn-secondary" onclick="resetFilters()">Reset</button>
-        </div>
+            <div class="sidebar-stats">
+                <div>Total: <span id="totalJokes">0</span></div>
+                <div>Rated: <span id="ratedJokes">0</span></div>
+            </div>
+            <div class="sidebar-actions">
+                <button class="btn btn-primary" onclick="loadJokes()">Apply</button>
+                <button class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+            </div>
+        </aside>
         
-        <div class="jokes-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Rating</th>
-                        <th>Characters</th>
-                        <th>Episodes</th>
-                        <th>Tags</th>
-                        <th>Created</th>
-                    </tr>
-                </thead>
-                <tbody id="jokesTableBody">
-                    <tr>
-                        <td colspan="7" class="loading">Loading jokes...</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div class="pagination" id="pagination"></div>
-        </div>
+        <main class="main-content">
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+            
+            <div class="jokes-panel">
+                <div class="jokes-panel-header">Jokes</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Rating</th>
+                            <th>Characters</th>
+                            <th>Episodes</th>
+                            <th>Tags</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jokesTableBody">
+                        <tr>
+                            <td colspan="7" class="loading">Loading jokes...</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </main>
     </div>
     
     <script>
@@ -336,32 +352,54 @@
         let allCharacters = [];
         let allEpisodes = [];
         
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            console.error(message);
+        }
+        
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
         async function init() {
-            await loadCharacters();
-            await loadEpisodes();
-            await loadJokes();
-            await loadStats();
+            hideError();
+            try {
+                await loadCharacters();
+                await loadEpisodes();
+                await loadJokes();
+                await loadStats();
+            } catch (err) {
+                showError('Failed to initialize: ' + err.message);
+            }
         }
         
         async function loadStats() {
-            const { count: total } = await supabase
+            const { count: total, error: e1 } = await supabase
                 .from('jokes')
                 .select('*', { count: 'exact', head: true });
             
-            const { count: rated } = await supabase
+            if (e1) throw e1;
+            
+            const { count: rated, error: e2 } = await supabase
                 .from('jokes')
                 .select('*', { count: 'exact', head: true })
                 .not('rating_star_id', 'is', null);
+            
+            if (e2) throw e2;
             
             document.getElementById('totalJokes').textContent = total || 0;
             document.getElementById('ratedJokes').textContent = rated || 0;
         }
         
         async function loadCharacters() {
-            const { data } = await supabase
+            const { data, error } = await supabase
                 .from('characters')
                 .select('character_id, character_first_name')
                 .order('character_first_name');
+            
+            if (error) throw error;
             
             allCharacters = data || [];
             const select = document.getElementById('characterFilter');
@@ -374,10 +412,12 @@
         }
         
         async function loadEpisodes() {
-            const { data } = await supabase
+            const { data, error } = await supabase
                 .from('episodes')
                 .select('episode_id, episode_title, episode_code')
                 .order('episode_title');
+            
+            if (error) throw error;
             
             allEpisodes = data || [];
             const select = document.getElementById('episodeFilter');
@@ -390,6 +430,7 @@
         }
         
         async function loadJokes() {
+            hideError();
             const search = document.getElementById('searchInput').value;
             const characterId = document.getElementById('characterFilter').value;
             const episodeId = document.getElementById('episodeFilter').value;
@@ -423,7 +464,7 @@
             const { data, error, count } = await query;
             
             if (error) {
-                console.error('Error loading jokes:', error);
+                showError('Error loading jokes: ' + error.message);
                 return;
             }
             
@@ -476,7 +517,7 @@
                     .map(tag => `<span class="tag">${tag}</span>`)
                     .join('') || '-';
                 
-                const rating = joke.rating_stars?.stars || '-';
+                const rating = joke.rating_stars?.stars ? `<span class="stars">${joke.rating_stars.stars}</span>` : '-';
                 const created = joke.created_at ? new Date(joke.created_at).toLocaleDateString() : '-';
                 
                 return `
@@ -485,7 +526,7 @@
                         <td class="joke-title">
                             <a href="joke-edit.html?id=${joke.joke_id}">${joke.joke_title || 'Untitled'}</a>
                         </td>
-                        <td class="rating-stars">${rating}</td>
+                        <td>${rating}</td>
                         <td>${characters}</td>
                         <td>${episodes}</td>
                         <td>${tags}</td>
