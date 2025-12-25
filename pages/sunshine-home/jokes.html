@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>😎 Sunshine Home - Jokes</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        window.createSupabaseClient = createClient;
+        window.dispatchEvent(new Event('supabaseReady'));
+    </script>
     <style>
         :root {
             --bg-primary: #f8f9fa;
@@ -345,8 +349,7 @@
         const SUPABASE_URL = 'https://mbyccygpszfpqwatwtuo.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ieWNjeWdwc3pmcHF3YXR3dHVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUxNDg1MDcsImV4cCI6MjA1MDcyNDUwN30.o7MbmjNXOW9EEA7CHx9DYZlHhtIWt4wVcclwm3ogCGU';
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
+        let supabase = null;
         let currentPage = 1;
         const pageSize = 25;
         let allCharacters = [];
@@ -366,6 +369,7 @@
         async function init() {
             hideError();
             try {
+                supabase = window.createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 await loadCharacters();
                 await loadEpisodes();
                 await loadJokes();
@@ -576,8 +580,8 @@
             if (e.key === 'Enter') loadJokes();
         });
         
-        // Initialize
-        init();
+        // Wait for Supabase to load, then initialize
+        window.addEventListener('supabaseReady', init);
     </script>
 </body>
 </html>
