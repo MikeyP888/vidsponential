@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talbot's Business Masterclass™ | £47 (was £10,000)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --gold: #C9A227;
+            --dark: #111;
+            --cream: #FAF9F6;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark);
+            color: var(--cream);
+            line-height: 1.6;
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(180deg, #0a0a0a 0%, var(--dark) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+        
+        .badge {
+            background: var(--gold);
+            color: var(--dark);
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            padding: 0.5rem 1.5rem;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+        }
+        
+        .talbot-image {
+            width: 280px;
+            height: auto;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 0 30px rgba(201, 162, 39, 0.3));
+        }
+        
+        h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+        
+        h1 span {
+            color: var(--gold);
+            display: block;
+            font-size: 1.2em;
+        }
+        
+        .tagline {
+            font-size: 1.1rem;
+            color: rgba(250, 249, 246, 0.7);
+            max-width: 500px;
+            margin-bottom: 2.5rem;
+        }
+        
+        .video-box {
+            width: 100%;
+            max-width: 560px;
+            aspect-ratio: 16/9;
+            background: #0a0a0a;
+            border: 2px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .video-box:hover {
+            box-shadow: 0 0 30px rgba(201, 162, 39, 0.2);
+        }
+        
+        .play-btn {
+            width: 70px;
+            height: 70px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .play-btn::after {
+            content: '';
+            border-left: 22px solid var(--dark);
+            border-top: 13px solid transparent;
+            border-bottom: 13px solid transparent;
+            margin-left: 5px;
+        }
+        
+        .video-label {
+            position: absolute;
+            bottom: 1rem;
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            color: var(--gold);
+        }
+        
+        /* Pricing */
+        .pricing {
+            background: #0a0a0a;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        
+        .price-intro {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            color: var(--gold);
+            margin-bottom: 1.5rem;
+        }
+        
+        .crossed {
+            font-family: 'Oswald', sans-serif;
+            color: rgba(250, 249, 246, 0.25);
+            text-decoration: line-through;
+            margin-bottom: 0.3rem;
+        }
+        
+        .crossed.s1 { font-size: 1.5rem; }
+        .crossed.s2 { font-size: 2rem; }
+        .crossed.s3 { font-size: 2.8rem; }
+        
+        .final-price {
+            font-family: 'Oswald', sans-serif;
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-shadow: 0 0 40px rgba(201, 162, 39, 0.4);
+            margin: 0.5rem 0;
+        }
+        
+        .price-note {
+            font-size: 0.9rem;
+            color: rgba(250, 249, 246, 0.5);
+            margin-bottom: 2rem;
+        }
+        
+        .cta {
+            display: inline-block;
+            background: var(--gold);
+            color: var(--dark);
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-decoration: none;
+            padding: 1rem 2.5rem;
+            transition: all 0.3s;
+        }
+        
+        .cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(201, 162, 39, 0.4);
+        }
+        
+        /* Modules */
+        .modules {
+            background: var(--dark);
+            padding: 4rem 2rem;
+        }
+        
+        .section-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .section-title span {
+            color: var(--gold);
+        }
+        
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .module {
+            background: rgba(201, 162, 39, 0.03);
+            border: 1px solid rgba(201, 162, 39, 0.15);
+            padding: 1.5rem;
+            position: relative;
+        }
+        
+        .module-num {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2.5rem;
+            color: var(--gold);
+            opacity: 0.2;
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+        }
+        
+        .module h3 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            color: var(--gold);
+            margin-bottom: 0.3rem;
+        }
+        
+        .module p {
+            font-size: 0.85rem;
+            color: rgba(250, 249, 246, 0.6);
+            font-style: italic;
+        }
+        
+        /* Testimonials */
+        .testimonials {
+            background: #0a0a0a;
+            padding: 4rem 2rem;
+        }
+        
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .testimonial {
+            border-left: 2px solid var(--gold);
+            padding: 1.5rem;
+            background: rgba(201, 162, 39, 0.02);
+        }
+        
+        .testimonial q {
+            display: block;
+            font-style: italic;
+            margin-bottom: 1rem;
+            color: rgba(250, 249, 246, 0.85);
+        }
+        
+        .testimonial cite {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            color: var(--gold);
+            font-style: normal;
+        }
+        
+        /* Quote */
+        .quote-section {
+            padding: 4rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(201, 162, 39, 0.08) 0%, transparent 100%);
+        }
+        
+        .big-quote {
+            font-size: clamp(1.3rem, 3vw, 1.8rem);
+            font-style: italic;
+            max-width: 700px;
+            margin: 0 auto 1rem;
+            line-height: 1.5;
+        }
+        
+        .quote-author {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            color: var(--gold);
+        }
+        
+        /* Final CTA */
+        .final-cta {
+            background: var(--dark);
+            padding: 4rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(201, 162, 39, 0.15);
+        }
+        
+        .final-cta h2 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .final-cta p {
+            color: rgba(250, 249, 246, 0.6);
+            margin-bottom: 1.5rem;
+            max-width: 450px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .guarantee {
+            margin-top: 1.5rem;
+            font-size: 0.8rem;
+            color: rgba(250, 249, 246, 0.4);
+        }
+        
+        .guarantee small {
+            display: block;
+            font-size: 0.7rem;
+        }
+        
+        footer {
+            background: #0a0a0a;
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(201, 162, 39, 0.1);
+        }
+        
+        .footer-logo {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            color: rgba(250, 249, 246, 0.3);
+        }
+        
+        @media (max-width: 600px) {
+            .final-price { font-size: 3.5rem; }
+            .talbot-image { width: 200px; }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <div class="badge">Founding Member Price</div>
+        
+        <img src="talbot.webp" alt="Talbot" class="talbot-image">
+        
+        <h1>Talbot's<span>Business Masterclass™</span></h1>
+        <p class="tagline">The system that transformed ordinary thinkers into slightly more confident ordinary thinkers.</p>
+        
+        <div class="video-box">
+            <div class="play-btn"></div>
+            <span class="video-label">▶ Watch the free training</span>
+        </div>
+    </section>
+    
+    <section class="pricing">
+        <p class="price-intro">Now, I'm not going to charge you...</p>
+        
+        <p class="crossed s1">£1,000,000</p>
+        <p class="crossed s2">£100,000</p>
+        <p class="crossed s3">£10,000</p>
+        
+        <p class="final-price">£47</p>
+        
+        <p class="price-note">Founding Member Price • Goes to £97 at launch</p>
+        
+        <a href="#" class="cta">Get Instant Access →</a>
+    </section>
+    
+    <section class="modules">
+        <h2 class="section-title">What You'll <span>Master</span></h2>
+        
+        <div class="modules-grid">
+            <div class="module">
+                <span class="module-num">01</span>
+                <h3>The Talbot Triangle of Leverage™</h3>
+                <p>Why everything you know about triangles is leaving money on the table</p>
+            </div>
+            
+            <div class="module">
+                <span class="module-num">02</span>
+                <h3>The 7-Figure Handshake</h3>
+                <p>A grip so powerful, investors physically cannot say no</p>
+            </div>
+            
+            <div class="module">
+                <span class="module-num">03</span>
+                <h3>Your Morning Routine Is Costing You Millions</h3>
+                <p>The Talbot 3AM Protocol that separates winners from sleepers</p>
+            </div>
+            
+            <div class="module">
+                <span class="module-num">04</span>
+                <h3>Strategic Nodding Mastery</h3>
+                <p>Non-verbal dominance techniques that close deals before you speak</p>
+            </div>
+            
+            <div class="module">
+                <span class="module-num">05</span>
+                <h3>The Confidence Paradox</h3>
+                <p>Why admitting weakness is for people who admit weakness</p>
+            </div>
+            
+            <div class="module">
+                <span class="module-num">06</span>
+                <h3>Email Subject Lines That Print Money</h3>
+                <p>"RE: Urgent" and 47 other secrets they don't want you to know</p>
+            </div>
+        </div>
+    </section>
+    
+    <section class="testimonials">
+        <h2 class="section-title">Success <span>Stories</span></h2>
+        
+        <div class="testimonials-grid">
+            <div class="testimonial">
+                <q>Before Talbot, I was just a man with a dream. Now I'm a man with a slightly different dream but much more confident about it.</q>
+                <cite>— Gerald M., Regional Synergy Consultant</cite>
+            </div>
+            
+            <div class="testimonial">
+                <q>The handshake module alone changed my life. I've been asked to leave several networking events for gripping too firmly. Worth it.</q>
+                <cite>— Patricia K., Disruption Architect</cite>
+            </div>
+            
+            <div class="testimonial">
+                <q>I now wake up at 3AM every day. I don't know what to do with those hours yet, but the discipline is incredible.</q>
+                <cite>— Dave T., Thought Leader (Pending)</cite>
+            </div>
+        </div>
+    </section>
+    
+    <section class="quote-section">
+        <p class="big-quote">"The only thing standing between you and your potential is the word 'no.' Stop saying it. To everyone. About everything."</p>
+        <p class="quote-author">— Talbot</p>
+    </section>
+    
+    <section class="final-cta">
+        <h2>Your Transformation Starts Now</h2>
+        <p>Join the founding members already leveraging the Talbot methodology.</p>
+        
+        <a href="#" class="cta">Get Instant Access for £47 →</a>
+        
+        <p class="guarantee">30-day money-back guarantee*<br><small>*Subject to Talbot's discretion and current mood</small></p>
+    </section>
+    
+    <footer>
+        <p class="footer-logo">The Sunshine Home Presents</p>
+    </footer>
+</body>
+</html>
