@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Vidsponential</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✍️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="/shared/js/theme-loader.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Top Bar */
+        .topbar {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-light);
+            padding: 0 32px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .topbar-logo {
+            height: 28px;
+        }
+
+        .topbar-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--border-light);
+        }
+
+        .topbar-channel {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .date-filter {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+            background: var(--bg-primary);
+            font-family: inherit;
+            font-size: 13px;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        /* Main Content */
+        .main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 32px 48px;
+        }
+
+        /* Stat Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 20px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-change {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stat-change.up { color: var(--color-success); }
+        .stat-change.down { color: var(--color-error); }
+
+        /* Chart Sections */
+        .chart-section {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .chart-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            transition: background 0.15s;
+            user-select: none;
+        }
+
+        .legend-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .legend-item.hidden {
+            opacity: 0.4;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 340px;
+        }
+
+        .chart-wrap.hook-chart {
+            height: 260px;
+        }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        /* Hook Ranking */
+        .hook-ranking {
+            margin-top: 16px;
+        }
+
+        .hook-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .hook-bar-label {
+            width: 180px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 0;
+        }
+
+        .hook-bar-track {
+            flex: 1;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hook-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .hook-bar-value {
+            width: 48px;
+            text-align: right;
+            font-size: 13px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        /* Video Table */
+        .table-section {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .table-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            text-align: left;
+            padding: 10px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 1px solid var(--border-light);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        thead th:hover {
+            color: var(--text-primary);
+        }
+
+        thead th.sorted {
+            color: var(--accent-primary);
+        }
+
+        tbody tr {
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        tbody tr.active {
+            background: var(--accent-primary-light);
+        }
+
+        tbody td {
+            padding: 12px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .vid-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            max-width: 280px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .vid-date {
+            color: var(--text-muted);
+        }
+
+        .metric-good { color: var(--color-success); font-weight: 600; }
+        .metric-bad { color: var(--color-error); font-weight: 600; }
+        .metric-neutral { color: var(--text-primary); font-weight: 600; }
+
+        .toggle-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--border-medium);
+            transition: all 0.15s;
+        }
+
+        .toggle-dot.on {
+            border-color: transparent;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+            .main { padding: 16px; }
+        }
+
+        @media (max-width: 600px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .topbar { padding: 0 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <img src="/shared/assets/vidsponential%20logo.png" alt="Vidsponential" class="topbar-logo">
+            <div class="topbar-divider"></div>
+            <span class="topbar-channel" id="channelName">Demo Channel</span>
+        </div>
+        <div class="topbar-right">
+            <select class="date-filter" id="dateFilter">
+                <option value="7">Last 7 days</option>
+                <option value="30" selected>Last 30 days</option>
+                <option value="90">Last 90 days</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="main">
+        <!-- Stat Cards -->
+        <div class="stats-row" id="statsRow"></div>
+
+        <!-- Retention Curve Overlay -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <div>
+                    <div class="chart-title">Retention Curves</div>
+                    <div class="chart-subtitle">Click videos in the table below to compare. Dashed line is your channel average.</div>
+                </div>
+            </div>
+            <div class="chart-legend" id="retentionLegend"></div>
+            <div class="chart-wrap">
+                <canvas id="retentionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Hook Zone + Hook Ranking -->
+        <div class="charts-grid">
+            <div class="chart-section">
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-title">Hook Zone (First 30 Seconds)</div>
+                        <div class="chart-subtitle">Where you win or lose your audience</div>
+                    </div>
+                </div>
+                <div class="chart-wrap hook-chart">
+                    <canvas id="hookChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-title">Hook Rate Ranking</div>
+                        <div class="chart-subtitle">% of viewers still watching at 30 seconds</div>
+                    </div>
+                </div>
+                <div class="hook-ranking" id="hookRanking"></div>
+            </div>
+        </div>
+
+        <!-- Video Table -->
+        <div class="table-section">
+            <div class="table-header">
+                <div class="table-title">All Videos</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:28px;"></th>
+                        <th data-sort="title">Title</th>
+                        <th data-sort="published">Published</th>
+                        <th data-sort="views">Views</th>
+                        <th data-sort="ctr">CTR</th>
+                        <th data-sort="hook">Hook Rate</th>
+                        <th data-sort="retention">Avg Retention</th>
+                        <th data-sort="watchTime">Watch Time</th>
+                    </tr>
+                </thead>
+                <tbody id="videoTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+    // =========================================
+    // DEMO DATA
+    // =========================================
+    var COLORS = [
+        '#4f46e5', '#0ea5e9', '#10b981', '#f59e0b',
+        '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'
+    ];
+
+    function generateCurve(hookDrop, midDrop, tailDrop, noise) {
+        var pts = [];
+        for (var i = 0; i <= 100; i++) {
+            var r = i / 100;
+            var val;
+            if (r <= 0.05) {
+                val = 1.0 - (hookDrop * r / 0.05);
+            } else if (r <= 0.15) {
+                val = (1.0 - hookDrop) - (midDrop * (r - 0.05) / 0.10);
+            } else {
+                val = (1.0 - hookDrop - midDrop) * Math.pow(1 - tailDrop, (r - 0.15) / 0.85);
+            }
+            val += (Math.random() - 0.5) * noise;
+            val = Math.max(0.02, Math.min(1.0, val));
+            pts.push({ elapsed_ratio: r, watch_ratio: val });
+        }
+        return pts;
+    }
+
+    var DEMO_VIDEOS = [
+        {
+            id: 'vid001', title: 'How One Email Destroyed a $40 Billion Company',
+            published: '2026-02-10', views: 842000, ctr: 11.2,
+            avgRetention: 62, avgViewDuration: 558, watchTimeMin: 7826,
+            retention: generateCurve(0.04, 0.08, 0.25, 0.008)
+        },
+        {
+            id: 'vid002', title: 'The Genius Strategy Behind MrBeast\'s Empire',
+            published: '2026-02-05', views: 1240000, ctr: 13.8,
+            avgRetention: 71, avgViewDuration: 639, watchTimeMin: 13208,
+            retention: generateCurve(0.02, 0.05, 0.18, 0.006)
+        },
+        {
+            id: 'vid003', title: 'Why Every Airline is Copying This One Trick',
+            published: '2026-01-28', views: 389000, ctr: 8.4,
+            avgRetention: 48, avgViewDuration: 432, watchTimeMin: 2801,
+            retention: generateCurve(0.10, 0.12, 0.35, 0.010)
+        },
+        {
+            id: 'vid004', title: 'The $100M Fraud Nobody Talks About',
+            published: '2026-01-20', views: 678000, ctr: 14.1,
+            avgRetention: 58, avgViewDuration: 522, watchTimeMin: 5901,
+            retention: generateCurve(0.06, 0.10, 0.30, 0.009)
+        },
+        {
+            id: 'vid005', title: 'How Japan Solved Its Biggest Problem',
+            published: '2026-01-15', views: 512000, ctr: 9.7,
+            avgRetention: 66, avgViewDuration: 594, watchTimeMin: 5070,
+            retention: generateCurve(0.03, 0.06, 0.22, 0.007)
+        },
+        {
+            id: 'vid006', title: 'The CEO Who Fired 900 People on Zoom',
+            published: '2026-01-08', views: 1890000, ctr: 16.3,
+            avgRetention: 54, avgViewDuration: 486, watchTimeMin: 15309,
+            retention: generateCurve(0.05, 0.14, 0.32, 0.010)
+        },
+        {
+            id: 'vid007', title: 'What Happened to Dubai\'s Underwater Hotel',
+            published: '2025-12-28', views: 295000, ctr: 7.2,
+            avgRetention: 42, avgViewDuration: 378, watchTimeMin: 1859,
+            retention: generateCurve(0.12, 0.15, 0.40, 0.012)
+        },
+        {
+            id: 'vid008', title: 'The Smartest Scam in Silicon Valley History',
+            published: '2025-12-18', views: 945000, ctr: 12.5,
+            avgRetention: 68, avgViewDuration: 612, watchTimeMin: 9639,
+            retention: generateCurve(0.03, 0.07, 0.20, 0.007)
+        }
+    ];
+
+    // Calculate hook rate (% watching at ~3% mark, roughly 30s of a 15min video)
+    DEMO_VIDEOS.forEach(function(v) {
+        var pt = v.retention.find(function(p) { return p.elapsed_ratio >= 0.03; });
+        v.hookRate = pt ? Math.round(pt.watch_ratio * 100) : 0;
+    });
+
+    // Channel average curve
+    function calcAvgCurve(videos) {
+        var avg = [];
+        for (var i = 0; i <= 100; i++) {
+            var sum = 0;
+            videos.forEach(function(v) { sum += v.retention[i].watch_ratio; });
+            avg.push({ elapsed_ratio: i / 100, watch_ratio: sum / videos.length });
+        }
+        return avg;
+    }
+    var channelAvg = calcAvgCurve(DEMO_VIDEOS);
+    var avgRetention = Math.round(DEMO_VIDEOS.reduce(function(s, v) { return s + v.avgRetention; }, 0) / DEMO_VIDEOS.length);
+    var avgCTR = (DEMO_VIDEOS.reduce(function(s, v) { return s + v.ctr; }, 0) / DEMO_VIDEOS.length).toFixed(1);
+    var avgHook = Math.round(DEMO_VIDEOS.reduce(function(s, v) { return s + v.hookRate; }, 0) / DEMO_VIDEOS.length);
+    var totalViews = DEMO_VIDEOS.reduce(function(s, v) { return s + v.views; }, 0);
+
+    // =========================================
+    // STAT CARDS
+    // =========================================
+    function renderStats() {
+        var stats = [
+            { label: 'Total Views (30d)', value: formatNumber(totalViews), change: '+18%', dir: 'up' },
+            { label: 'Avg Retention', value: avgRetention + '%', change: '+3%', dir: 'up' },
+            { label: 'Avg Hook Rate', value: avgHook + '%', change: '+5%', dir: 'up' },
+            { label: 'Avg CTR', value: avgCTR + '%', change: '-0.4%', dir: 'down' }
+        ];
+        var html = '';
+        stats.forEach(function(s) {
+            html += '<div class="stat-card">';
+            html += '<div class="stat-label">' + s.label + '</div>';
+            html += '<div class="stat-value">' + s.value + '</div>';
+            html += '<div class="stat-change ' + s.dir + '">' + s.change + ' vs prev period</div>';
+            html += '</div>';
+        });
+        document.getElementById('statsRow').innerHTML = html;
+    }
+
+    function formatNumber(n) {
+        if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+        if (n >= 1000) return (n / 1000).toFixed(0) + 'K';
+        return n.toString();
+    }
+
+    function formatMinutes(m) {
+        if (m >= 1000) return (m / 1000).toFixed(1) + 'K hrs';
+        return m.toLocaleString() + ' min';
+    }
+
+    // =========================================
+    // RETENTION CHART
+    // =========================================
+    var retentionChart, hookChart;
+    var activeVideos = [0, 1]; // indices of visible videos
+
+    function getRetentionDatasets() {
+        var ds = [];
+        activeVideos.forEach(function(idx) {
+            var v = DEMO_VIDEOS[idx];
+            ds.push({
+                label: v.title.length > 40 ? v.title.substring(0, 37) + '...' : v.title,
+                data: v.retention.map(function(p) { return { x: p.elapsed_ratio * 100, y: p.watch_ratio * 100 }; }),
+                borderColor: COLORS[idx % COLORS.length],
+                backgroundColor: 'transparent',
+                borderWidth: 2.5,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                tension: 0.3
+            });
+        });
+        // Channel average
+        ds.push({
+            label: 'Channel Average',
+            data: channelAvg.map(function(p) { return { x: p.elapsed_ratio * 100, y: p.watch_ratio * 100 }; }),
+            borderColor: 'rgba(148, 163, 184, 0.6)',
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            pointRadius: 0,
+            tension: 0.3
+        });
+        return ds;
+    }
+
+    function buildRetentionChart() {
+        var ctx = document.getElementById('retentionChart').getContext('2d');
+        retentionChart = new Chart(ctx, {
+            type: 'line',
+            data: { datasets: getRetentionDatasets() },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1a1a2e',
+                        titleFont: { family: 'Inter', size: 12 },
+                        bodyFont: { family: 'Inter', size: 12 },
+                        padding: 10,
+                        cornerRadius: 6,
+                        callbacks: {
+                            title: function(items) { return Math.round(items[0].parsed.x) + '% through video'; },
+                            label: function(item) { return item.dataset.label + ': ' + item.parsed.y.toFixed(1) + '% watching'; }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'linear', min: 0, max: 100,
+                        title: { display: true, text: '% through video', font: { family: 'Inter', size: 12 }, color: '#94a3b8' },
+                        ticks: { stepSize: 10, font: { family: 'Inter', size: 11 }, color: '#94a3b8', callback: function(v) { return v + '%'; } },
+                        grid: { color: 'rgba(226,232,240,0.5)' }
+                    },
+                    y: {
+                        min: 0, max: 100,
+                        title: { display: true, text: '% viewers watching', font: { family: 'Inter', size: 12 }, color: '#94a3b8' },
+                        ticks: { stepSize: 20, font: { family: 'Inter', size: 11 }, color: '#94a3b8', callback: function(v) { return v + '%'; } },
+                        grid: { color: 'rgba(226,232,240,0.5)' }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateRetentionChart() {
+        retentionChart.data.datasets = getRetentionDatasets();
+        retentionChart.update();
+        renderLegend();
+        updateHookChart();
+    }
+
+    function renderLegend() {
+        var html = '';
+        activeVideos.forEach(function(idx) {
+            var v = DEMO_VIDEOS[idx];
+            var short = v.title.length > 35 ? v.title.substring(0, 32) + '...' : v.title;
+            html += '<div class="legend-item" data-idx="' + idx + '">';
+            html += '<div class="legend-dot" style="background:' + COLORS[idx % COLORS.length] + '"></div>';
+            html += short;
+            html += '</div>';
+        });
+        html += '<div class="legend-item" style="cursor:default;"><div class="legend-dot" style="background:rgba(148,163,184,0.6);border:2px dashed rgba(148,163,184,0.6);"></div>Channel Average</div>';
+        document.getElementById('retentionLegend').innerHTML = html;
+    }
+
+    // =========================================
+    // HOOK CHART (First 10% zoomed)
+    // =========================================
+    function getHookDatasets() {
+        var ds = [];
+        activeVideos.forEach(function(idx) {
+            var v = DEMO_VIDEOS[idx];
+            var hookPts = v.retention.filter(function(p) { return p.elapsed_ratio <= 0.10; });
+            ds.push({
+                label: v.title.length > 30 ? v.title.substring(0, 27) + '...' : v.title,
+                data: hookPts.map(function(p) { return { x: p.elapsed_ratio * 100, y: p.watch_ratio * 100 }; }),
+                borderColor: COLORS[idx % COLORS.length],
+                backgroundColor: 'transparent',
+                borderWidth: 2.5,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                tension: 0.3
+            });
+        });
+        var avgHookPts = channelAvg.filter(function(p) { return p.elapsed_ratio <= 0.10; });
+        ds.push({
+            label: 'Channel Average',
+            data: avgHookPts.map(function(p) { return { x: p.elapsed_ratio * 100, y: p.watch_ratio * 100 }; }),
+            borderColor: 'rgba(148, 163, 184, 0.6)',
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            pointRadius: 0,
+            tension: 0.3
+        });
+        return ds;
+    }
+
+    function buildHookChart() {
+        var ctx = document.getElementById('hookChart').getContext('2d');
+        hookChart = new Chart(ctx, {
+            type: 'line',
+            data: { datasets: getHookDatasets() },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1a1a2e',
+                        titleFont: { family: 'Inter', size: 12 },
+                        bodyFont: { family: 'Inter', size: 12 },
+                        padding: 10,
+                        cornerRadius: 6,
+                        callbacks: {
+                            title: function(items) { return 'Hook zone: ' + items[0].parsed.x.toFixed(1) + '%'; },
+                            label: function(item) { return item.dataset.label + ': ' + item.parsed.y.toFixed(1) + '%'; }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'linear', min: 0, max: 10,
+                        title: { display: true, text: 'First 10% of video (hook zone)', font: { family: 'Inter', size: 12 }, color: '#94a3b8' },
+                        ticks: { stepSize: 2, font: { family: 'Inter', size: 11 }, color: '#94a3b8', callback: function(v) { return v + '%'; } },
+                        grid: { color: 'rgba(226,232,240,0.5)' }
+                    },
+                    y: {
+                        min: 50, max: 100,
+                        title: { display: true, text: '% still watching', font: { family: 'Inter', size: 12 }, color: '#94a3b8' },
+                        ticks: { stepSize: 10, font: { family: 'Inter', size: 11 }, color: '#94a3b8', callback: function(v) { return v + '%'; } },
+                        grid: { color: 'rgba(226,232,240,0.5)' }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateHookChart() {
+        hookChart.data.datasets = getHookDatasets();
+        hookChart.update();
+    }
+
+    // =========================================
+    // HOOK RANKING BARS
+    // =========================================
+    function renderHookRanking() {
+        var sorted = DEMO_VIDEOS.slice().sort(function(a, b) { return b.hookRate - a.hookRate; });
+        var html = '';
+        sorted.forEach(function(v, i) {
+            var idx = DEMO_VIDEOS.indexOf(v);
+            var color = COLORS[idx % COLORS.length];
+            var barColor = v.hookRate >= avgHook ? color : '#ef4444';
+            var short = v.title.length > 28 ? v.title.substring(0, 25) + '...' : v.title;
+            html += '<div class="hook-bar-row">';
+            html += '<div class="hook-bar-label" title="' + v.title + '">' + short + '</div>';
+            html += '<div class="hook-bar-track"><div class="hook-bar-fill" style="width:' + v.hookRate + '%;background:' + barColor + ';"></div></div>';
+            html += '<div class="hook-bar-value">' + v.hookRate + '%</div>';
+            html += '</div>';
+        });
+        document.getElementById('hookRanking').innerHTML = html;
+    }
+
+    // =========================================
+    // VIDEO TABLE
+    // =========================================
+    var sortKey = 'views';
+    var sortDir = -1;
+
+    function renderTable() {
+        var sorted = DEMO_VIDEOS.slice().sort(function(a, b) {
+            var av = a[sortKey], bv = b[sortKey];
+            if (typeof av === 'string') return sortDir * av.localeCompare(bv);
+            return sortDir * (av - bv);
+        });
+
+        var html = '';
+        sorted.forEach(function(v) {
+            var idx = DEMO_VIDEOS.indexOf(v);
+            var isActive = activeVideos.indexOf(idx) !== -1;
+            var color = COLORS[idx % COLORS.length];
+            var retClass = v.avgRetention >= avgRetention ? 'metric-good' : (v.avgRetention < avgRetention - 10 ? 'metric-bad' : 'metric-neutral');
+            var hookClass = v.hookRate >= avgHook ? 'metric-good' : (v.hookRate < avgHook - 8 ? 'metric-bad' : 'metric-neutral');
+
+            html += '<tr data-idx="' + idx + '" class="' + (isActive ? 'active' : '') + '">';
+            html += '<td><div class="toggle-dot ' + (isActive ? 'on' : '') + '" style="' + (isActive ? 'background:' + color + ';' : '') + '"></div></td>';
+            html += '<td><div class="vid-title">' + v.title + '</div></td>';
+            html += '<td class="vid-date">' + formatDate(v.published) + '</td>';
+            html += '<td class="metric-neutral">' + formatNumber(v.views) + '</td>';
+            html += '<td class="metric-neutral">' + v.ctr + '%</td>';
+            html += '<td class="' + hookClass + '">' + v.hookRate + '%</td>';
+            html += '<td class="' + retClass + '">' + v.avgRetention + '%</td>';
+            html += '<td class="metric-neutral">' + formatMinutes(v.watchTimeMin) + '</td>';
+            html += '</tr>';
+        });
+        document.getElementById('videoTableBody').innerHTML = html;
+
+        // Row click handlers
+        document.querySelectorAll('#videoTableBody tr').forEach(function(row) {
+            row.addEventListener('click', function() {
+                var idx = parseInt(this.getAttribute('data-idx'));
+                var pos = activeVideos.indexOf(idx);
+                if (pos !== -1) {
+                    activeVideos.splice(pos, 1);
+                } else {
+                    activeVideos.push(idx);
+                }
+                updateRetentionChart();
+                renderTable();
+            });
+        });
+    }
+
+    function formatDate(d) {
+        var dt = new Date(d);
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return months[dt.getMonth()] + ' ' + dt.getDate();
+    }
+
+    // Table sorting
+    document.querySelectorAll('thead th[data-sort]').forEach(function(th) {
+        th.addEventListener('click', function() {
+            var key = this.getAttribute('data-sort');
+            var map = { title: 'title', published: 'published', views: 'views', ctr: 'ctr', hook: 'hookRate', retention: 'avgRetention', watchTime: 'watchTimeMin' };
+            if (sortKey === map[key]) {
+                sortDir *= -1;
+            } else {
+                sortKey = map[key];
+                sortDir = -1;
+            }
+            document.querySelectorAll('thead th').forEach(function(t) { t.classList.remove('sorted'); });
+            this.classList.add('sorted');
+            renderTable();
+        });
+    });
+
+    // =========================================
+    // INIT
+    // =========================================
+    renderStats();
+    buildRetentionChart();
+    buildHookChart();
+    renderLegend();
+    renderHookRanking();
+    renderTable();
+    </script>
+</body>
+</html>
