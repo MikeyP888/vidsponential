@@ -545,6 +545,14 @@
                         </select>
                     </div>
 
+                    <!-- Video Series -->
+                    <div class="form-group">
+                        <label class="form-label">Video Series</label>
+                        <select class="form-select" id="editVideoSeries">
+                            <!-- Options populated dynamically -->
+                        </select>
+                    </div>
+
                     <!-- Genre -->
                     <div class="form-group">
                         <label class="form-label">Genre</label>
@@ -645,6 +653,7 @@
         let clients = [];
         let statuses = [];
         let youtubeChannels = [];
+        let videoSeries = [];
         let genres = [];
         let subgenres = [];
         let openingChapterTypes = [];
@@ -662,6 +671,7 @@
                     loadClients(),
                     loadStatuses(),
                     loadYouTubeChannels(),
+                    loadVideoSeries(),
                     loadGenres(),
                     loadSubgenres(),
                     loadOpeningChapterTypes(),
@@ -723,6 +733,23 @@
             } catch (error) {
                 console.error('Error loading YouTube channels:', error);
                 youtubeChannels = [];
+            }
+        }
+
+        // Load video series
+        async function loadVideoSeries() {
+            try {
+                const { data, error } = await supabase
+                    .from('video_series')
+                    .select('video_series_id, series_name, youtube_channel_id')
+                    .order('series_name');
+
+                if (error) throw error;
+                videoSeries = data || [];
+                console.log('Loaded video series:', videoSeries);
+            } catch (error) {
+                console.error('Error loading video series:', error);
+                videoSeries = [];
             }
         }
 
@@ -833,6 +860,7 @@
                         client_id,
                         script_status_id,
                         youtube_channel_id,
+                        video_series_id,
                         genre_id,
                         subgenre_id,
                         niches,
@@ -1167,6 +1195,18 @@
                 clientSelect.addEventListener('change', function() {
                     const selectedClientId = parseInt(this.value);
                     filterChannelsByClient(selectedClientId);
+                    // Also clear video series when client changes
+                    const seriesSelect = document.getElementById('editVideoSeries');
+                    seriesSelect.innerHTML = '<option value="">Select YouTube Channel First</option>';
+                    seriesSelect.disabled = true;
+                });
+            }
+
+            // YouTube Channel -> Video Series cascading
+            if (channelSelect) {
+                channelSelect.addEventListener('change', function() {
+                    const selectedChannelId = parseInt(this.value);
+                    filterSeriesByChannel(selectedChannelId);
                 });
             }
         }
@@ -1229,6 +1269,31 @@
             } else {
                 // If no client selected, disable channel dropdown
                 channelSelect.disabled = true;
+            }
+        }
+
+        // Filter video series based on selected YouTube channel
+        function filterSeriesByChannel(channelId) {
+            const seriesSelect = document.getElementById('editVideoSeries');
+            if (!seriesSelect) return;
+
+            seriesSelect.value = '';
+            seriesSelect.innerHTML = '<option value="">Select Video Series</option>';
+
+            if (channelId) {
+                const channelIdInt = parseInt(channelId);
+                const filteredSeries = videoSeries.filter(s => s.youtube_channel_id === channelIdInt);
+
+                filteredSeries.forEach(s => {
+                    const option = document.createElement('option');
+                    option.value = s.video_series_id;
+                    option.textContent = s.series_name;
+                    seriesSelect.appendChild(option);
+                });
+
+                seriesSelect.disabled = false;
+            } else {
+                seriesSelect.disabled = true;
             }
         }
 
@@ -1387,6 +1452,11 @@
             channelSelect.innerHTML = '<option value="">Select Client First</option>';
             channelSelect.disabled = true;
 
+            // Video Series dropdown (initially disabled, will be enabled when channel is selected)
+            const seriesSelect = document.getElementById('editVideoSeries');
+            seriesSelect.innerHTML = '<option value="">Select YouTube Channel First</option>';
+            seriesSelect.disabled = true;
+
             // Genre dropdown
             const genreSelect = document.getElementById('editGenre');
             genreSelect.innerHTML = '<option value="">Select Genre</option>';
@@ -1462,6 +1532,13 @@
                 // Then set the YouTube channel after filtering
                 setTimeout(() => {
                     document.getElementById('editYouTubeChannel').value = script.youtube_channel_id || '';
+                    // Then filter and set video series after channel is set
+                    if (script.youtube_channel_id) {
+                        filterSeriesByChannel(script.youtube_channel_id);
+                        setTimeout(() => {
+                            document.getElementById('editVideoSeries').value = script.video_series_id || '';
+                        }, 10);
+                    }
                 }, 10);
             }
 
@@ -1531,6 +1608,7 @@
                 script_status_id: parseInt(document.getElementById('editStatus').value) || null,
                 client_id: parseInt(document.getElementById('editClient').value) || null,
                 youtube_channel_id: parseInt(document.getElementById('editYouTubeChannel').value) || null,
+                video_series_id: parseInt(document.getElementById('editVideoSeries').value) || null,
                 genre_id: parseInt(document.getElementById('editGenre').value) || null,
                 subgenre_id: parseInt(document.getElementById('editSubgenre').value) || null,
                 target_word_count: parseInt(document.getElementById('editWordCount').value) || null,
