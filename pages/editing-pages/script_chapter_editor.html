@@ -5,11 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chapter Editor</title>
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍎</text></svg>">
-
-    <!-- Supabase CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-        <link rel="stylesheet" href="../../shared/styles/theme.css">
+    
+    <link rel="stylesheet" href="../../shared/styles/theme.css">
     <link rel="stylesheet" href="../../shared/styles/fonts.css">
     <link rel="stylesheet" href="../../shared/styles/components.css">
     <link rel="stylesheet" href="../../shared/styles/base.css">
@@ -23,6 +20,9 @@
     <link rel="stylesheet" href="../../shared/styles/navigation.css">
     <link rel="stylesheet" href="../../shared/styles/sidebar.css">
     <link rel="stylesheet" href="../../shared/styles/bottom-navigation.css">
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="has-sidebar">
     <!-- Sticky Top Status Bar -->
@@ -64,9 +64,6 @@
         <!--                 HEADER SECTION                -->
         <!-- =============================================== -->
         <div class="header">
-            
-            <!-- Status bar removed - now in sticky top bar -->
-
             <!-- Scripts Completed Today -->
             <div class="completed-today-bar">
                 <div class="completed-today-text">Script Chapters Completed Today: <span id="chaptersCompletedTodayCount">0</span></div>
@@ -93,17 +90,13 @@
                 <div class="headline-options">
                     <h2 class="section-title">Headline</h2>
                     <div class="chapter-se-7a2807fb2c0d">
-                        <!-- Working Headline Row -->
                         <div class="ch-title-7a2807fb2c0f">
-                            <!-- Headline Text + Label -->
                             <div class="title-la-7a2807fb2c1a">
                                 <label class="label-ch-7a2807fb2c1f">Headline:</label>
                                 <div class="title-fiel-7a2807fb2c1e">
                                     <textarea class="chapter-ti-7a2807fb2c20" id="workingHeadline" placeholder="Enter the working headline..."></textarea>
                                 </div>
                             </div>
-                            
-                            <!-- Headline Rating + Label -->
                             <div class="title-rating-l-7a2807fb2c19">
                                 <label class="label-rat-7a2807fb2c1c">Rating / 100:</label>
                                 <div class="rating-fie-7a2807fb2c1b">
@@ -118,17 +111,13 @@
                 <div class="headline-options">
                     <h2 class="section-title">Primary Keyword</h2>
                     <div class="chapter-se-7a2807fb2c0d">
-                        <!-- Primary Keyword Row -->
                         <div class="ch-title-7a2807fb2c0f">
-                            <!-- Keyword Text + Label -->
                             <div class="title-la-7a2807fb2c1a">
                                 <label class="label-ch-7a2807fb2c1f">Primary Keyword:</label>
                                 <div class="title-fiel-7a2807fb2c1e">
                                     <input type="text" class="chapter-ti-7a2807fb2c20" id="primaryKeyword" placeholder="Enter the primary keyword...">
                                 </div>
                             </div>
-                            
-                            <!-- Keyword Rating + Label -->
                             <div class="title-rating-l-7a2807fb2c19">
                                 <label class="label-rat-7a2807fb2c1c">Rating / 100:</label>
                                 <div class="rating-fie-7a2807fb2c1b">
@@ -139,7 +128,6 @@
                     </div>
                 </div>
             </div>
-
 
             <!-- Chapter Outlines Section -->
             <div class="chapters-section">
@@ -154,34 +142,34 @@
         <div id="noScriptsMessage" class="message" style="display: none;">
             No script outlines to display - everything checked ✓
         </div>
-
-        <!-- Bottom navigation will be added by JavaScript -->
     </div>
 
-        <script src="../../shared/js/theme-manager.js"></script>
+    <script src="../../shared/js/theme-manager.js"></script>
     <script type="module" src="../../shared/js/sidebar-component.js"></script>
     <script type="module" src="../../shared/js/textarea-autosize.js"></script>
     <script type="module">
-        // Chapter Editor Application - Loads scripts with status_id=25, updates to 35
+        // Chapter Editor - reads from chapter_versions, one-version-per-session save logic
         
-        import { SUPABASE_URL, SUPABASE_ANON_KEY, SCRIPT_STATUS } from '../../shared/js/config.js';
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../shared/js/config.js';
         import { updateStatus, displayScriptInfo, loadScriptInfo, updateScriptStatus, showNoScriptsMessage, fetchWithErrorHandling } from '../../shared/js/editor-utils.js';
-        import { loadRatings, saveRatings, collectRatingValues, populateRatingFields } from '../../shared/js/rating-utils.js';
+        import { loadRatings, saveRatings } from '../../shared/js/rating-utils.js';
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        let scriptsToReview = [];
+        let pageConfig = null;
+        let recordsToReview = [];
         let currentScriptIndex = 0;
         let hasUnsavedChanges = false;
         let isLoading = false;
-        let pageConfig = null;
         let currentScriptData = null;
+
+        // Version tracking for one-version-per-session
+        let originalTexts = {};      // chapter_id -> text as loaded
+        let sessionVersionIds = {};  // chapter_id -> chapter_version_id created this session
 
         async function init() {
             try {
                 updateStatus('loading', 'Loading page configuration...');
 
-                // Get page configuration
                 const pageName = window.location.pathname.split('/').pop().replace('.html', '');
 
                 const { data: config, error: configError } = await supabase
@@ -196,57 +184,58 @@
 
                 pageConfig = config;
 
-                // Set page title dynamically
                 document.title = pageConfig.page_title;
                 const h1Element = document.querySelector('h1.page-title');
-                if (h1Element) {
-                    h1Element.textContent = pageConfig.page_title;
-                }
+                if (h1Element) h1Element.textContent = pageConfig.page_title;
 
                 updateStatus('loading', `Loading ${pageConfig.page_title.toLowerCase()}...`);
 
-                // Filter records using config
-                const url = `${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.status_field_name}=eq.${pageConfig.display_status_id}&select=${pageConfig.id_field_name},${pageConfig.status_table_name === 'scripts' ? 'script_headline' : 'headline'}`;
-                const scripts = await fetchWithErrorHandling(url);
-                scriptsToReview = scripts;
+                const url = `${SUPABASE_URL}/rest/v1/${pageConfig.status_table_name}?${pageConfig.status_field_name}=eq.${pageConfig.display_status_id}&select=${pageConfig.id_field_name},script_headline`;
+                const records = await fetchWithErrorHandling(url);
+                recordsToReview = records;
 
-                if (scripts.length > 0) {
+                if (records.length > 0) {
                     await loadCurrentScriptData();
                     setupEventListeners();
                     startAutoSave();
                 } else {
-                    showNoScriptsMessage(`There are no ${pageConfig.page_title.toLowerCase()} ready for editing at this time.`);
+                    showNoScriptsMessage('There are no scripts ready for chapter editing at this time.');
                 }
             } catch (error) {
                 console.error('Chapter Editor initialization error:', error);
-                updateStatus('error', `Failed to load scripts: ${error.message}`);
+                updateStatus('error', `Failed to load: ${error.message}`);
             }
         }
 
         async function loadCurrentScriptData() {
-            if (scriptsToReview.length === 0) return;
+            if (recordsToReview.length === 0 || !pageConfig) return;
 
-            const scriptId = scriptsToReview[currentScriptIndex][pageConfig.id_field_name];
+            const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
 
             try {
                 const scriptInfo = await loadScriptInfo(scriptId);
-                const chaptersData = await loadChapterData(scriptId);
+                const chapterData = await loadChapterData(scriptId);
 
-                // Load ratings for each chapter
+                // Load script-level ratings
+                const scriptRatings = await loadRatings('scripts', scriptId, [
+                    'script_headline',
+                    'primary_keyword'
+                ]);
+
+                // Load chapter ratings (chapter_text, not chapter_text_final)
                 const chapterRatings = {};
-                for (const chapter of chaptersData) {
+                for (const chapter of chapterData) {
                     const ratings = await loadRatings('chapters', chapter.chapter_id, [
-                        'chapter_outline',
                         'chapter_headline',
                         'chapter_text'
                     ]);
                     chapterRatings[chapter.chapter_id] = ratings;
                 }
 
-                // Store in currentScriptData
                 currentScriptData = {
                     script: scriptInfo,
-                    chapters: chaptersData,
+                    chapters: chapterData,
+                    scriptRatings: scriptRatings,
                     chapterRatings: chapterRatings
                 };
 
@@ -259,84 +248,100 @@
             }
         }
 
-        // Load chapter data from the chapters table
+        // Load chapter metadata from chapters table, text from v_current_chapter_version
         async function loadChapterData(scriptId) {
-            console.log('Loading chapters for script ID:', scriptId);
-            
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/chapters?script_id=eq.${scriptId}&select=*&order=chapter_number.asc`, {
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                }
+            // Reset session tracking
+            originalTexts = {};
+            sessionVersionIds = {};
+
+            // Fetch chapter metadata
+            const chaptersRes = await fetch(
+                `${SUPABASE_URL}/rest/v1/chapters?script_id=eq.${scriptId}&select=chapter_id,chapter_number,chapter_headline,script_id&order=chapter_number.asc`,
+                { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+            );
+            if (!chaptersRes.ok) return [];
+            const chapters = await chaptersRes.json();
+
+            // Fetch current version text
+            const versionsRes = await fetch(
+                `${SUPABASE_URL}/rest/v1/v_current_chapter_version?script_id=eq.${scriptId}&select=chapter_id,chapter_text,chapter_version_id`,
+                { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+            );
+            const versions = versionsRes.ok ? await versionsRes.json() : [];
+
+            // Build lookup map
+            const versionMap = {};
+            versions.forEach(v => { versionMap[v.chapter_id] = v; });
+
+            // Merge and track originals
+            chapters.forEach(ch => {
+                const cv = versionMap[ch.chapter_id];
+                ch.chapter_text = cv ? cv.chapter_text : '';
+                ch.current_version_id = cv ? cv.chapter_version_id : null;
+                originalTexts[ch.chapter_id] = ch.chapter_text || '';
             });
 
-            console.log('Chapters response status:', response.status);
-
-            if (!response.ok) {
-                console.warn('No chapters data found');
-                return [];
-            }
-
-            const data = await response.json();
-            console.log('Chapters data received:', data);
-            return data || [];
+            return chapters;
         }
 
         function displayScriptData(data) {
             if (!data) return;
             document.getElementById('content').style.display = 'block';
 
-            // Use utility function to display script info
             displayScriptInfo(data.script);
-
-            // Try to initialize enhanced script info box (non-blocking)
             initializeScriptInfoBox(data.script.script_id);
 
-
-            // Update sticky script info pill
+            // Sticky pill
             const stickyScriptInfo = document.getElementById('stickyScriptInfo');
-            if (stickyScriptInfo && data.script) {
-                const scriptId = data.script.script_id || '-';
+            if (stickyScriptInfo && data.script && pageConfig) {
+                const scriptId = data.script[pageConfig.id_field_name] || '-';
                 const scriptHeadline = data.script.script_headline || 'Untitled';
                 stickyScriptInfo.textContent = `Script ID: ${scriptId} | ${scriptHeadline}`;
                 stickyScriptInfo.style.display = 'block';
             }
 
-            displayChapters(data.chapters);
+            // Script fields
+            const workingHeadlineEl = document.getElementById('workingHeadline');
+            const primaryKeywordEl = document.getElementById('primaryKeyword');
+            if (workingHeadlineEl) workingHeadlineEl.value = data.script.script_headline || '';
+            if (primaryKeywordEl) primaryKeywordEl.value = data.script.primary_keyword || '';
+
+            // Script ratings
+            if (data.scriptRatings) {
+                const headlineRatingEl = document.getElementById('workingHeadlineRating');
+                const keywordRatingEl = document.getElementById('primaryKeywordRating');
+                if (headlineRatingEl && data.scriptRatings.script_headline) headlineRatingEl.value = data.scriptRatings.script_headline;
+                if (keywordRatingEl && data.scriptRatings.primary_keyword) keywordRatingEl.value = data.scriptRatings.primary_keyword;
+            }
+
+            displayChapters(data.chapters, data.chapterRatings);
         }
 
-        // Display chapters from the chapters table
-        function displayChapters(chapters) {
-            console.log('displayChapters called with:', chapters);
+        function displayChapters(chapters, chapterRatings) {
             const container = document.getElementById('chaptersList');
             container.innerHTML = '';
 
             if (!chapters || chapters.length === 0) {
-                console.log('No chapters to display, chapters array:', chapters);
                 container.innerHTML = `
                     <div class="message info">
                         <strong>No chapters found</strong><br>
-                        No chapters are available for this script in the database.
+                        No chapters are available for this script.
                     </div>
                 `;
                 return;
             }
-
-            console.log('Displaying', chapters.length, 'chapters');
 
             chapters.forEach(chapter => {
                 const chapterSection = document.createElement('div');
                 chapterSection.className = 'chapter-se-7a2807fb2c0d';
 
                 chapterSection.innerHTML = `
-                    <!-- Chapter Header Button -->
                     <button class="gradient-button">
                         <span class="gradient-button__text">Chapter ${chapter.chapter_number || 'N/A'}</span>
                     </button>
 
                     <!-- Chapter Headline Row -->
                     <div class="ch-title-7a2807fb2c0f">
-                        <!-- Chapter Headline Text + Label -->
                         <div class="form-row__text-field">
                             <label class="label-ch-7a2807fb2c1f">Chapter Headline:</label>
                             <div class="title-fiel-7a2807fb2c1e">
@@ -345,18 +350,16 @@
                                        data-chapter-id="${chapter.chapter_id}"
                                        data-field="chapter_headline"
                                        placeholder="Enter chapter headline..."
-                                       value="${chapter.chapter_headline || ''}">
+                                       value="${(chapter.chapter_headline || '').replace(/"/g, '&quot;')}">
                             </div>
                         </div>
-
-                        <!-- Chapter Headline Rating + Label -->
                         <div class="form-row__rating-field">
                             <div class="rating-field">
                                 <label class="rating-field__label">Rating / 100:</label>
                                 <div class="rating-field__container">
                                     <input type="number"
                                            class="rating-field__input"
-                                           id="rating_chapter_headline_${chapter.chapter_id}"
+                                           id="chapter_headline_rating_${chapter.chapter_id}"
                                            data-chapter-id="${chapter.chapter_id}"
                                            data-field="chapter_headline_rating"
                                            min="1" max="100"
@@ -366,7 +369,7 @@
                         </div>
                     </div>
 
-                    <!-- Chapter Text Content Row -->
+                    <!-- Chapter Text Row -->
                     <div class="form-row">
                         <div class="form-row__text-field">
                             <div class="text-field-multi">
@@ -386,12 +389,11 @@
                                 <div class="rating-field__container">
                                     <input type="number"
                                            class="rating-field__input"
-                                           id="rating_chapter_text_${chapter.chapter_id}"
+                                           id="chapter_text_rating_${chapter.chapter_id}"
                                            data-chapter-id="${chapter.chapter_id}"
                                            data-field="chapter_text_rating"
-                                           min="1"
-                                           max="100"
-                                           value=""
+                                           min="1" max="100"
+                                           value="">
                                 </div>
                             </div>
                         </div>
@@ -399,97 +401,57 @@
                 `;
 
                 container.appendChild(chapterSection);
+
+                // Populate chapter ratings
+                if (chapterRatings && chapterRatings[chapter.chapter_id]) {
+                    const ratings = chapterRatings[chapter.chapter_id];
+                    const headlineRatingEl = document.getElementById(`chapter_headline_rating_${chapter.chapter_id}`);
+                    const textRatingEl = document.getElementById(`chapter_text_rating_${chapter.chapter_id}`);
+                    if (headlineRatingEl && ratings.chapter_headline) headlineRatingEl.value = ratings.chapter_headline;
+                    if (textRatingEl && ratings.chapter_text) textRatingEl.value = ratings.chapter_text;
+                }
             });
-
-            // Populate ratings after displaying chapters
-            if (currentScriptData && currentScriptData.chapterRatings) {
-                chapters.forEach(chapter => {
-                    const ratings = currentScriptData.chapterRatings[chapter.chapter_id];
-                    if (ratings) {
-                        // Populate chapter_headline rating
-                        const headlineRatingEl = document.getElementById(`rating_chapter_headline_${chapter.chapter_id}`);
-                        if (headlineRatingEl && ratings.chapter_headline) {
-                            headlineRatingEl.value = ratings.chapter_headline;
-                        }
-
-                        // Populate chapter_text rating
-                        const textRatingEl = document.getElementById(`rating_chapter_text_${chapter.chapter_id}`);
-                        if (textRatingEl && ratings.chapter_text) {
-                            textRatingEl.value = ratings.chapter_text;
-                        }
-
-                        // Populate chapter_outline rating (if field exists)
-                        const outlineRatingEl = document.getElementById(`rating_chapter_outline_${chapter.chapter_id}`);
-                        if (outlineRatingEl && ratings.chapter_outline) {
-                            outlineRatingEl.value = ratings.chapter_outline;
-                        }
-                    }
-                });
-            }
         }
 
-        // Safely initialize enhanced script info box
         async function initializeScriptInfoBox(scriptId) {
             try {
-                // Dynamically import the ScriptInfoBox component
                 const { default: ScriptInfoBox } = await import('../../shared/js/script-info-box.js');
-
                 const scriptInfoBox = new ScriptInfoBox('scriptInfoBox');
-                await scriptInfoBox.init(scriptId, {
-                    autoRefresh: false,
-                    refreshRate: 30000
-                });
-
-                // Hide the old info box and show the new one
+                await scriptInfoBox.init(scriptId, { autoRefresh: false, refreshRate: 30000 });
                 const oldInfoBox = document.getElementById('scriptInfo');
-                if (oldInfoBox) {
-                    oldInfoBox.style.display = 'none';
-                }
-
-                console.log('Enhanced script info box loaded successfully');
+                if (oldInfoBox) oldInfoBox.style.display = 'none';
             } catch (error) {
-                console.log('Enhanced script info box not available, using standard version:', error);
-                // Fallback: ensure the old info box is visible
                 const oldInfoBox = document.getElementById('scriptInfo');
-                if (oldInfoBox) {
-                    oldInfoBox.style.display = 'block';
-                }
+                if (oldInfoBox) oldInfoBox.style.display = 'block';
             }
         }
 
         async function saveScript() {
-            if (isLoading) return;
-            
+            if (isLoading || !pageConfig) return;
+
             try {
                 isLoading = true;
                 updateStatus('loading', 'Saving chapters and updating status...');
-                
-                const scriptId = scriptsToReview[currentScriptIndex][pageConfig.id_field_name];
-                
-                // Save chapter data
+
+                const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
                 await saveChaptersData(scriptId);
-                
-                // Update script status from 25 to 35
-                // Update status using configuration
-                if (pageConfig && pageConfig.next_status_id) {
+
+                if (pageConfig.next_status_id) {
                     await updateScriptStatus(scriptId, pageConfig.next_status_id);
                 }
-                
+
                 updateStatus('saved', 'Chapters completed and status updated');
                 hasUnsavedChanges = false;
-                if (window.setUnsavedChanges) {
-                    window.setUnsavedChanges(false);
-                }
-                
-                scriptsToReview.splice(currentScriptIndex, 1);
-                
-                if (scriptsToReview.length > 0) {
-                    if (currentScriptIndex >= scriptsToReview.length) currentScriptIndex = 0;
+                if (window.setUnsavedChanges) window.setUnsavedChanges(false);
+
+                recordsToReview.splice(currentScriptIndex, 1);
+
+                if (recordsToReview.length > 0) {
+                    if (currentScriptIndex >= recordsToReview.length) currentScriptIndex = 0;
                     await loadCurrentScriptData();
                 } else {
                     showNoScriptsMessage('All chapters completed!');
                 }
-                
             } catch (error) {
                 console.error('Save error:', error);
                 updateStatus('error', `Failed to save chapters: ${error.message}`);
@@ -498,90 +460,147 @@
             }
         }
 
-        // Save chapters data
         async function saveChaptersData(scriptId) {
-            const chapterFields = document.querySelectorAll('[data-chapter-id]');
-            const updatesByChapter = {};
-            const ratingsByChapter = {};
+            // Save script-level fields
+            const workingHeadline = document.getElementById('workingHeadline').value;
+            const primaryKeyword = document.getElementById('primaryKeyword').value;
 
-            // Collect all updates by chapter ID
-            chapterFields.forEach(field => {
-                const chapterId = field.dataset.chapterId;
-                const fieldType = field.dataset.field;
-
-                if (!updatesByChapter[chapterId]) {
-                    updatesByChapter[chapterId] = { id: parseInt(chapterId) };
-                }
-
-                // Only collect content fields, not ratings
-                if (fieldType === 'chapter_headline') {
-                    updatesByChapter[chapterId].chapter_headline = field.value;
-                } else if (fieldType === 'chapter_text') {
-                    updatesByChapter[chapterId].chapter_text = field.value;
-                }
+            const scriptResponse = await fetch(`${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({ script_headline: workingHeadline, primary_keyword: primaryKeyword })
             });
 
-            // Collect ratings separately
-            chapterFields.forEach(field => {
-                const chapterId = field.dataset.chapterId;
-                const fieldId = field.id;
-
-                // Check if this is a rating field
-                if (fieldId.startsWith('rating_')) {
-                    if (!ratingsByChapter[chapterId]) {
-                        ratingsByChapter[chapterId] = {};
-                    }
-
-                    // Extract the content field name from rating field ID
-                    // rating_chapter_headline_123 -> chapter_headline
-                    // rating_chapter_text_123 -> chapter_text
-                    const match = fieldId.match(/^rating_(.+?)_\d+$/);
-                    if (match && field.value) {
-                        const contentFieldName = match[1];
-                        ratingsByChapter[chapterId][contentFieldName] = parseInt(field.value) || null;
-                    }
-                }
-            });
-
-            // Save each chapter's content individually
-            for (const chapterId in updatesByChapter) {
-                const update = updatesByChapter[chapterId];
-                const { id, ...updateData } = update;
-
-                console.log(`Saving chapter ${id} with data:`, updateData);
-
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/chapters?chapter_id=eq.${id}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=minimal'
-                    },
-                    body: JSON.stringify(updateData)
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error(`Failed to save chapter ${id}. Response:`, response.status, errorText);
-                    throw new Error(`Failed to save chapter ${id}: ${response.status} - ${errorText}`);
-                }
+            if (!scriptResponse.ok) {
+                const errorText = await scriptResponse.text();
+                throw new Error(`Failed to save script data: ${scriptResponse.status} - ${errorText}`);
             }
 
-            // Save ratings for each chapter using centralized system
-            for (const chapterId in ratingsByChapter) {
-                if (Object.keys(ratingsByChapter[chapterId]).length > 0) {
-                    console.log(`Saving ratings for chapter ${chapterId}:`, ratingsByChapter[chapterId]);
-                    await saveRatings('chapters', chapterId, ratingsByChapter[chapterId], scriptId);
+            // Save script ratings
+            const headlineRating = document.getElementById('workingHeadlineRating').value;
+            const keywordRating = document.getElementById('primaryKeywordRating').value;
+            const scriptRatings = {};
+            if (headlineRating) scriptRatings.script_headline = parseInt(headlineRating);
+            if (keywordRating) scriptRatings.primary_keyword = parseInt(keywordRating);
+            if (Object.keys(scriptRatings).length > 0) {
+                await saveRatings('scripts', scriptId, scriptRatings, scriptId);
+            }
+
+            // Collect chapter field values
+            const chapterFields = document.querySelectorAll('[data-chapter-id]');
+            const chapterUpdates = {};  // chapter_id -> { headline, text }
+            const ratingsByChapter = {};
+
+            chapterFields.forEach(field => {
+                const cid = field.dataset.chapterId;
+                const fieldType = field.dataset.field;
+                if (!chapterUpdates[cid]) {
+                    chapterUpdates[cid] = {};
+                    ratingsByChapter[cid] = {};
+                }
+
+                if (fieldType === 'chapter_headline') {
+                    chapterUpdates[cid].chapter_headline = field.value;
+                } else if (fieldType === 'chapter_text') {
+                    chapterUpdates[cid].chapter_text = field.value;
+                } else if (fieldType === 'chapter_headline_rating' && field.value) {
+                    ratingsByChapter[cid].chapter_headline = parseInt(field.value);
+                } else if (fieldType === 'chapter_text_rating' && field.value) {
+                    ratingsByChapter[cid].chapter_text = parseInt(field.value);
+                }
+            });
+
+            // Save each chapter
+            for (const cid in chapterUpdates) {
+                const update = chapterUpdates[cid];
+                const chapterIdInt = parseInt(cid);
+
+                // Always save chapter_headline to chapters table
+                if (update.chapter_headline !== undefined) {
+                    const res = await fetch(`${SUPABASE_URL}/rest/v1/chapters?chapter_id=eq.${cid}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=minimal'
+                        },
+                        body: JSON.stringify({ chapter_headline: update.chapter_headline })
+                    });
+                    if (!res.ok) {
+                        const errorText = await res.text();
+                        throw new Error(`Failed to save chapter ${cid} headline: ${res.status} - ${errorText}`);
+                    }
+                }
+
+                // Handle chapter text versioning - one version per editing session
+                const currentText = update.chapter_text;
+                const originalText = originalTexts[chapterIdInt];
+
+                if (currentText !== undefined && currentText !== originalText) {
+                    if (sessionVersionIds[cid]) {
+                        // Update existing session version
+                        const res = await fetch(`${SUPABASE_URL}/rest/v1/chapter_versions?chapter_version_id=eq.${sessionVersionIds[cid]}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'apikey': SUPABASE_ANON_KEY,
+                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                                'Content-Type': 'application/json',
+                                'Prefer': 'return=minimal'
+                            },
+                            body: JSON.stringify({ chapter_text: currentText })
+                        });
+                        if (!res.ok) {
+                            const errorText = await res.text();
+                            throw new Error(`Failed to update chapter version for chapter ${cid}: ${res.status} - ${errorText}`);
+                        }
+                    } else {
+                        // Insert new version (trigger handles version_number, superseding, etc.)
+                        const chapter = currentScriptData.chapters.find(c => c.chapter_id == cid);
+                        const res = await fetch(`${SUPABASE_URL}/rest/v1/chapter_versions`, {
+                            method: 'POST',
+                            headers: {
+                                'apikey': SUPABASE_ANON_KEY,
+                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                                'Content-Type': 'application/json',
+                                'Prefer': 'return=representation'
+                            },
+                            body: JSON.stringify({
+                                chapter_id: chapterIdInt,
+                                chapter_text: currentText,
+                                script_id: parseInt(scriptId),
+                                chapter_number: chapter ? chapter.chapter_number : null,
+                                version_notes: 'Edited in chapter editor',
+                                clean_version: true
+                            })
+                        });
+                        if (!res.ok) {
+                            const errorText = await res.text();
+                            throw new Error(`Failed to create chapter version for chapter ${cid}: ${res.status} - ${errorText}`);
+                        }
+                        const newVersions = await res.json();
+                        if (newVersions && newVersions.length > 0) {
+                            sessionVersionIds[cid] = newVersions[0].chapter_version_id;
+                        }
+                    }
+                }
+
+                // Save chapter ratings (content_field = 'chapter_text')
+                if (ratingsByChapter[cid] && Object.keys(ratingsByChapter[cid]).length > 0) {
+                    await saveRatings('chapters', chapterIdInt, ratingsByChapter[cid], scriptId);
                 }
             }
         }
 
         async function navigateScript(direction) {
             if (hasUnsavedChanges && !confirm('You have unsaved changes. Continue?')) return;
-            
             const newIndex = currentScriptIndex + direction;
-            if (newIndex >= 0 && newIndex < scriptsToReview.length) {
+            if (newIndex >= 0 && newIndex < recordsToReview.length) {
                 currentScriptIndex = newIndex;
                 await loadCurrentScriptData();
             }
@@ -589,37 +608,29 @@
 
         function updateNavigationButtons() {
             if (window.updateBottomNavigation) {
-                window.updateBottomNavigation(currentScriptIndex, scriptsToReview.length);
+                window.updateBottomNavigation(currentScriptIndex, recordsToReview.length);
             }
         }
 
-
-        // Set up event listeners
         function setupEventListeners() {
-            // Add change listeners to mark unsaved changes
             document.addEventListener('input', (e) => {
                 if (e.target.dataset.field && e.target.dataset.chapterId) {
                     hasUnsavedChanges = true;
-                    if (window.setUnsavedChanges) {
-                        window.setUnsavedChanges(true);
-                    }
+                    if (window.setUnsavedChanges) window.setUnsavedChanges(true);
                     updateStatus('editing', 'Editing chapter data...');
                 }
             });
         }
 
-        // Auto-save functionality
         function startAutoSave() {
             if (window.bottomNav) {
                 window.bottomNav.startAutoSave(async () => {
-                    if (hasUnsavedChanges && scriptsToReview.length > 0) {
+                    if (hasUnsavedChanges && recordsToReview.length > 0 && pageConfig) {
                         try {
-                            const scriptId = scriptsToReview[currentScriptIndex][pageConfig.id_field_name];
+                            const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
                             await saveChaptersData(scriptId);
                             hasUnsavedChanges = false;
-                            if (window.setUnsavedChanges) {
-                                window.setUnsavedChanges(false);
-                            }
+                            if (window.setUnsavedChanges) window.setUnsavedChanges(false);
                             updateStatus('saved', 'Auto-saved');
                         } catch (error) {
                             console.error('Auto-save failed:', error);
@@ -631,7 +642,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM loaded, starting Chapter Editor...');
             init();
         });
 
@@ -652,9 +662,7 @@
         };
         
         window.setUnsavedChanges = (hasChanges) => {
-            if (window.bottomNav) {
-                window.bottomNav.setUnsavedChanges(hasChanges);
-            }
+            if (window.bottomNav) window.bottomNav.setUnsavedChanges(hasChanges);
         };
     </script>
 </body>
