@@ -272,7 +272,7 @@
         <!-- Main Content -->
         <div id="content">
             <div class="client-form-section">
-                <!-- Client and YouTube Channel Selection -->
+                <!-- Client, YouTube Channel, and Video Series Selection -->
                 <div class="form-grid" style="margin-bottom: 30px;">
                     <div class="form-group">
                         <label class="form-label" for="clientSelect">Client</label>
@@ -283,8 +283,15 @@
 
                     <div class="form-group">
                         <label class="form-label" for="youtubeChannelSelect">YouTube Channel</label>
-                        <select class="form-select" id="youtubeChannelSelect" onchange="updateClientStats(); prefillFromLastScript();">
+                        <select class="form-select" id="youtubeChannelSelect" onchange="updateClientStats(); prefillFromLastScript(); loadVideoSeries();">
                             <option value="">Select a YouTube channel...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="videoSeriesSelect">Video Series</label>
+                        <select class="form-select" id="videoSeriesSelect">
+                            <option value="">Select a video series...</option>
                         </select>
                     </div>
                 </div>
@@ -314,6 +321,11 @@
                     <div class="form-group">
                         <label class="form-label" for="targetWordCount">Target Word Count</label>
                         <input type="number" class="form-input" id="targetWordCount" placeholder="Enter target word count">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="numberOfChapters">Number of Chapters</label>
+                        <input type="number" class="form-input" id="numberOfChapters" placeholder="Enter number of chapters">
                     </div>
 
                     <div class="form-group">
@@ -427,6 +439,11 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="form-label" for="editNumberOfChapters">Number of Chapters</label>
+                    <input type="number" class="form-input" id="editNumberOfChapters">
+                </div>
+
+                <div class="form-group">
                     <label class="form-label" for="editPrimaryKeyword">Primary Keyword</label>
                     <input type="text" class="form-input" id="editPrimaryKeyword">
                 </div>
@@ -453,6 +470,13 @@
                 <div class="form-group">
                     <label class="form-label" for="editVisualStyle">Visual Suggestion Style</label>
                     <select class="form-select" id="editVisualStyle">
+                        <!-- Options will be populated from database -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="editVideoSeries">Video Series</label>
+                    <select class="form-select" id="editVideoSeries">
                         <!-- Options will be populated from database -->
                     </select>
                 </div>
@@ -568,9 +592,11 @@
         async function loadYouTubeChannels() {
             const clientId = document.getElementById('clientSelect').value;
             const channelSelect = document.getElementById('youtubeChannelSelect');
+            const seriesSelect = document.getElementById('videoSeriesSelect');
             
-            // Clear and reset the dropdown first
+            // Clear and reset the dropdowns first
             channelSelect.innerHTML = '<option value="">Select a YouTube channel...</option>';
+            seriesSelect.innerHTML = '<option value="">Select a video series...</option>';
             
             // Validate clientId
             if (!clientId || clientId === '' || clientId === 'undefined') {
@@ -626,6 +652,7 @@
                             // Trigger the update and prefill functions
                             updateClientStats();
                             prefillFromLastScript();
+                            loadVideoSeries();
                         }
                     } catch (error) {
                         console.log('No previous script found for auto-selecting channel');
@@ -638,6 +665,69 @@
                 console.error('Error loading YouTube channels:', error);
                 console.log('Database error details:', error.message);
                 channelSelect.innerHTML = '<option value="">Error loading channels</option>';
+            }
+        }
+
+        // Load video series for selected YouTube channel
+        async function loadVideoSeries() {
+            const youtubeChannelId = document.getElementById('youtubeChannelSelect').value;
+            const seriesSelect = document.getElementById('videoSeriesSelect');
+
+            seriesSelect.innerHTML = '<option value="">Select a video series...</option>';
+
+            if (!youtubeChannelId || youtubeChannelId === '') {
+                return;
+            }
+
+            const channelIdNum = parseInt(youtubeChannelId);
+            if (isNaN(channelIdNum)) {
+                return;
+            }
+
+            console.log('Loading video series for channel ID:', channelIdNum);
+
+            try {
+                const { data: series, error } = await supabase
+                    .from('video_series')
+                    .select('video_series_id, series_name')
+                    .eq('youtube_channel_id', channelIdNum)
+                    .order('series_name');
+
+                if (error) throw error;
+
+                if (series && series.length > 0) {
+                    series.forEach(s => {
+                        const option = document.createElement('option');
+                        option.value = s.video_series_id;
+                        option.textContent = s.series_name;
+                        seriesSelect.appendChild(option);
+                    });
+                    console.log(`${series.length} video series options added`);
+
+                    // Default to the video series from the most recent script for this channel
+                    try {
+                        const { data: lastScript, error: scriptError } = await supabase
+                            .from('scripts')
+                            .select('video_series_id')
+                            .eq('youtube_channel_id', channelIdNum)
+                            .not('video_series_id', 'is', null)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .single();
+
+                        if (!scriptError && lastScript && lastScript.video_series_id) {
+                            seriesSelect.value = lastScript.video_series_id;
+                            console.log('Auto-selected video series:', lastScript.video_series_id);
+                        }
+                    } catch (e) {
+                        console.log('No previous script found for auto-selecting video series');
+                    }
+                } else {
+                    seriesSelect.innerHTML = '<option value="">No series for this channel</option>';
+                }
+            } catch (error) {
+                console.error('Error loading video series:', error);
+                seriesSelect.innerHTML = '<option value="">Error loading series</option>';
             }
         }
         
@@ -854,6 +944,11 @@
                     // Pre-fill target word count
                     if (lastScript.target_word_count) {
                         document.getElementById('targetWordCount').value = lastScript.target_word_count;
+                    }
+
+                    // Pre-fill number of chapters
+                    if (lastScript.number_of_chapters) {
+                        document.getElementById('numberOfChapters').value = lastScript.number_of_chapters;
                     }
 
                     // Pre-fill opening chapter type
@@ -1189,10 +1284,12 @@
         async function addScript() {
             const clientId = document.getElementById('clientSelect').value;
             const youtubeChannelId = document.getElementById('youtubeChannelSelect').value;
+            const videoSeriesId = document.getElementById('videoSeriesSelect').value;
             const scriptTitle = document.getElementById('scriptTitle').value.trim();
             const genreId = document.getElementById('genreSelect').value;
             const subgenreId = document.getElementById('subgenreSelect').value;
             const targetWordCount = document.getElementById('targetWordCount').value;
+            const numberOfChapters = document.getElementById('numberOfChapters').value;
             const primaryKeyword = document.getElementById('primaryKeyword').value.trim();
             const dueDate = document.getElementById('dueDate').value;
             const openingChapterTypeId = document.getElementById('openingChapterTypeSelect').value;
@@ -1222,9 +1319,11 @@
                 // Only add fields if they have values
                 if (clientId) insertData.client_id = parseInt(clientId);
                 if (youtubeChannelId) insertData.youtube_channel_id = parseInt(youtubeChannelId);
+                if (videoSeriesId) insertData.video_series_id = parseInt(videoSeriesId);
                 if (genreId) insertData.genre_id = parseInt(genreId);
                 if (subgenreId) insertData.subgenre_id = parseInt(subgenreId);
                 if (targetWordCount) insertData.target_word_count = parseInt(targetWordCount);
+                if (numberOfChapters) insertData.number_of_chapters = parseInt(numberOfChapters);
                 if (primaryKeyword) insertData.primary_keyword = primaryKeyword;
                 if (dueDate) insertData.due_date = dueDate;
                 if (openingChapterTypeId) insertData.opening_chapter_type_id = parseInt(openingChapterTypeId);
@@ -1247,10 +1346,12 @@
                 // Clear form
                 document.getElementById('clientSelect').value = '';
                 document.getElementById('youtubeChannelSelect').innerHTML = '<option value="">Select a YouTube channel...</option>';
+                document.getElementById('videoSeriesSelect').innerHTML = '<option value="">Select a video series...</option>';
                 document.getElementById('scriptTitle').value = '';
                 document.getElementById('genreSelect').value = '';
                 document.getElementById('subgenreSelect').value = '';
                 document.getElementById('targetWordCount').value = '';
+                document.getElementById('numberOfChapters').value = '';
                 document.getElementById('primaryKeyword').value = '';
                 setDefaultDueDate(); // Reset to 2 days from today
                 document.getElementById('openingChapterTypeSelect').value = '';
@@ -1310,11 +1411,37 @@
                     }
 
                     document.getElementById('editTargetWordCount').value = script.target_word_count || '';
+                    document.getElementById('editNumberOfChapters').value = script.number_of_chapters || '';
                     document.getElementById('editPrimaryKeyword').value = script.primary_keyword || '';
                     document.getElementById('editDueDate').value = script.due_date || '';
                     document.getElementById('editOpeningChapterType').value = script.opening_chapter_type_id || '';
                     document.getElementById('editFinalChapterType').value = script.final_chapter_type_id || '';
                     document.getElementById('editVisualStyle').value = script.visual_suggestion_style_id || '';
+
+                    // Load video series for the edit modal based on the script's youtube_channel_id
+                    const editSeriesSelect = document.getElementById('editVideoSeries');
+                    editSeriesSelect.innerHTML = '<option value="">Select a video series...</option>';
+                    if (script.youtube_channel_id) {
+                        try {
+                            const { data: series, error: seriesError } = await supabase
+                                .from('video_series')
+                                .select('video_series_id, series_name')
+                                .eq('youtube_channel_id', script.youtube_channel_id)
+                                .order('series_name');
+
+                            if (!seriesError && series && series.length > 0) {
+                                series.forEach(s => {
+                                    const option = document.createElement('option');
+                                    option.value = s.video_series_id;
+                                    option.textContent = s.series_name;
+                                    editSeriesSelect.appendChild(option);
+                                });
+                            }
+                        } catch (e) {
+                            console.error('Error loading video series for edit modal:', e);
+                        }
+                        editSeriesSelect.value = script.video_series_id || '';
+                    }
 
                     // Convert niches array to comma-separated string
                     if (script.niches && Array.isArray(script.niches)) {
@@ -1351,11 +1478,13 @@
                         genre_id: document.getElementById('editGenre').value || null,
                         subgenre_id: document.getElementById('editSubgenre').value || null,
                         target_word_count: document.getElementById('editTargetWordCount').value || null,
+                        number_of_chapters: document.getElementById('editNumberOfChapters').value || null,
                         primary_keyword: document.getElementById('editPrimaryKeyword').value.trim(),
                         due_date: document.getElementById('editDueDate').value || null,
                         opening_chapter_type_id: document.getElementById('editOpeningChapterType').value || null,
                         final_chapter_type_id: document.getElementById('editFinalChapterType').value || null,
                         visual_suggestion_style_id: document.getElementById('editVisualStyle').value || null,
+                        video_series_id: document.getElementById('editVideoSeries').value || null,
                         niches: niches,
                         script_status_id: parseInt(document.getElementById('editScriptStatus').value),
                         client_notes: document.getElementById('editNotes').value.trim()
@@ -1395,6 +1524,7 @@
         window.loadSubgenres = loadSubgenres;
         window.loadEditSubgenres = loadEditSubgenres;
         window.prefillFromLastScript = prefillFromLastScript;
+        window.loadVideoSeries = loadVideoSeries;
         
         // Close modal when clicking outside
         window.onclick = function(event) {
