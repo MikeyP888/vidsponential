@@ -145,9 +145,13 @@
         let isLoading = false;
         let hasUnsavedChanges = false;
 
-        // Tracks the current script_outline row so auto-save can PATCH it
+        // Outline versioning state
+        // currentOutlineId: the script_outline_id of the row loaded on page open (or null if none exists)
+        // sessionOutlineId: the script_outline_id of the new row created this session (null until first save)
+        // newVersionCreatedThisSession: true once the first save has inserted a new row this session
         let currentOutlineId = null;
-        let currentOutlineVersion = null;
+        let sessionOutlineId = null;
+        let newVersionCreatedThisSession = false;
 
 
         // Initialize the application
@@ -218,6 +222,11 @@
             try {
                 updateStatus('loading', 'Loading script data...');
 
+                // Reset outline session state for this script
+                currentOutlineId = null;
+                sessionOutlineId = null;
+                newVersionCreatedThisSession = false;
+
                 console.log('Loading script info for ID:', scriptId);
                 const scriptInfo = await loadScriptInfo(scriptId);
                 console.log('Script info loaded:', scriptInfo);
@@ -257,8 +266,8 @@
             // Fields that live in the scripts table (script_outline excluded)
             const scriptsUrl = `${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}&select=logline,script_basic_outline,synopsis,primary_keyword,script_summary,video_description`;
 
-            // script_outline comes from the data_outline_latest view
-            const outlineUrl = `${SUPABASE_URL}/rest/v1/data_outline_latest?script_id=eq.${scriptId}&select=script_outline,script_outline_id,version_number`;
+            // script_outline comes from the data_outline_latest view (highest version_number for this script)
+            const outlineUrl = `${SUPABASE_URL}/rest/v1/data_outline_latest?script_id=eq.${scriptId}&select=script_outline,script_outline_id`;
 
             try {
                 const [scriptsData, outlineData] = await Promise.all([
@@ -271,19 +280,48 @@
                 if (outlineData && outlineData.length > 0) {
                     result.script_outline = outlineData[0].script_outline || '';
                     currentOutlineId = outlineData[0].script_outline_id;
-                    currentOutlineVersion = outlineData[0].version_number;
                 } else {
                     result.script_outline = '';
                     currentOutlineId = null;
-                    currentOutlineVersion = 0;
                 }
 
                 return result;
             } catch (error) {
                 console.warn('No story details data found for script:', scriptId);
                 currentOutlineId = null;
-                currentOutlineVersion = 0;
                 return {};
+            }
+        }
+
+        // Save the outline for this session.
+        // First call: INSERTs a new row (trigger assigns version_number), stores sessionOutlineId.
+        // Subsequent calls: PATCHes that same new row.
+        // If no changes were made this session, this function is never called.
+        async function saveOutline(scriptId, scriptOutline) {
+            if (!newVersionCreatedThisSession) {
+                // First save this session - INSERT a new version row
+                const outlineUrl = `${SUPABASE_URL}/rest/v1/script_outlines`;
+                const newRow = await fetchWithErrorHandling(outlineUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        script_id: scriptId,
+                        script_outline: scriptOutline,
+                        parent_version_id: currentOutlineId || null
+                    }),
+                    headers: { 'Prefer': 'return=representation' }
+                });
+                if (newRow && newRow.length > 0) {
+                    sessionOutlineId = newRow[0].script_outline_id;
+                    newVersionCreatedThisSession = true;
+                }
+            } else {
+                // Already created a version this session - PATCH it
+                const outlineUrl = `${SUPABASE_URL}/rest/v1/script_outlines?script_outline_id=eq.${sessionOutlineId}`;
+                await fetchWithErrorHandling(outlineUrl, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ script_outline: scriptOutline }),
+                    headers: { 'Prefer': 'return=representation' }
+                });
             }
         }
 
@@ -293,7 +331,6 @@
 
             document.getElementById('content').style.display = 'block';
             document.getElementById('noScriptsMessage').style.display = 'none';
-
 
             // Update sticky script info pill
             const stickyScriptInfo = document.getElementById('stickyScriptInfo');
@@ -429,7 +466,7 @@
             }
         }
 
-        // Save & Continue - saves other fields to scripts, creates new version in script_outlines
+        // Save & Continue - saves all fields and advances to next script
         async function saveScript() {
             if (isLoading) return;
             
@@ -440,8 +477,12 @@
                 const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
                 const { scriptOutline, otherFields } = collectResearchData();
 
-                // Save other fields to scripts table + create new outline version + update status
-                await saveResearchDataAndUpdateStatus(scriptId, otherFields, scriptOutline);
+                await saveAllFields(scriptId, otherFields, scriptOutline);
+
+                // Update script status using configuration
+                if (pageConfig && pageConfig.next_status_id) {
+                    await updateScriptStatus(scriptId, pageConfig.next_status_id);
+                }
 
                 updateStatus('saved', 'Story details saved and status updated');
                 hasUnsavedChanges = false;
@@ -471,6 +512,32 @@
             }
         }
 
+        // Shared save logic used by both auto-save and Save & Continue
+        async function saveAllFields(scriptId, otherFields, scriptOutline) {
+            // Save non-outline fields to scripts table
+            const scriptsUrl = `${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`;
+            await fetchWithErrorHandling(scriptsUrl, {
+                method: 'PATCH',
+                body: JSON.stringify(otherFields),
+                headers: { 'Prefer': 'return=representation' }
+            });
+
+            // Save outline - inserts new version on first save this session, patches on subsequent saves
+            await saveOutline(scriptId, scriptOutline);
+
+            // Save ratings
+            const ratingValues = collectRatingValues([
+                'logline',
+                'script_basic_outline',
+                'script_outline',
+                'synopsis',
+                'primary_keyword',
+                'script_summary',
+                'video_description'
+            ], 'rating_');
+            await saveRatings('scripts', scriptId, ratingValues, scriptId);
+        }
+
         // Collect research data - separates script_outline from scripts-table fields
         function collectResearchData() {
             const otherFields = {};
@@ -488,108 +555,6 @@
             });
 
             return { scriptOutline, otherFields };
-        }
-
-        // Save & Continue: saves scripts fields, inserts new outline version, updates status
-        async function saveResearchDataAndUpdateStatus(scriptId, otherFields, scriptOutline) {
-            // Save other fields to scripts table
-            const scriptsUrl = `${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`;
-            await fetchWithErrorHandling(scriptsUrl, {
-                method: 'PATCH',
-                body: JSON.stringify(otherFields),
-                headers: { 'Prefer': 'return=representation' }
-            });
-
-            // Insert new version into script_outlines
-            const newVersion = (currentOutlineVersion || 0) + 1;
-            const outlineUrl = `${SUPABASE_URL}/rest/v1/script_outlines`;
-            const newRow = await fetchWithErrorHandling(outlineUrl, {
-                method: 'POST',
-                body: JSON.stringify({
-                    script_id: scriptId,
-                    script_outline: scriptOutline,
-                    version_number: newVersion,
-                    parent_version_id: currentOutlineId || null
-                }),
-                headers: { 'Prefer': 'return=representation' }
-            });
-
-            // Update tracked version state
-            if (newRow && newRow.length > 0) {
-                currentOutlineId = newRow[0].script_outline_id;
-                currentOutlineVersion = newVersion;
-            }
-
-            // Save ratings to centralized system
-            const ratingValues = collectRatingValues([
-                'logline',
-                'script_basic_outline',
-                'script_outline',
-                'synopsis',
-                'primary_keyword',
-                'script_summary',
-                'video_description'
-            ], 'rating_');
-
-            await saveRatings('scripts', scriptId, ratingValues, scriptId);
-
-            // Update script status using configuration
-            if (pageConfig && pageConfig.next_status_id) {
-                await updateScriptStatus(scriptId, pageConfig.next_status_id);
-            }
-        }
-
-        // Auto-save: saves scripts fields + PATCHes existing outline row (no new version)
-        async function saveResearchData(scriptId, otherFields, scriptOutline) {
-            // Save other fields to scripts table
-            const scriptsUrl = `${SUPABASE_URL}/rest/v1/scripts?script_id=eq.${scriptId}`;
-            const result = await fetchWithErrorHandling(scriptsUrl, {
-                method: 'PATCH',
-                body: JSON.stringify(otherFields),
-                headers: { 'Prefer': 'return=representation' }
-            });
-
-            // PATCH the existing outline row if one exists, otherwise insert first version
-            if (currentOutlineId) {
-                const outlineUrl = `${SUPABASE_URL}/rest/v1/script_outlines?script_outline_id=eq.${currentOutlineId}`;
-                await fetchWithErrorHandling(outlineUrl, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ script_outline: scriptOutline }),
-                    headers: { 'Prefer': 'return=representation' }
-                });
-            } else {
-                // No outline row exists yet - create version 1
-                const outlineUrl = `${SUPABASE_URL}/rest/v1/script_outlines`;
-                const newRow = await fetchWithErrorHandling(outlineUrl, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        script_id: scriptId,
-                        script_outline: scriptOutline,
-                        version_number: 1,
-                        parent_version_id: null
-                    }),
-                    headers: { 'Prefer': 'return=representation' }
-                });
-                if (newRow && newRow.length > 0) {
-                    currentOutlineId = newRow[0].script_outline_id;
-                    currentOutlineVersion = 1;
-                }
-            }
-
-            // Also save ratings during auto-save
-            const ratingValues = collectRatingValues([
-                'logline',
-                'script_basic_outline',
-                'script_outline',
-                'synopsis',
-                'primary_keyword',
-                'script_summary',
-                'video_description'
-            ], 'rating_');
-
-            await saveRatings('scripts', scriptId, ratingValues, scriptId);
-
-            return result;
         }
 
         // Navigate between scripts
@@ -652,7 +617,7 @@
                         try {
                             const scriptId = recordsToReview[currentScriptIndex][pageConfig.id_field_name];
                             const { scriptOutline, otherFields } = collectResearchData();
-                            await saveResearchData(scriptId, otherFields, scriptOutline);
+                            await saveAllFields(scriptId, otherFields, scriptOutline);
                             hasUnsavedChanges = false;
                             if (window.setUnsavedChanges) {
                                 window.setUnsavedChanges(false);
