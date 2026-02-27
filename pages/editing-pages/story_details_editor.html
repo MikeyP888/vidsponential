@@ -132,7 +132,7 @@
         
         import { SUPABASE_URL, SUPABASE_ANON_KEY, STORY_DETAILS_FIELDS } from '../../shared/js/config.js';
         import { updateStatus, displayScriptInfo, loadScriptInfo, updateScriptStatus, showNoScriptsMessage, fetchWithErrorHandling } from '../../shared/js/editor-utils.js';
-        import { loadRatings, saveRatings, collectRatingValues, populateRatingFields } from '../../shared/js/rating-utils.js';
+        import { loadRatings, saveRatings, saveRating, collectRatingValues, populateRatingFields } from '../../shared/js/rating-utils.js';
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let pageConfig = null;
@@ -153,6 +153,15 @@
         let sessionOutlineId = null;
         let newVersionCreatedThisSession = false;
 
+        // Fields that are rated against scripts table (everything except script_outline)
+        const SCRIPTS_RATING_FIELDS = [
+            'logline',
+            'script_basic_outline',
+            'synopsis',
+            'primary_keyword',
+            'script_summary',
+            'video_description'
+        ];
 
         // Initialize the application
         async function init() {
@@ -235,18 +244,21 @@
                 const researchData = await loadResearchData(scriptId);
                 console.log('Research data loaded:', researchData);
 
-                // Load centralized ratings
+                // Load centralized ratings for scripts-table fields
                 console.log('Loading ratings for scripts, ID:', scriptId);
-                const ratings = await loadRatings('scripts', scriptId, [
-                    'logline',
-                    'script_basic_outline',
-                    'script_outline',
-                    'synopsis',
-                    'primary_keyword',
-                    'script_summary',
-                    'video_description'
-                ]);
-                console.log('Ratings loaded:', ratings);
+                const scriptsRatings = await loadRatings('scripts', scriptId, SCRIPTS_RATING_FIELDS);
+                console.log('Scripts ratings loaded:', scriptsRatings);
+
+                // Load script_outline rating from script_outlines table
+                let outlineRating = {};
+                if (currentOutlineId) {
+                    console.log('Loading outline rating for script_outlines, ID:', currentOutlineId);
+                    outlineRating = await loadRatings('script_outlines', currentOutlineId, ['script_outline']);
+                    console.log('Outline rating loaded:', outlineRating);
+                }
+
+                // Merge all ratings into one object
+                const ratings = { ...scriptsRatings, ...outlineRating };
 
                 currentScriptData = { script: scriptInfo, research: researchData, ratings: ratings };
 
@@ -323,6 +335,11 @@
                     headers: { 'Prefer': 'return=representation' }
                 });
             }
+        }
+
+        // Get the active outline ID (session version if created, otherwise the loaded version)
+        function getActiveOutlineId() {
+            return sessionOutlineId || currentOutlineId;
         }
 
         // Display script data in UI
@@ -525,17 +542,16 @@
             // Save outline - inserts new version on first save this session, patches on subsequent saves
             await saveOutline(scriptId, scriptOutline);
 
-            // Save ratings
-            const ratingValues = collectRatingValues([
-                'logline',
-                'script_basic_outline',
-                'script_outline',
-                'synopsis',
-                'primary_keyword',
-                'script_summary',
-                'video_description'
-            ], 'rating_');
-            await saveRatings('scripts', scriptId, ratingValues, scriptId);
+            // Save ratings for scripts-table fields
+            const scriptsRatingValues = collectRatingValues(SCRIPTS_RATING_FIELDS, 'rating_');
+            await saveRatings('scripts', scriptId, scriptsRatingValues, scriptId);
+
+            // Save script_outline rating to script_outlines table
+            const outlineRatingInput = document.getElementById('rating_script_outline');
+            const activeOutlineId = getActiveOutlineId();
+            if (outlineRatingInput && outlineRatingInput.value && activeOutlineId) {
+                await saveRating('script_outlines', activeOutlineId, 'script_outline', parseInt(outlineRatingInput.value), scriptId);
+            }
         }
 
         // Collect research data - separates script_outline from scripts-table fields
