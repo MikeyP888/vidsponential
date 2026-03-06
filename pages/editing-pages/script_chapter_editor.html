@@ -164,6 +164,7 @@
 
         // Version tracking for one-version-per-session
         let originalTexts = {};      // chapter_id -> text as loaded
+        let originalHeadlines = {};  // chapter_id -> headline as loaded
         let sessionVersionIds = {};  // chapter_id -> chapter_version_id created this session
 
         async function init() {
@@ -248,23 +249,24 @@
             }
         }
 
-        // Load chapter metadata from chapters table, text from v_current_chapter_version
+        // Load chapter metadata from chapters table, text + headline from v_current_chapter_version
         async function loadChapterData(scriptId) {
             // Reset session tracking
             originalTexts = {};
+            originalHeadlines = {};
             sessionVersionIds = {};
 
-            // Fetch chapter metadata
+            // Fetch chapter metadata (no headline here, it comes from versions)
             const chaptersRes = await fetch(
-                `${SUPABASE_URL}/rest/v1/chapters?script_id=eq.${scriptId}&select=chapter_id,chapter_number,chapter_headline,script_id&order=chapter_number.asc`,
+                `${SUPABASE_URL}/rest/v1/chapters?script_id=eq.${scriptId}&select=chapter_id,chapter_number,script_id&order=chapter_number.asc`,
                 { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
             );
             if (!chaptersRes.ok) return [];
             const chapters = await chaptersRes.json();
 
-            // Fetch current version text
+            // Fetch current version text + headline
             const versionsRes = await fetch(
-                `${SUPABASE_URL}/rest/v1/v_current_chapter_version?script_id=eq.${scriptId}&select=chapter_id,chapter_text,chapter_version_id`,
+                `${SUPABASE_URL}/rest/v1/v_current_chapter_version?script_id=eq.${scriptId}&select=chapter_id,chapter_text,chapter_headline,chapter_version_id`,
                 { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
             );
             const versions = versionsRes.ok ? await versionsRes.json() : [];
@@ -277,8 +279,10 @@
             chapters.forEach(ch => {
                 const cv = versionMap[ch.chapter_id];
                 ch.chapter_text = cv ? cv.chapter_text : '';
+                ch.chapter_headline = cv ? cv.chapter_headline : '';
                 ch.current_version_id = cv ? cv.chapter_version_id : null;
                 originalTexts[ch.chapter_id] = ch.chapter_text || '';
+                originalHeadlines[ch.chapter_id] = ch.chapter_headline || '';
             });
 
             return chapters;
@@ -515,36 +519,27 @@
                 }
             });
 
-            // Save each chapter
+            // Save each chapter via chapter_versions
             for (const cid in chapterUpdates) {
                 const update = chapterUpdates[cid];
                 const chapterIdInt = parseInt(cid);
 
-                // Always save chapter_headline to chapters table
-                if (update.chapter_headline !== undefined) {
-                    const res = await fetch(`${SUPABASE_URL}/rest/v1/chapters?chapter_id=eq.${cid}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'apikey': SUPABASE_ANON_KEY,
-                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=minimal'
-                        },
-                        body: JSON.stringify({ chapter_headline: update.chapter_headline })
-                    });
-                    if (!res.ok) {
-                        const errorText = await res.text();
-                        throw new Error(`Failed to save chapter ${cid} headline: ${res.status} - ${errorText}`);
-                    }
-                }
-
-                // Handle chapter text versioning - one version per editing session
                 const currentText = update.chapter_text;
+                const currentHeadline = update.chapter_headline;
                 const originalText = originalTexts[chapterIdInt];
+                const originalHeadline = originalHeadlines[chapterIdInt];
 
-                if (currentText !== undefined && currentText !== originalText) {
+                // Check if either text or headline changed
+                const textChanged = currentText !== undefined && currentText !== originalText;
+                const headlineChanged = currentHeadline !== undefined && currentHeadline !== originalHeadline;
+
+                if (textChanged || headlineChanged) {
                     if (sessionVersionIds[cid]) {
-                        // Update existing session version
+                        // Update existing session version with both text and headline
+                        const patchBody = {};
+                        if (currentText !== undefined) patchBody.chapter_text = currentText;
+                        if (currentHeadline !== undefined) patchBody.chapter_headline = currentHeadline;
+
                         const res = await fetch(`${SUPABASE_URL}/rest/v1/chapter_versions?chapter_version_id=eq.${sessionVersionIds[cid]}`, {
                             method: 'PATCH',
                             headers: {
@@ -553,15 +548,25 @@
                                 'Content-Type': 'application/json',
                                 'Prefer': 'return=minimal'
                             },
-                            body: JSON.stringify({ chapter_text: currentText })
+                            body: JSON.stringify(patchBody)
                         });
                         if (!res.ok) {
                             const errorText = await res.text();
                             throw new Error(`Failed to update chapter version for chapter ${cid}: ${res.status} - ${errorText}`);
                         }
                     } else {
-                        // Insert new version (trigger handles version_number, superseding, etc.)
+                        // Insert new version with text and headline (trigger handles version_number, superseding, etc.)
                         const chapter = currentScriptData.chapters.find(c => c.chapter_id == cid);
+                        const insertBody = {
+                            chapter_id: chapterIdInt,
+                            chapter_text: currentText !== undefined ? currentText : originalText,
+                            chapter_headline: currentHeadline !== undefined ? currentHeadline : originalHeadline,
+                            script_id: parseInt(scriptId),
+                            chapter_number: chapter ? chapter.chapter_number : null,
+                            version_notes: 'Edited in chapter editor',
+                            clean_version: true
+                        };
+
                         const res = await fetch(`${SUPABASE_URL}/rest/v1/chapter_versions`, {
                             method: 'POST',
                             headers: {
@@ -570,14 +575,7 @@
                                 'Content-Type': 'application/json',
                                 'Prefer': 'return=representation'
                             },
-                            body: JSON.stringify({
-                                chapter_id: chapterIdInt,
-                                chapter_text: currentText,
-                                script_id: parseInt(scriptId),
-                                chapter_number: chapter ? chapter.chapter_number : null,
-                                version_notes: 'Edited in chapter editor',
-                                clean_version: true
-                            })
+                            body: JSON.stringify(insertBody)
                         });
                         if (!res.ok) {
                             const errorText = await res.text();
@@ -590,7 +588,7 @@
                     }
                 }
 
-                // Save chapter ratings (content_field = 'chapter_text')
+                // Save chapter ratings
                 if (ratingsByChapter[cid] && Object.keys(ratingsByChapter[cid]).length > 0) {
                     await saveRatings('chapters', chapterIdInt, ratingsByChapter[cid], scriptId);
                 }
