@@ -1,0 +1,162 @@
+/* ================================================= */
+/*           NAVIGATION COMPONENT STYLES            */
+/*     Styles for the centralized navigation        */
+/* ================================================= */
+
+/* Navigation Container */
+.navigation-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Same spacing between rows as horizontal spacing between buttons */
+    padding: 20px;
+    background: white; /* Changed from purple gradient to white */
+    margin-bottom: 20px;
+}
+
+/* Logo Section - positioned below navigation buttons */
+.logo-section-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 50px; /* 25% more space + additional 35px above logo */
+    margin-bottom: 15px; /* 25% more space below logo */
+    padding: 15px; /* 25% more padding around logo */
+}
+
+.logo-nav {
+    height: 36.45px; /* 10% smaller than original 40.5px */
+    width: auto;
+}
+
+/* Navigation Rows */
+.nav-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Removed border-bottom and padding from nav-row-top */
+.nav-row-top {
+    /* No special styling needed */
+}
+
+/* Removed padding-top from nav-row-bottom */
+.nav-row-bottom {
+    /* No special styling needed */
+}
+
+/* Navigation Buttons */
+.nav-btn {
+    position: relative;
+    padding: 10px 20px;
+    width: 132px; /* Increased by 10% from 120px to accommodate longer text */
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 8px; /* Consistent radius for all buttons */
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none !important; /* Remove all borders */
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+/* Button States - Selected/Active */
+.nav-btn.btn-primary {
+    background: linear-gradient(to right, rgba(11, 230, 255, 1) 0%, rgba(175, 11, 255, 1) 100%) !important; /* Gradient from script_outline_editor */
+    color: white !important;
+    border: none !important; /* Remove all borders */
+    border-radius: 8px !important; /* Explicit radius to ensure it's not square */
+    box-shadow: none !important; /* Remove any box-shadow that might create border appearance */
+}
+
+/* Button States - Non-selected */
+.nav-btn.btn-secondary {
+    background: linear-gradient(to right, #e2e6e6 0%, #dce0e0 100%) !important; /* Subtle horizontal gradient - baseline on left, 5% darker on right */
+    color: white !important;
+    border: none !important; /* Remove all borders */
+    border-radius: 8px !important; /* Explicit radius to ensure consistency */
+    box-shadow: none !important; /* Remove any shadows */
+}
+
+/* Hover effects */
+.nav-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.nav-btn.btn-primary:hover {
+    background: linear-gradient(to right, rgba(11, 230, 255, 0.9) 0%, rgba(175, 11, 255, 0.9) 100%); /* Slightly darker on hover */
+}
+
+.nav-btn.btn-secondary:hover {
+    background: linear-gradient(to right, #dce0e0 0%, #d6dadb 100%) !important; /* Hover state with baseline-darker on left, slightly more darker on right */
+}
+
+/* Notification Badge */
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ff4757;
+    color: white;
+    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 0 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 71, 87, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 71, 87, 0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navigation-wrapper {
+        padding: 15px;
+    }
+    
+    .nav-row {
+        gap: 8px;
+    }
+    
+    .nav-btn {
+        min-width: 100px;
+        padding: 8px 15px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-btn {
+        min-width: 80px;
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .notification-badge {
+        min-width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+}

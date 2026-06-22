@@ -1,0 +1,123 @@
+/* Editing Dash component styles (info box, issue headings, annotation rows).
+   Uses theme tokens so it inherits brand changes automatically. */
+
+/* Shared info box - same on every Editing page */
+.dash-info-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg) var(--spacing-3xl);
+    background: var(--bg-white);
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
+}
+.dash-info-item { display: flex; flex-direction: column; gap: 2px; }
+.dash-info-label {
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-wide);
+    color: var(--text-tertiary);
+}
+.dash-info-value {
+    font-size: var(--font-base);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+}
+
+/* Group / issue heading on review pages */
+.dash-group-heading {
+    font-size: var(--font-lg);
+    font-weight: var(--font-bold);
+    color: var(--text-primary);
+    margin: var(--spacing-2xl) 0 var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--border-light);
+}
+.dash-field-label {
+    display: inline-block;
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-wide);
+    color: var(--text-secondary);
+    margin: var(--spacing-md) 0 var(--spacing-xs);
+}
+
+/* A content row: text area on the left, rating on the right */
+.dash-row { display: flex; gap: var(--spacing-lg); align-items: flex-start; margin-bottom: var(--spacing-lg); }
+.dash-row__text { flex: 1 1 auto; }
+.dash-row__side { flex: 0 0 auto; display: flex; flex-direction: column; gap: var(--spacing-sm); align-items: flex-end; }
+
+.dash-textarea {
+    width: 100%;
+    min-height: var(--editor-textarea-min-height, 180px);
+    padding: 12px 14px;
+    font-family: var(--font-family);
+    font-size: var(--font-base);
+    line-height: var(--line-relaxed);
+    color: var(--text-primary);
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-white);
+    resize: none;
+    overflow-y: hidden;
+}
+.dash-textarea:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--shadow-focus); }
+/* compact variant: hugs its content (used for short annotation comments) */
+.dash-textarea.compact { min-height: 0; }
+
+.dash-rating-label {
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-wide);
+}
+.dash-rating-input {
+    width: 84px;
+    padding: 10px 12px;
+    font-size: var(--font-base);
+    text-align: center;
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-md);
+}
+.dash-rating-input:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--shadow-focus); }
+
+.dash-delete-btn {
+    background: var(--color-red-light);
+    color: var(--color-red-dark);
+    border: 0.5px solid var(--color-red);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    padding: 6px 10px;
+    cursor: pointer;
+}
+.dash-delete-btn:hover { background: var(--color-red); color: #fff; }
+
+/* small meta line under a comment (anchor text) */
+.dash-meta { font-size: var(--font-xs); color: var(--text-muted); margin-top: 4px; }
+.dash-comment-card { padding: var(--spacing-md) 0; border-bottom: 1px solid var(--border-lighter); }
+
+/* Bottom-bar button colors (override the shared bottom-navigation.css) */
+/* Save & Continue: blue at bottom-left -> turquoise at top-right */
+.bottom-navigation .btn-success {
+    background: linear-gradient(to top right, #3b5bdb 0%, #11d8ff 100%);
+    box-shadow: 0 2px 4px rgba(59, 91, 219, 0.3);
+}
+.bottom-navigation .btn-success:hover {
+    background: linear-gradient(to top right, #3b5bdb 0%, #11d8ff 100%);
+    box-shadow: 0 4px 8px rgba(17, 216, 255, 0.45);
+}
+/* Previous / Next: bright blue at bottom-left -> lighter blue at top-right */
+.bottom-navigation .btn-navigation {
+    background: linear-gradient(to top right, #2563eb 0%, #8ab4f8 100%);
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+.bottom-navigation .btn-navigation:hover:not(:disabled) {
+    background: linear-gradient(to top right, #2563eb 0%, #8ab4f8 100%);
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.4);
+}

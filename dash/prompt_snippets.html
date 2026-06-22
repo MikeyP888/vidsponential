@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Prompt Snippets</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦋</text></svg>">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="/dash/shared/styles/theme.css">
+    <link rel="stylesheet" href="/dash/shared/styles/brand.css">
+    <link rel="stylesheet" href="/dash/shared/styles/fonts.css">
+    <link rel="stylesheet" href="/dash/shared/styles/components.css">
+    <link rel="stylesheet" href="/dash/shared/styles/base.css">
+    <link rel="stylesheet" href="/dash/shared/styles/layout.css">
+    <link rel="stylesheet" href="/dash/shared/styles/buttons.css">
+    <link rel="stylesheet" href="/dash/shared/styles/forms.css">
+    <link rel="stylesheet" href="/dash/shared/styles/status.css">
+    <link rel="stylesheet" href="/dash/shared/styles/notifications.css">
+    <link rel="stylesheet" href="/dash/shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="/dash/shared/styles/missing-layout.css">
+    <link rel="stylesheet" href="/dash/shared/styles/navigation.css">
+    <link rel="stylesheet" href="/dash/shared/styles/sidebar.css">
+    <link rel="stylesheet" href="/dash/shared/styles/bottom-navigation.css">
+    <link rel="stylesheet" href="/dash/shared/styles/dash.css">
+</head>
+<body class="has-sidebar">
+    <div id="stickyStatusBar" style="position:fixed;top:0;left:280px;right:0;background:transparent;padding:4px 20px;z-index:999;display:flex;justify-content:flex-end;align-items:center;pointer-events:none;">
+        <div class="status-indicator" id="stickyStatusIndicator" style="pointer-events:auto;">Loading</div>
+    </div>
+
+    <div id="sidebarContainer"></div>
+
+    <div class="container with-sidebar" style="padding-top:30px;">
+        <div class="header"><h1 class="page-title">Prompt Snippets</h1></div>
+        <p style="margin:-6px 0 18px;color:var(--color-text-muted,#777);font-size:0.85rem;">
+            Reusable text you drop into prompts with its placeholder, e.g. <code>{{writing_style}}</code>. Shows all active snippets (latest version). Save &amp; Continue saves a new version when you change the text and stays on this snippet; it does not change the status. Use the dropdown above, or Prev/Next, to move between snippets.
+        </p>
+        <div class="dash-jump" style="margin-bottom:14px;">
+            <label class="dash-rating-label" for="jumpSelect" style="margin-right:8px;">Jump to:</label>
+            <select id="jumpSelect" class="input" style="min-width:360px;max-width:100%;"></select>
+        </div>
+        <div id="content">
+            <div id="infoBox"></div>
+            <div id="promptList"></div>
+        </div>
+        <div id="noRecordsMessage" class="message" style="display:none;"></div>
+    </div>
+
+    <script src="/dash/shared/js/theme-manager.js"></script>
+    <script type="module" src="/dash/shared/js/sidebar-component.js"></script>
+    <script type="module">
+        import BottomNavigation from '/dash/shared/js/bottom-navigation.js';
+        import { supabase, loadPageConfig, applyPageTitle, updateStatus, patchRows, showNoRecords } from '/dash/shared/js/dash-utils.js';
+        import { loadRatingsForRecords, saveRating } from '/dash/shared/js/rating-utils.js';
+
+        const PAGE = 'prompt_snippets';
+        const VIEW = 'v_dash_prompt_snippets_current';
+        const RATING_FIELD = 'snippet_text';
+        const AUTO_SAVE_MS = 10000;
+
+        // From config_dash: content_table_name (= prompt_snippet_versions), id_field_name (= prompt_snippet_version_id),
+        //   status_field_name (= prompt_version_status_id), group_by_field (= prompt_snippet_id).
+        // Display is filtered by prompt_snippets.is_active. Save & Continue does not change status. One snippet per step.
+        let cfg = null, statuses = [], queue = [], idx = 0, current = null, allSnippets = [];
+        let textDirty = false, metaDirty = false, busy = false, autoTimer = null;
+
+        const bottomNav = new BottomNavigation({ onSave: () => commit(), onNavigate: (d) => navigate(d), showAutoSave: true });
+        window.updateBottomNavigation = (i, t) => bottomNav.updateNavigation(i, t);
+
+        const esc = (s) => (s || '').replace(/</g, '&lt;');
+        const val = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+        function autoGrow(ta) { const sy = window.scrollY; ta.style.height = 'auto'; ta.style.height = Math.max(parseInt(getComputedStyle(ta).minHeight) || 200, ta.scrollHeight + 6) + 'px'; if (window.scrollY !== sy) window.scrollTo(0, sy); }
+
+        async function init() {
+            try {
+                updateStatus('loading', 'Loading...');
+                cfg = await loadPageConfig(PAGE);
+                applyPageTitle(cfg);
+
+                const { data: st } = await supabase
+                    .from('prompt_version_statuses')
+                    .select('prompt_version_status_id, prompt_version_status')
+                    .order('prompt_version_status_id');
+                statuses = (st || []).map(s => ({ id: s.prompt_version_status_id, label: s.prompt_version_status }));
+
+                // Every active snippet, in id order. One snippet per step.
+                const { data, error } = await supabase
+                    .from(VIEW)
+                    .select('prompt_snippet_id, snippet_name')
+                    .eq('is_active', true)
+                    .order(cfg.group_by_field, { ascending: true });
+                if (error) throw error;
+                allSnippets = data || [];
+                queue = [...new Set(allSnippets.map(r => r[cfg.group_by_field]))];
+                if (!queue.length) { showNoRecords('No active snippets.'); updateStatus('completed', 'Nothing to show'); return; }
+                buildJump();
+
+                await loadSnippet();
+                autoTimer = setInterval(autoSave, AUTO_SAVE_MS);
+            } catch (e) { console.error(e); updateStatus('error', e.message); showNoRecords(e.message); }
+        }
+
+        async function loadSnippet() {
+            const id = queue[idx];
+            updateStatus('loading', 'Loading snippet...');
+
+            const { data, error } = await supabase
+                .from(VIEW)
+                .select('prompt_snippet_id, prompt_snippet_version_id, snippet_name, snippet_placeholder, snippet_text, prompt_version_status_id, version_number, is_active')
+                .eq(cfg.group_by_field, id)
+                .eq('is_active', true)
+                .single();
+            if (error) { updateStatus('error', error.message); return; }
+            current = data;
+            current._text0 = current.snippet_text || '';
+
+            const ver = current.version_number != null ? current.version_number : '-';
+            const items = [['Snippet', current.snippet_name || ''], ['Placeholder', '{{' + (current.snippet_placeholder || '') + '}}'], ['Version', 'v' + ver]];
+            document.getElementById('infoBox').innerHTML = `
+              <div class="dash-info-box">
+                ${items.map(([l, v]) => `<div class="dash-info-item"><span class="dash-info-label">${l}</span><span class="dash-info-value">${esc(String(v))}</span></div>`).join('')}
+              </div>`;
+
+            let rating = '';
+            if (current.prompt_snippet_version_id != null) {
+                const r = await loadRatingsForRecords(cfg.content_table_name, [current.prompt_snippet_version_id], RATING_FIELD);
+                if (r[current.prompt_snippet_version_id] != null) rating = r[current.prompt_snippet_version_id];
+            }
+            const statusOptions = statuses.map(s => `<option value="${s.id}" ${s.id === current.prompt_version_status_id ? 'selected' : ''}>${esc(s.label)}</option>`).join('');
+
+            document.getElementById('promptList').innerHTML = `
+              <div class="dash-group-heading">${esc(current.snippet_name || '')} &middot; {{${esc(current.snippet_placeholder || '')}}}</div>
+              <div class="dash-row">
+                <div class="dash-row__text">
+                  <label class="dash-rating-label">Snippet text</label>
+                  <textarea class="dash-textarea" id="stext" style="min-height:300px;">${esc(current.snippet_text)}</textarea>
+                </div>
+                <div class="dash-row__side">
+                  <span class="dash-rating-label">Rating / 100</span>
+                  <input type="number" min="1" max="100" class="dash-rating-input" id="srating" value="${rating}">
+                  <span class="dash-rating-label" style="margin-top:10px;">Status</span>
+                  <select id="sstatus" class="input" style="width:210px;">${statusOptions}</select>
+                </div>
+              </div>`;
+
+            const ta = document.getElementById('stext');
+            autoGrow(ta); ta.addEventListener('input', () => { autoGrow(ta); markText(); });
+            document.getElementById('srating').addEventListener('input', markMeta);
+            document.getElementById('sstatus').addEventListener('change', markMeta);
+
+            textDirty = false; metaDirty = false; bottomNav.setUnsavedChanges(false);
+            const js = document.getElementById('jumpSelect');
+            if (js) js.value = String(queue[idx]);
+            window.updateBottomNavigation(idx, queue.length);
+            updateStatus('saved', 'Loaded snippet');
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('noRecordsMessage').style.display = 'none';
+        }
+
+        function markText() { textDirty = true; bottomNav.setUnsavedChanges(true); updateStatus('unsaved', 'Unsaved text - press Save & Continue to make a version'); }
+        function markMeta() { metaDirty = true; bottomNav.setUnsavedChanges(true); updateStatus('unsaved', 'Unsaved changes'); }
+
+        // status + rating on the current version, in place. Never makes a version.
+        async function saveMeta() {
+            if (!current || current.prompt_snippet_version_id == null) return;
+            const status = parseInt(val('sstatus'), 10);
+            if (status && status !== current.prompt_version_status_id) {
+                await patchRows(cfg.content_table_name, cfg.id_field_name, current.prompt_snippet_version_id, { [cfg.status_field_name]: status });
+                current.prompt_version_status_id = status;
+            }
+            const rv = val('srating');
+            if (rv !== '') await saveRating(cfg.content_table_name, current.prompt_snippet_version_id, RATING_FIELD, rv);
+        }
+
+        async function autoSave() {
+            if (busy || !metaDirty) return;
+            busy = true;
+            try {
+                await saveMeta();
+                metaDirty = false;
+                bottomNav.setUnsavedChanges(textDirty);
+                bottomNav.updateAutoSaveStatus('saved', 'Auto-saved');
+                if (!textDirty) updateStatus('saved', 'Auto-saved (status + rating)');
+                setTimeout(() => bottomNav.updateAutoSaveStatus('ready', 'Auto-save: Ready'), 2000);
+            } catch (e) { console.error(e); bottomNav.updateAutoSaveStatus('error', 'Auto-save failed'); }
+            finally { busy = false; }
+        }
+
+        // Save & Continue / Ctrl+S: saves a new version when the text changed. Does NOT change status.
+        async function commit() {
+            if (busy || !current) return; busy = true;
+            try {
+                updateStatus('loading', 'Saving...');
+                const text = val('stext');
+                const status = parseInt(val('sstatus'), 10) || current.prompt_version_status_id || cfg.display_status_id;
+                const rv = val('srating');
+                const textChanged = text !== current._text0;
+                let versionId = current.prompt_snippet_version_id;
+
+                if (versionId == null && !text) {
+                    // empty stub - nothing to save
+                } else if (textChanged || versionId == null) {
+                    const { data: ins, error } = await supabase
+                        .from('prompt_snippet_versions')
+                        .insert({ prompt_snippet_id: current.prompt_snippet_id, snippet_text: text, prompt_version_status_id: status })
+                        .select('prompt_snippet_version_id, version_number')
+                        .single();
+                    if (error) throw error;
+                    versionId = ins.prompt_snippet_version_id;
+                    current.prompt_snippet_version_id = versionId;
+                    current.version_number = ins.version_number;
+                    current.prompt_version_status_id = status;
+                    current._text0 = text;
+                } else if (status !== current.prompt_version_status_id) {
+                    await patchRows(cfg.content_table_name, cfg.id_field_name, versionId, { [cfg.status_field_name]: status });
+                    current.prompt_version_status_id = status;
+                }
+                if (rv !== '' && versionId != null) await saveRating(cfg.content_table_name, versionId, RATING_FIELD, rv);
+
+                textDirty = false; metaDirty = false; bottomNav.setUnsavedChanges(false);
+
+                // Stay on the current snippet; reload so the new version number refreshes.
+                await loadSnippet();
+            } catch (e) { console.error(e); updateStatus('error', e.message); }
+            finally { busy = false; }
+        }
+
+        // Build the "Jump to" dropdown: one option per active snippet (snippet_name).
+        function buildJump() {
+            const sel = document.getElementById('jumpSelect');
+            if (!sel) return;
+            sel.innerHTML = allSnippets.map(s => `<option value="${s.prompt_snippet_id}">${esc(s.snippet_name || ('Snippet ' + s.prompt_snippet_id))}</option>`).join('');
+            sel.onchange = onJump;
+        }
+
+        async function onJump(e) {
+            if (busy) return;
+            const ni = queue.indexOf(parseInt(e.target.value, 10));
+            if (ni < 0) return;
+            idx = ni; await loadSnippet();
+        }
+
+        async function navigate(d) {
+            if (busy) return;
+            const n = idx + d;
+            if (n < 0 || n >= queue.length) return;
+            idx = n; await loadSnippet();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

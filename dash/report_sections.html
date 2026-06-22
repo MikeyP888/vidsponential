@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Report Sections</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦋</text></svg>">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="/dash/shared/styles/theme.css">
+    <link rel="stylesheet" href="/dash/shared/styles/brand.css">
+    <link rel="stylesheet" href="/dash/shared/styles/fonts.css">
+    <link rel="stylesheet" href="/dash/shared/styles/components.css">
+    <link rel="stylesheet" href="/dash/shared/styles/base.css">
+    <link rel="stylesheet" href="/dash/shared/styles/layout.css">
+    <link rel="stylesheet" href="/dash/shared/styles/buttons.css">
+    <link rel="stylesheet" href="/dash/shared/styles/forms.css">
+    <link rel="stylesheet" href="/dash/shared/styles/status.css">
+    <link rel="stylesheet" href="/dash/shared/styles/notifications.css">
+    <link rel="stylesheet" href="/dash/shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="/dash/shared/styles/missing-layout.css">
+    <link rel="stylesheet" href="/dash/shared/styles/navigation.css">
+    <link rel="stylesheet" href="/dash/shared/styles/sidebar.css">
+    <link rel="stylesheet" href="/dash/shared/styles/bottom-navigation.css">
+    <link rel="stylesheet" href="/dash/shared/styles/dash.css">
+</head>
+<body class="has-sidebar">
+    <div id="stickyStatusBar" style="position:fixed;top:0;left:280px;right:0;background:transparent;padding:4px 20px;z-index:999;display:flex;justify-content:flex-end;align-items:center;pointer-events:none;">
+        <div class="status-indicator" id="stickyStatusIndicator" style="pointer-events:auto;">Loading</div>
+    </div>
+
+    <div id="sidebarContainer"></div>
+
+    <div class="container with-sidebar" style="padding-top:30px;">
+        <div class="header"><h1 class="page-title">Report Sections</h1></div>
+        <div id="content">
+            <div id="infoBox"></div>
+            <div id="sectionList"></div>
+        </div>
+        <div id="noRecordsMessage" class="message" style="display:none;"></div>
+    </div>
+
+    <script src="/dash/shared/js/theme-manager.js"></script>
+    <script type="module" src="/dash/shared/js/sidebar-component.js"></script>
+    <script type="module">
+        import BottomNavigation from '/dash/shared/js/bottom-navigation.js';
+        import { supabase, loadPageConfig, applyPageTitle, loadEditInfo, renderInfoBox, updateStatus, patchRows, showNoRecords } from '/dash/shared/js/dash-utils.js';
+        import { loadRatingsForRecords, saveRatings } from '/dash/shared/js/rating-utils.js';
+
+        const PAGE = 'report_sections';
+        const TABLE = 'ms_report_sections';
+        let cfg = null, editQueue = [], idx = 0, sections = [], hasUnsaved = false, busy = false;
+
+        const bottomNav = new BottomNavigation({ onSave: () => saveAndContinue(), onNavigate: (d) => navigate(d), showAutoSave: true });
+        window.updateBottomNavigation = (i, t) => bottomNav.updateNavigation(i, t);
+        window.setUnsavedChanges = (v) => bottomNav.setUnsavedChanges(v);
+
+        function autoGrow(ta) { const sy = window.scrollY; ta.style.height = 'auto'; ta.style.height = Math.max(parseInt(getComputedStyle(ta).minHeight) || 180, ta.scrollHeight + 6) + 'px'; if (window.scrollY !== sy) window.scrollTo(0, sy); }
+        const esc = (s) => (s || '').replace(/</g, '&lt;');
+        const escAttr = (s) => (s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+        async function init() {
+            try {
+                updateStatus('loading', 'Loading...');
+                cfg = await loadPageConfig(PAGE);
+                applyPageTitle(cfg);
+                const { data, error } = await supabase.from(TABLE)
+                    .select('edit_id').eq('report_section_status_id', cfg.display_status_id).order('edit_id', { ascending: true });
+                if (error) throw error;
+                editQueue = [...new Set((data || []).map(r => r.edit_id))];
+                if (!editQueue.length) { showNoRecords('No report sections are at the review stage.'); updateStatus('completed', 'All done'); return; }
+                await loadEdit();
+                bottomNav.startAutoSave(autoSave);
+            } catch (e) { console.error(e); updateStatus('error', e.message); showNoRecords(e.message); }
+        }
+
+        async function loadEdit() {
+            const editId = editQueue[idx];
+            updateStatus('loading', 'Loading edit ' + editId + '...');
+            renderInfoBox('infoBox', await loadEditInfo(editId));
+
+            const { data, error } = await supabase.from(TABLE)
+                .select('report_section_id, section_title, section_text, sort_order, report_section_type_id')
+                .eq('edit_id', editId).eq('report_section_status_id', cfg.display_status_id)
+                .order('sort_order', { ascending: true });
+            if (error) { updateStatus('error', error.message); return; }
+            sections = data || [];
+
+            const ids = sections.map(s => s.report_section_id);
+            const titleR = await loadRatingsForRecords(TABLE, ids, 'section_title');
+            const textR = await loadRatingsForRecords(TABLE, ids, 'section_text');
+
+            document.getElementById('sectionList').innerHTML = sections.map(s => {
+                const heading = s.report_section_type_id === 1 ? 'Opening Letter' : 'Report Section';
+                return `
+                  <div class="dash-group-heading">${heading}</div>
+                  <span class="dash-field-label">Section Title</span>
+                  <div class="dash-row">
+                    <div class="dash-row__text"><input type="text" class="input" id="title_${s.report_section_id}" value="${escAttr(s.section_title)}"></div>
+                    <div class="dash-row__side"><span class="dash-rating-label">Rating / 100</span>
+                      <input type="number" min="1" max="100" class="dash-rating-input" id="rating_title_${s.report_section_id}" value="${titleR[s.report_section_id] != null ? titleR[s.report_section_id] : ''}"></div>
+                  </div>
+                  <span class="dash-field-label">Section Text</span>
+                  <div class="dash-row">
+                    <div class="dash-row__text"><textarea class="dash-textarea" id="text_${s.report_section_id}">${esc(s.section_text)}</textarea></div>
+                    <div class="dash-row__side"><span class="dash-rating-label">Rating / 100</span>
+                      <input type="number" min="1" max="100" class="dash-rating-input" id="rating_text_${s.report_section_id}" value="${textR[s.report_section_id] != null ? textR[s.report_section_id] : ''}"></div>
+                  </div>`;
+            }).join('');
+
+            document.querySelectorAll('.dash-textarea').forEach(ta => { autoGrow(ta); ta.addEventListener('input', () => { autoGrow(ta); markUnsaved(); }); });
+            document.querySelectorAll('.input, .dash-rating-input').forEach(el => el.addEventListener('input', markUnsaved));
+
+            hasUnsaved = false; window.setUnsavedChanges(false);
+            window.updateBottomNavigation(idx, editQueue.length);
+            updateStatus('saved', 'Loaded edit ' + editId);
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('noRecordsMessage').style.display = 'none';
+        }
+
+        function markUnsaved() { hasUnsaved = true; updateStatus('unsaved', 'Unsaved changes'); window.setUnsavedChanges(true); }
+
+        async function persist() {
+            for (const s of sections) {
+                const title = document.getElementById('title_' + s.report_section_id).value;
+                const text = document.getElementById('text_' + s.report_section_id).value;
+                await patchRows(TABLE, 'report_section_id', s.report_section_id, { section_title: title, section_text: text });
+                const ratings = {};
+                const tv = document.getElementById('rating_title_' + s.report_section_id).value;
+                const xv = document.getElementById('rating_text_' + s.report_section_id).value;
+                if (tv !== '') ratings.section_title = tv;
+                if (xv !== '') ratings.section_text = xv;
+                if (Object.keys(ratings).length) await saveRatings(TABLE, s.report_section_id, ratings);
+            }
+        }
+
+        async function autoSave() {
+            if (!hasUnsaved || busy) return;
+            await persist(); hasUnsaved = false; window.setUnsavedChanges(false); updateStatus('saved', 'Auto-saved');
+        }
+
+        async function saveAndContinue() {
+            if (busy) return; busy = true;
+            try {
+                updateStatus('loading', 'Saving...');
+                await persist();
+                const editId = editQueue[idx];
+                const { error } = await supabase.from(TABLE)
+                    .update({ report_section_status_id: cfg.next_status_id })
+                    .eq('edit_id', editId).eq('report_section_status_id', cfg.display_status_id);
+                if (error) throw error;
+                editQueue.splice(idx, 1);
+                hasUnsaved = false; window.setUnsavedChanges(false);
+                if (!editQueue.length) { showNoRecords('All report sections reviewed.'); updateStatus('completed', 'All done'); return; }
+                if (idx >= editQueue.length) idx = 0;
+                await loadEdit();
+            } catch (e) { console.error(e); updateStatus('error', e.message); }
+            finally { busy = false; }
+        }
+
+        async function navigate(d) {
+            if (busy) return;
+            if (hasUnsaved && !confirm('You have unsaved changes. Continue without saving?')) return;
+            const n = idx + d;
+            if (n < 0 || n >= editQueue.length) return;
+            idx = n; await loadEdit();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

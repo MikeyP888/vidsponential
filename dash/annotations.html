@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Annotations</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦋</text></svg>">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="/dash/shared/styles/theme.css">
+    <link rel="stylesheet" href="/dash/shared/styles/brand.css">
+    <link rel="stylesheet" href="/dash/shared/styles/fonts.css">
+    <link rel="stylesheet" href="/dash/shared/styles/components.css">
+    <link rel="stylesheet" href="/dash/shared/styles/base.css">
+    <link rel="stylesheet" href="/dash/shared/styles/layout.css">
+    <link rel="stylesheet" href="/dash/shared/styles/buttons.css">
+    <link rel="stylesheet" href="/dash/shared/styles/forms.css">
+    <link rel="stylesheet" href="/dash/shared/styles/status.css">
+    <link rel="stylesheet" href="/dash/shared/styles/notifications.css">
+    <link rel="stylesheet" href="/dash/shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="/dash/shared/styles/missing-layout.css">
+    <link rel="stylesheet" href="/dash/shared/styles/navigation.css">
+    <link rel="stylesheet" href="/dash/shared/styles/sidebar.css">
+    <link rel="stylesheet" href="/dash/shared/styles/bottom-navigation.css">
+    <link rel="stylesheet" href="/dash/shared/styles/dash.css">
+</head>
+<body class="has-sidebar">
+    <div id="stickyStatusBar" style="position:fixed;top:0;left:280px;right:0;background:transparent;padding:4px 20px;z-index:999;display:flex;justify-content:flex-end;align-items:center;pointer-events:none;">
+        <div class="status-indicator" id="stickyStatusIndicator" style="pointer-events:auto;">Loading</div>
+    </div>
+
+    <div id="sidebarContainer"></div>
+
+    <div class="container with-sidebar" style="padding-top:30px;">
+        <div class="header">
+            <h1 class="page-title">Annotations</h1>
+        </div>
+        <div id="content">
+            <div id="infoBox"></div>
+            <div id="groupHeading" class="dash-group-heading"></div>
+            <div id="commentList"></div>
+        </div>
+        <div id="noRecordsMessage" class="message" style="display:none;"></div>
+    </div>
+
+    <script src="/dash/shared/js/theme-manager.js"></script>
+    <script type="module" src="/dash/shared/js/sidebar-component.js"></script>
+    <script type="module">
+        import BottomNavigation from '/dash/shared/js/bottom-navigation.js';
+        import { supabase, loadPageConfig, applyPageTitle, loadEditInfo, renderInfoBox, updateStatus, showNoRecords } from '/dash/shared/js/dash-utils.js';
+        import { loadRatingsForRecords, saveRating } from '/dash/shared/js/rating-utils.js';
+
+        const PAGE = 'annotations';
+        const TABLE = 'ms_annotations';
+        let cfg = null, groups = [], idx = 0, current = null, hasUnsaved = false, busy = false;
+
+        const bottomNav = new BottomNavigation({
+            onSave: () => saveAndContinue(),
+            onNavigate: (d) => navigate(d),
+            showAutoSave: true
+        });
+        window.updateBottomNavigation = (i, t) => bottomNav.updateNavigation(i, t);
+        window.setUnsavedChanges = (v) => bottomNav.setUnsavedChanges(v);
+
+        function autoGrow(ta) {
+            const sy = window.scrollY;
+            ta.style.height = 'auto';
+            ta.style.height = (ta.scrollHeight + 2) + 'px';
+            if (window.scrollY !== sy) window.scrollTo(0, sy);
+        }
+        const esc = (s) => (s || '').replace(/</g, '&lt;');
+
+        async function init() {
+            try {
+                updateStatus('loading', 'Loading...');
+                cfg = await loadPageConfig(PAGE);
+                applyPageTitle(cfg);
+                const { data, error } = await supabase
+                    .from('v_dash_annotations')
+                    .select('annotation_id, edit_id, issue_id, is_praise, comment, anchor_text, section_number, issue_name')
+                    .eq('annotation_status_id', cfg.display_status_id);
+                if (error) throw error;
+                groups = buildGroups(data || []);
+                if (!groups.length) { showNoRecords('No annotations are at the review stage.'); updateStatus('completed', 'All done'); return; }
+                await loadGroup();
+                bottomNav.startAutoSave(autoSave);
+            } catch (e) { console.error(e); updateStatus('error', e.message); showNoRecords(e.message); }
+        }
+
+        // Group rows by edit + issue; praise and general (no issue) are their own groups
+        function buildGroups(rows) {
+            const map = new Map();
+            for (const r of rows) {
+                let kind, key, label;
+                if (r.is_praise) { kind = 'praise'; key = r.edit_id + '|praise'; label = 'Praise'; }
+                else if (r.issue_id == null) { kind = 'general'; key = r.edit_id + '|general'; label = 'General Comments'; }
+                else { kind = 'issue'; key = r.edit_id + '|' + r.issue_id; label = r.issue_name || ('Issue ' + r.issue_id); }
+                if (!map.has(key)) map.set(key, { key, kind, edit_id: r.edit_id, issue_id: r.issue_id ?? null, label, rows: [] });
+                map.get(key).rows.push(r);
+            }
+            const out = [...map.values()];
+            // manuscript order within a group
+            out.forEach(g => g.rows.sort((a, b) =>
+                ((a.section_number ?? 1e9) - (b.section_number ?? 1e9)) || (a.annotation_id - b.annotation_id)));
+            // order groups: by edit, then issues, then general, then praise
+            const rank = { issue: 0, general: 1, praise: 2 };
+            out.sort((a, b) => (a.edit_id - b.edit_id) || (rank[a.kind] - rank[b.kind]) || ((a.issue_id ?? 0) - (b.issue_id ?? 0)));
+            return out;
+        }
+
+        async function loadGroup() {
+            current = groups[idx];
+            updateStatus('loading', 'Loading...');
+            renderInfoBox('infoBox', await loadEditInfo(current.edit_id));
+            document.getElementById('groupHeading').textContent =
+                `${current.label}  (${current.rows.length} comment${current.rows.length === 1 ? '' : 's'})`;
+
+            const ids = current.rows.map(r => r.annotation_id);
+            const ratings = await loadRatingsForRecords(TABLE, ids, 'comment');
+
+            document.getElementById('commentList').innerHTML = current.rows.map(r => `
+              <div class="dash-comment-card" id="card_${r.annotation_id}">
+                <div class="dash-row">
+                  <div class="dash-row__text">
+                    <textarea class="dash-textarea compact" id="c_${r.annotation_id}">${esc(r.comment)}</textarea>
+                    ${r.anchor_text ? `<div class="dash-meta">Anchor: ${esc(r.anchor_text)}</div>` : ''}
+                  </div>
+                  <div class="dash-row__side">
+                    <span class="dash-rating-label">Rating / 100</span>
+                    <input type="number" min="1" max="100" class="dash-rating-input" id="rating_c_${r.annotation_id}" value="${ratings[r.annotation_id] != null ? ratings[r.annotation_id] : ''}">
+                    <button class="dash-delete-btn" data-id="${r.annotation_id}">Delete</button>
+                  </div>
+                </div>
+              </div>`).join('');
+
+            document.querySelectorAll('.dash-textarea').forEach(ta => { autoGrow(ta); ta.addEventListener('input', () => { autoGrow(ta); markUnsaved(); }); });
+            document.querySelectorAll('.dash-rating-input').forEach(inp => inp.addEventListener('input', markUnsaved));
+            document.querySelectorAll('.dash-delete-btn').forEach(btn => btn.addEventListener('click', () => deleteComment(parseInt(btn.dataset.id, 10))));
+
+            hasUnsaved = false; window.setUnsavedChanges(false);
+            window.updateBottomNavigation(idx, groups.length);
+            updateStatus('saved', 'Loaded');
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('noRecordsMessage').style.display = 'none';
+        }
+
+        function markUnsaved() { hasUnsaved = true; updateStatus('unsaved', 'Unsaved changes'); window.setUnsavedChanges(true); }
+
+        async function deleteComment(id) {
+            if (!confirm('Delete this annotation permanently? This removes the record from ms_annotations.')) return;
+            const { error } = await supabase.from(TABLE).delete().eq('annotation_id', id);
+            if (error) { updateStatus('error', error.message); return; }
+            current.rows = current.rows.filter(r => r.annotation_id !== id);
+            const card = document.getElementById('card_' + id);
+            if (card) card.remove();
+            document.getElementById('groupHeading').textContent = `${current.label}  (${current.rows.length} comment${current.rows.length === 1 ? '' : 's'})`;
+            updateStatus('saved', 'Deleted');
+        }
+
+        async function persist() {
+            for (const r of current.rows) {
+                const ta = document.getElementById('c_' + r.annotation_id);
+                if (ta && ta.value !== r.comment) {
+                    await supabase.from(TABLE).update({ comment: ta.value }).eq('annotation_id', r.annotation_id);
+                    r.comment = ta.value;
+                }
+                const ratingVal = document.getElementById('rating_c_' + r.annotation_id).value;
+                if (ratingVal !== '') await saveRating(TABLE, r.annotation_id, 'comment', ratingVal);
+            }
+        }
+
+        async function autoSave() {
+            if (!hasUnsaved || busy) return;
+            await persist();
+            hasUnsaved = false; window.setUnsavedChanges(false); updateStatus('saved', 'Auto-saved');
+        }
+
+        async function approveGroup() {
+            let q = supabase.from(TABLE).update({ annotation_status_id: cfg.next_status_id }).eq('edit_id', current.edit_id);
+            if (current.kind === 'praise') q = q.eq('is_praise', true);
+            else if (current.kind === 'general') q = q.is('issue_id', null).eq('is_praise', false);
+            else q = q.eq('issue_id', current.issue_id).eq('is_praise', false);
+            const { error } = await q;
+            if (error) throw error;
+        }
+
+        async function saveAndContinue() {
+            if (busy) return; busy = true;
+            try {
+                updateStatus('loading', 'Saving...');
+                await persist();
+                await approveGroup();
+                groups.splice(idx, 1);
+                hasUnsaved = false; window.setUnsavedChanges(false);
+                if (!groups.length) { showNoRecords('All annotations reviewed.'); updateStatus('completed', 'All done'); return; }
+                if (idx >= groups.length) idx = 0;
+                await loadGroup();
+            } catch (e) { console.error(e); updateStatus('error', e.message); }
+            finally { busy = false; }
+        }
+
+        async function navigate(d) {
+            if (busy) return;
+            if (hasUnsaved && !confirm('You have unsaved changes. Continue without saving?')) return;
+            const n = idx + d;
+            if (n < 0 || n >= groups.length) return;
+            idx = n; await loadGroup();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

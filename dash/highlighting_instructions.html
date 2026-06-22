@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Highlighting Instructions</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦋</text></svg>">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="/dash/shared/styles/theme.css">
+    <link rel="stylesheet" href="/dash/shared/styles/brand.css">
+    <link rel="stylesheet" href="/dash/shared/styles/fonts.css">
+    <link rel="stylesheet" href="/dash/shared/styles/components.css">
+    <link rel="stylesheet" href="/dash/shared/styles/base.css">
+    <link rel="stylesheet" href="/dash/shared/styles/layout.css">
+    <link rel="stylesheet" href="/dash/shared/styles/buttons.css">
+    <link rel="stylesheet" href="/dash/shared/styles/forms.css">
+    <link rel="stylesheet" href="/dash/shared/styles/status.css">
+    <link rel="stylesheet" href="/dash/shared/styles/notifications.css">
+    <link rel="stylesheet" href="/dash/shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="/dash/shared/styles/missing-layout.css">
+    <link rel="stylesheet" href="/dash/shared/styles/navigation.css">
+    <link rel="stylesheet" href="/dash/shared/styles/sidebar.css">
+    <link rel="stylesheet" href="/dash/shared/styles/bottom-navigation.css">
+    <link rel="stylesheet" href="/dash/shared/styles/dash.css">
+</head>
+<body class="has-sidebar">
+    <div id="stickyStatusBar" style="position:fixed;top:0;left:280px;right:0;background:transparent;padding:4px 20px;z-index:999;display:flex;justify-content:flex-end;align-items:center;pointer-events:none;">
+        <div class="status-indicator" id="stickyStatusIndicator" style="pointer-events:auto;">Loading</div>
+    </div>
+
+    <div id="sidebarContainer"></div>
+
+    <div class="container with-sidebar" style="padding-top:30px;">
+        <div class="header">
+            <h1 class="page-title">Highlighting Instructions</h1>
+        </div>
+        <div id="content">
+            <div id="infoBox"></div>
+            <div id="issueList"></div>
+        </div>
+        <div id="noRecordsMessage" class="message" style="display:none;"></div>
+    </div>
+
+    <script src="/dash/shared/js/theme-manager.js"></script>
+    <script type="module" src="/dash/shared/js/sidebar-component.js"></script>
+    <script type="module">
+        import BottomNavigation from '/dash/shared/js/bottom-navigation.js';
+        import { supabase, loadPageConfig, applyPageTitle, loadEditInfo, renderInfoBox, updateStatus, patchRows, showNoRecords } from '/dash/shared/js/dash-utils.js';
+        import { loadRatingsForRecords, saveRatings } from '/dash/shared/js/rating-utils.js';
+
+        const PAGE = 'highlighting_instructions';
+        const TABLE = 'ms_edit_issues';
+        let cfg = null, editQueue = [], idx = 0, currentIssues = [], hasUnsaved = false, busy = false;
+
+        const bottomNav = new BottomNavigation({
+            onSave: () => saveAndContinue(),
+            onNavigate: (d) => navigate(d),
+            showAutoSave: true
+        });
+        window.updateBottomNavigation = (i, t) => bottomNav.updateNavigation(i, t);
+        window.setUnsavedChanges = (v) => bottomNav.setUnsavedChanges(v);
+
+        function autoGrow(ta) {
+            ta.style.height = 'auto';
+            ta.style.height = Math.max(parseInt(getComputedStyle(ta).minHeight) || 180, ta.scrollHeight + 6) + 'px';
+        }
+
+        async function init() {
+            try {
+                updateStatus('loading', 'Loading...');
+                cfg = await loadPageConfig(PAGE);
+                applyPageTitle(cfg);
+                // queue = distinct edits with issues at the review status
+                const { data, error } = await supabase
+                    .from('v_dash_highlighting')
+                    .select('edit_id')
+                    .eq('highlighting_instruction_status_id', cfg.display_status_id)
+                    .order('edit_id', { ascending: true });
+                if (error) throw error;
+                editQueue = [...new Set((data || []).map(r => r.edit_id))];
+                if (!editQueue.length) { showNoRecords('No highlighting instructions are at the review stage.'); updateStatus('completed', 'All done'); return; }
+                await loadEdit();
+                bottomNav.startAutoSave(autoSave);
+            } catch (e) { console.error(e); updateStatus('error', e.message); showNoRecords(e.message); }
+        }
+
+        async function loadEdit() {
+            const editId = editQueue[idx];
+            updateStatus('loading', 'Loading edit ' + editId + '...');
+            renderInfoBox('infoBox', await loadEditInfo(editId));
+
+            const { data: issues, error } = await supabase
+                .from('v_dash_highlighting')
+                .select('edit_issue_id, issue_id, issue_name, sort_order, highlighting_instructions, selection_notes')
+                .eq('edit_id', editId)
+                .eq('highlighting_instruction_status_id', cfg.display_status_id)
+                .order('sort_order', { ascending: true });
+            if (error) { updateStatus('error', error.message); return; }
+            currentIssues = issues || [];
+
+            const ids = currentIssues.map(i => i.edit_issue_id);
+            const hiR = await loadRatingsForRecords(TABLE, ids, 'highlighting_instructions');
+            const snR = await loadRatingsForRecords(TABLE, ids, 'selection_notes');
+
+            const html = currentIssues.map(i => `
+                <div class="dash-group-heading">${i.issue_name || ('Issue ' + i.issue_id)}</div>
+                ${field('hi', i.edit_issue_id, 'Highlighting Instructions', i.highlighting_instructions, hiR[i.edit_issue_id])}
+                ${field('sn', i.edit_issue_id, 'Selection Notes', i.selection_notes, snR[i.edit_issue_id])}
+            `).join('');
+            document.getElementById('issueList').innerHTML = html;
+
+            document.querySelectorAll('.dash-textarea').forEach(ta => {
+                autoGrow(ta);
+                ta.addEventListener('input', () => { autoGrow(ta); markUnsaved(); });
+            });
+            document.querySelectorAll('.dash-rating-input').forEach(inp => inp.addEventListener('input', markUnsaved));
+
+            hasUnsaved = false; window.setUnsavedChanges(false);
+            window.updateBottomNavigation(idx, editQueue.length);
+            updateStatus('saved', 'Loaded edit ' + editId);
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('noRecordsMessage').style.display = 'none';
+        }
+
+        function field(kind, id, label, value, rating) {
+            return `
+              <span class="dash-field-label">${label}</span>
+              <div class="dash-row">
+                <div class="dash-row__text">
+                  <textarea class="dash-textarea" id="${kind}_${id}">${(value || '').replace(/</g,'&lt;')}</textarea>
+                </div>
+                <div class="dash-row__side">
+                  <span class="dash-rating-label">Rating / 100</span>
+                  <input type="number" min="1" max="100" class="dash-rating-input" id="rating_${kind}_${id}" value="${rating != null ? rating : ''}">
+                </div>
+              </div>`;
+        }
+
+        function markUnsaved() { hasUnsaved = true; updateStatus('unsaved', 'Unsaved changes'); window.setUnsavedChanges(true); }
+
+        async function persist() {
+            // text fields
+            for (const i of currentIssues) {
+                const hi = document.getElementById('hi_' + i.edit_issue_id).value;
+                const sn = document.getElementById('sn_' + i.edit_issue_id).value;
+                await patchRows(TABLE, 'edit_issue_id', i.edit_issue_id, { highlighting_instructions: hi, selection_notes: sn });
+                const ratings = {};
+                const hiVal = document.getElementById('rating_hi_' + i.edit_issue_id).value;
+                const snVal = document.getElementById('rating_sn_' + i.edit_issue_id).value;
+                if (hiVal !== '') ratings.highlighting_instructions = hiVal;
+                if (snVal !== '') ratings.selection_notes = snVal;
+                if (Object.keys(ratings).length) await saveRatings(TABLE, i.edit_issue_id, ratings);
+            }
+        }
+
+        async function autoSave() {
+            if (!hasUnsaved || busy) return;
+            await persist();
+            hasUnsaved = false; window.setUnsavedChanges(false); updateStatus('saved', 'Auto-saved');
+        }
+
+        async function saveAndContinue() {
+            if (busy) return; busy = true;
+            try {
+                updateStatus('loading', 'Saving...');
+                await persist();
+                // approve this edit's reviewed issues
+                const editId = editQueue[idx];
+                for (const i of currentIssues) {
+                    await patchRows(TABLE, 'edit_issue_id', i.edit_issue_id, { highlighting_instruction_status_id: cfg.next_status_id });
+                }
+                editQueue.splice(idx, 1);
+                hasUnsaved = false; window.setUnsavedChanges(false);
+                if (!editQueue.length) { showNoRecords('All highlighting instructions reviewed.'); updateStatus('completed', 'All done'); return; }
+                if (idx >= editQueue.length) idx = 0;
+                await loadEdit();
+            } catch (e) { console.error(e); updateStatus('error', e.message); }
+            finally { busy = false; }
+        }
+
+        async function navigate(d) {
+            if (busy) return;
+            if (hasUnsaved && !confirm('You have unsaved changes. Continue without saving?')) return;
+            const n = idx + d;
+            if (n < 0 || n >= editQueue.length) return;
+            idx = n; await loadEdit();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

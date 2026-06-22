@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Prompts</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦋</text></svg>">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="/dash/shared/styles/theme.css">
+    <link rel="stylesheet" href="/dash/shared/styles/brand.css">
+    <link rel="stylesheet" href="/dash/shared/styles/fonts.css">
+    <link rel="stylesheet" href="/dash/shared/styles/components.css">
+    <link rel="stylesheet" href="/dash/shared/styles/base.css">
+    <link rel="stylesheet" href="/dash/shared/styles/layout.css">
+    <link rel="stylesheet" href="/dash/shared/styles/buttons.css">
+    <link rel="stylesheet" href="/dash/shared/styles/forms.css">
+    <link rel="stylesheet" href="/dash/shared/styles/status.css">
+    <link rel="stylesheet" href="/dash/shared/styles/notifications.css">
+    <link rel="stylesheet" href="/dash/shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="/dash/shared/styles/missing-layout.css">
+    <link rel="stylesheet" href="/dash/shared/styles/navigation.css">
+    <link rel="stylesheet" href="/dash/shared/styles/sidebar.css">
+    <link rel="stylesheet" href="/dash/shared/styles/bottom-navigation.css">
+    <link rel="stylesheet" href="/dash/shared/styles/dash.css">
+</head>
+<body class="has-sidebar">
+    <div id="stickyStatusBar" style="position:fixed;top:0;left:280px;right:0;background:transparent;padding:4px 20px;z-index:999;display:flex;justify-content:flex-end;align-items:center;pointer-events:none;">
+        <div class="status-indicator" id="stickyStatusIndicator" style="pointer-events:auto;">Loading</div>
+    </div>
+
+    <div id="sidebarContainer"></div>
+
+    <div class="container with-sidebar" style="padding-top:30px;">
+        <div class="header"><h1 class="page-title">Prompts</h1></div>
+        <p style="margin:-6px 0 18px;color:var(--color-text-muted,#777);font-size:0.85rem;">
+            Shows all active prompts (latest version of each). Save &amp; Continue saves a new version when you change the text and stays on this prompt; it does not change the status. Use the dropdown above, or Prev/Next, to move between prompts. Set the status and rating separately - they do not affect what shows here. Auto-save keeps the status and rating saved.
+        </p>
+        <div class="dash-jump" style="margin-bottom:14px;">
+            <label class="dash-rating-label" for="jumpSelect" style="margin-right:8px;">Jump to:</label>
+            <select id="jumpSelect" class="input" style="min-width:360px;max-width:100%;"></select>
+        </div>
+        <div id="content">
+            <div id="infoBox"></div>
+            <div id="promptList"></div>
+        </div>
+        <div id="noRecordsMessage" class="message" style="display:none;"></div>
+    </div>
+
+    <script src="/dash/shared/js/theme-manager.js"></script>
+    <script type="module" src="/dash/shared/js/sidebar-component.js"></script>
+    <script type="module">
+        import BottomNavigation from '/dash/shared/js/bottom-navigation.js';
+        import { supabase, loadPageConfig, applyPageTitle, updateStatus, patchRows, showNoRecords } from '/dash/shared/js/dash-utils.js';
+        import { loadRatingsForRecords, saveRating } from '/dash/shared/js/rating-utils.js';
+
+        const PAGE = 'prompts';
+        const VIEW = 'v_dash_prompts_current';
+        // Display order of the calls within a workflow: main first, then the letter call.
+        const LABEL_ORDER = { main: 0, letter: 1 };
+        // The single content field a prompt version is rated under.
+        const RATING_FIELD = 'system_prompt';
+        const AUTO_SAVE_MS = 10000;
+
+        // From config_dash: content_table_name (= prompt_versions), id_field_name (= prompt_version_id),
+        //   status_field_name (= prompt_version_status_id), group_by_field (= n8n_workflow_id).
+        // Display is filtered by prompts.is_active (not by status). Save & Continue does not change status.
+        let cfg = null, statuses = [], wfQueue = [], idx = 0, currentPrompts = [], allPrompts = [];
+        let textDirty = false, metaDirty = false, busy = false, autoTimer = null;
+
+        // Save & Continue and Ctrl+S route to commit(); we run our own auto-save timer (not the
+        // component's), so an auto-save never clears the text-unsaved warning or makes a version.
+        const bottomNav = new BottomNavigation({ onSave: () => commit(), onNavigate: (d) => navigate(d), showAutoSave: true });
+        window.updateBottomNavigation = (i, t) => bottomNav.updateNavigation(i, t);
+
+        const esc = (s) => (s || '').replace(/</g, '&lt;');
+        const labelKey = (l) => (LABEL_ORDER[l] != null ? LABEL_ORDER[l] : 99);
+        const val = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+        function autoGrow(ta) { const sy = window.scrollY; ta.style.height = 'auto'; ta.style.height = Math.max(parseInt(getComputedStyle(ta).minHeight) || 140, ta.scrollHeight + 6) + 'px'; if (window.scrollY !== sy) window.scrollTo(0, sy); }
+
+        async function init() {
+            try {
+                updateStatus('loading', 'Loading...');
+                cfg = await loadPageConfig(PAGE);
+                applyPageTitle(cfg);
+
+                const { data: st } = await supabase
+                    .from('prompt_version_statuses')
+                    .select('prompt_version_status_id, prompt_version_status')
+                    .order('prompt_version_status_id');
+                statuses = (st || []).map(s => ({ id: s.prompt_version_status_id, label: s.prompt_version_status }));
+
+                // Show every active prompt (is_active on the header), regardless of version status.
+                const { data, error } = await supabase
+                    .from(VIEW)
+                    .select('prompt_id, n8n_workflow_id, workflow_code, prompt_name, n8n_workflow_prompt_label')
+                    .eq('is_active', true)
+                    .order(cfg.group_by_field, { ascending: true });
+                if (error) throw error;
+                allPrompts = (data || []).sort((a, b) => (a.n8n_workflow_id - b.n8n_workflow_id) || (labelKey(a.n8n_workflow_prompt_label) - labelKey(b.n8n_workflow_prompt_label)));
+                wfQueue = [...new Set(allPrompts.map(r => r[cfg.group_by_field]))];
+                if (!wfQueue.length) { showNoRecords('No active prompts.'); updateStatus('completed', 'Nothing to show'); return; }
+                buildJump();
+
+                await loadWorkflow();
+                autoTimer = setInterval(autoSave, AUTO_SAVE_MS);
+            } catch (e) { console.error(e); updateStatus('error', e.message); showNoRecords(e.message); }
+        }
+
+        async function loadWorkflow() {
+            const wf = wfQueue[idx];
+            updateStatus('loading', 'Loading workflow ' + wf + '...');
+
+            // Every active call for this workflow (main, plus the letter call on ED12), latest version of each.
+            const { data: prompts, error } = await supabase
+                .from(VIEW)
+                .select('prompt_id, prompt_version_id, n8n_workflow_id, workflow_code, prompt_name, n8n_workflow_prompt_label, system_prompt, user_prompt, prompt_version_status_id, version_number, model_name, is_active')
+                .eq(cfg.group_by_field, wf)
+                .eq('is_active', true);
+            if (error) { updateStatus('error', error.message); return; }
+            currentPrompts = (prompts || []).sort((a, b) => labelKey(a.n8n_workflow_prompt_label) - labelKey(b.n8n_workflow_prompt_label));
+            // Remember the loaded text so we only make a version when it actually changes.
+            currentPrompts.forEach(p => { p._sys0 = p.system_prompt || ''; p._usr0 = p.user_prompt || ''; });
+
+            renderInfoBox(currentPrompts[0], currentPrompts.length);
+
+            const versionIds = currentPrompts.map(p => p.prompt_version_id).filter(v => v != null);
+            const ratings = versionIds.length ? await loadRatingsForRecords(cfg.content_table_name, versionIds, RATING_FIELD) : {};
+
+            document.getElementById('promptList').innerHTML = currentPrompts.map(p => {
+                const model = p.model_name || 'Default model';
+                const ver = p.version_number != null ? p.version_number : '-';
+                const heading = `${esc(p.workflow_code || '')} &middot; ${esc(p.n8n_workflow_prompt_label || 'main')} &middot; ${esc(p.prompt_name || '')} (v${ver}) &middot; ${esc(model)}`;
+                const statusOptions = statuses.map(s => `<option value="${s.id}" ${s.id === p.prompt_version_status_id ? 'selected' : ''}>${esc(s.label)}</option>`).join('');
+                const rating = (p.prompt_version_id != null && ratings[p.prompt_version_id] != null) ? ratings[p.prompt_version_id] : '';
+                return `
+                  <div class="dash-group-heading">${heading}</div>
+                  <div class="dash-row">
+                    <div class="dash-row__text">
+                      <label class="dash-rating-label">System prompt</label>
+                      <textarea class="dash-textarea" id="psys_${p.prompt_id}" style="min-height:260px;">${esc(p.system_prompt)}</textarea>
+                      <label class="dash-rating-label" style="margin-top:14px;">User prompt</label>
+                      <textarea class="dash-textarea" id="pusr_${p.prompt_id}" style="min-height:140px;">${esc(p.user_prompt)}</textarea>
+                    </div>
+                    <div class="dash-row__side">
+                      <span class="dash-rating-label">Rating / 100</span>
+                      <input type="number" min="1" max="100" class="dash-rating-input" id="prating_${p.prompt_id}" value="${rating}">
+                      <span class="dash-rating-label" style="margin-top:10px;">Status</span>
+                      <select id="pstatus_${p.prompt_id}" class="input" style="width:210px;">${statusOptions}</select>
+                    </div>
+                  </div>`;
+            }).join('');
+
+            document.querySelectorAll('.dash-textarea').forEach(ta => { autoGrow(ta); ta.addEventListener('input', () => { autoGrow(ta); markText(); }); });
+            document.querySelectorAll('.dash-rating-input').forEach(inp => inp.addEventListener('input', markMeta));
+            document.querySelectorAll('select[id^="pstatus_"]').forEach(sel => sel.addEventListener('change', markMeta));
+
+            textDirty = false; metaDirty = false; bottomNav.setUnsavedChanges(false);
+            const js = document.getElementById('jumpSelect');
+            if (js && currentPrompts[0]) js.value = `${wfQueue[idx]}::${currentPrompts[0].prompt_id}`;
+            window.updateBottomNavigation(idx, wfQueue.length);
+            updateStatus('saved', 'Loaded workflow ' + wf);
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('noRecordsMessage').style.display = 'none';
+        }
+
+        function renderInfoBox(sample, count) {
+            const wfLabel = (sample && sample.workflow_code) || ('WF' + wfQueue[idx]);
+            const items = [['Workflow', wfLabel], ['Workflow ID', wfQueue[idx]], ['Calls', count]];
+            document.getElementById('infoBox').innerHTML = `
+              <div class="dash-info-box">
+                ${items.map(([l, v]) => `<div class="dash-info-item"><span class="dash-info-label">${l}</span><span class="dash-info-value">${esc(String(v))}</span></div>`).join('')}
+              </div>`;
+        }
+
+        function markText() { textDirty = true; bottomNav.setUnsavedChanges(true); updateStatus('unsaved', 'Unsaved text - press Save & Continue to make a version'); }
+        function markMeta() { metaDirty = true; bottomNav.setUnsavedChanges(true); updateStatus('unsaved', 'Unsaved changes'); }
+
+        // Save status + rating on the CURRENT version, in place. Never touches text, never makes a version.
+        async function saveMeta() {
+            for (const p of currentPrompts) {
+                if (p.prompt_version_id == null) continue;
+                const status = parseInt(val('pstatus_' + p.prompt_id), 10);
+                if (status && status !== p.prompt_version_status_id) {
+                    await patchRows(cfg.content_table_name, cfg.id_field_name, p.prompt_version_id, { [cfg.status_field_name]: status });
+                    p.prompt_version_status_id = status;
+                }
+                const rv = val('prating_' + p.prompt_id);
+                if (rv !== '') await saveRating(cfg.content_table_name, p.prompt_version_id, RATING_FIELD, rv);
+            }
+        }
+
+        // Auto-save timer: status + rating only. Leaves the text-unsaved warning in place.
+        async function autoSave() {
+            if (busy || !metaDirty) return;
+            busy = true;
+            try {
+                await saveMeta();
+                metaDirty = false;
+                bottomNav.setUnsavedChanges(textDirty); // stays flagged if text is still unsaved
+                bottomNav.updateAutoSaveStatus('saved', 'Auto-saved');
+                if (!textDirty) updateStatus('saved', 'Auto-saved (status + rating)');
+                setTimeout(() => bottomNav.updateAutoSaveStatus('ready', 'Auto-save: Ready'), 2000);
+            } catch (e) { console.error(e); bottomNav.updateAutoSaveStatus('error', 'Auto-save failed'); }
+            finally { busy = false; }
+        }
+
+        // Save & Continue / Ctrl+S: saves a new version when the text changed. Does NOT change status.
+        async function commit() {
+            if (busy) return; busy = true;
+            try {
+                updateStatus('loading', 'Saving...');
+                for (const p of currentPrompts) {
+                    const sys = val('psys_' + p.prompt_id), usr = val('pusr_' + p.prompt_id);
+                    const status = parseInt(val('pstatus_' + p.prompt_id), 10) || p.prompt_version_status_id || cfg.display_status_id;
+                    const rv = val('prating_' + p.prompt_id);
+                    const textChanged = (sys !== p._sys0) || (usr !== p._usr0);
+                    let versionId = p.prompt_version_id;
+
+                    if (versionId == null && !sys && !usr) {
+                        // empty stub (e.g. ED07 with no prompt written yet) - nothing to save
+                    } else if (textChanged || versionId == null) {
+                        // new content -> save a new version (the trigger numbers it and supersedes the old one;
+                        // a separate trigger carries the previous version's rating across). Status is kept as-is.
+                        const { data: ins, error } = await supabase
+                            .from('prompt_versions')
+                            .insert({ prompt_id: p.prompt_id, system_prompt: sys, user_prompt: usr, prompt_version_status_id: status })
+                            .select('prompt_version_id, version_number')
+                            .single();
+                        if (error) throw error;
+                        versionId = ins.prompt_version_id;
+                        p.prompt_version_id = versionId; p.version_number = ins.version_number;
+                        p.prompt_version_status_id = status; p._sys0 = sys; p._usr0 = usr;
+                    } else if (status !== p.prompt_version_status_id) {
+                        // text unchanged -> just save the chosen status on the current version
+                        await patchRows(cfg.content_table_name, cfg.id_field_name, versionId, { [cfg.status_field_name]: status });
+                        p.prompt_version_status_id = status;
+                    }
+                    if (rv !== '' && versionId != null) await saveRating(cfg.content_table_name, versionId, RATING_FIELD, rv);
+                }
+                textDirty = false; metaDirty = false; bottomNav.setUnsavedChanges(false);
+
+                // Stay on the current prompt; reload so the new version number and heading refresh.
+                await loadWorkflow();
+            } catch (e) { console.error(e); updateStatus('error', e.message); }
+            finally { busy = false; }
+        }
+
+        // Build the "Jump to" dropdown: one option per active call, e.g. "ED04 - Character Amalgamation - Main".
+        function buildJump() {
+            const sel = document.getElementById('jumpSelect');
+            if (!sel) return;
+            const cap = (s) => (s || 'main').replace(/\b\w/g, c => c.toUpperCase());
+            sel.innerHTML = allPrompts.map(p => {
+                const label = `${p.workflow_code || ('WF' + p.n8n_workflow_id)} - ${p.prompt_name || ''} - ${cap(p.n8n_workflow_prompt_label)}`;
+                return `<option value="${p.n8n_workflow_id}::${p.prompt_id}">${esc(label)}</option>`;
+            }).join('');
+            sel.onchange = onJump;
+        }
+
+        async function onJump(e) {
+            if (busy) return;
+            const parts = String(e.target.value).split('::');
+            const wfId = parseInt(parts[0], 10), promptId = parts[1];
+            const ni = wfQueue.indexOf(wfId);
+            if (ni < 0) return;
+            idx = ni;
+            await loadWorkflow();
+            const el = document.getElementById('psys_' + promptId);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        async function navigate(d) {
+            if (busy) return;
+            const n = idx + d;
+            if (n < 0 || n >= wfQueue.length) return;
+            idx = n; await loadWorkflow();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+# Keep the Editing Dash out of search engines
+User-agent: *
+Disallow: /dash/

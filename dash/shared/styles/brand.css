@@ -1,0 +1,33 @@
+/*
+ * Editing Dash brand overrides - the ONE place to change Dash branding.
+ * Loaded AFTER theme.css so these win. theme.css stays the shared base;
+ * this file is the only stylesheet that differs between sites.
+ * Change a value here and it changes across every Dash page.
+ */
+:root {
+    /* Editing brand: deep indigo -> blue. Change these to re-skin everything. */
+    --gradient-primary: linear-gradient(to right, rgba(59, 91, 219, 1) 0%, rgba(99, 71, 214, 1) 100%);
+    --gradient-primary-light: linear-gradient(to right, rgba(59, 91, 219, 0.1) 0%, rgba(99, 71, 214, 0.1) 100%);
+    --gradient-primary-lighter: linear-gradient(to right, rgba(59, 91, 219, 0.05) 0%, rgba(99, 71, 214, 0.05) 100%);
+
+    --color-primary: #3b5bdb;
+    --color-primary-light: rgba(59, 91, 219, 0.1);
+    --color-primary-dark: #2f49b0;
+
+    --color-gradient-start: rgba(59, 91, 219, 1);
+    --color-gradient-end: rgba(99, 71, 214, 1);
+
+    --shadow-hover: 0 8px 20px rgba(59, 91, 219, 0.35);
+
+    /* One place to control editor text-area sizing across all Dash pages */
+    --editor-textarea-min-height: 180px;
+
+    /* Typography overrides for the Dash (font sizes) */
+    --font-xs: 13px;
+    --font-sm: 15px;
+    --font-base: 18px;
+    --font-lg: 20px;
+
+    /* Base font colour = black. Other text colours left as the theme defaults. */
+    --text-primary: #000000;
+}

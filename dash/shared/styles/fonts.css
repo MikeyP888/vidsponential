@@ -1,0 +1,31 @@
+/* Google Fonts - Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* MASTER FONT OVERRIDE - Force Tahoma for ALL text inputs */
+textarea,
+input[type="text"],
+input[type="number"],
+.chapter-ti-7a2807fb2c20,
+.chapter-ou-7a2807fb2c18,
+.text-field-single__input,
+.text-field-multi__input,
+.rating-field__input {
+    font-family: "Tahoma", sans-serif !important;
+}
+
+/* FIX: Remove extra space after last line in multi-line text fields */
+.text-field-multi__input,
+.chapter-ou-7a2807fb2c18 {
+    /* Restore line-height to 1.6 as requested */
+    line-height: 1.6 !important;
+    /* Try to eliminate extra space after last line */
+    display: block !important;
+    vertical-align: top !important;
+    /* Use padding adjustment to compensate for line-height bottom space */
+    padding: 18px 18px 6px 18px !important; /* top, right, bottom, left */
+}
+
+/* Fallback to system fonts if Google Fonts fails */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Tahoma', 'Helvetica', 'Arial', sans-serif;
+}
