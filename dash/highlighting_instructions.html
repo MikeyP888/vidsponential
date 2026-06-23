@@ -25,6 +25,20 @@
     <link rel="stylesheet" href="/dash/shared/styles/sidebar.css">
     <link rel="stylesheet" href="/dash/shared/styles/bottom-navigation.css">
     <link rel="stylesheet" href="/dash/shared/styles/dash.css">
+    <style>
+        .hi-fullwidth { width: 100%; }
+        .hi-rating-row { display: flex; align-items: center; gap: 10px; margin: 6px 0 18px; }
+        .hi-examples { margin-bottom: 8px; }
+        .hi-example { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--border-color, #ddd); border-radius: 8px; }
+        .hi-example__fields { flex: 1; }
+        .hi-example__fields .dash-textarea { width: 100%; }
+        .hi-example .ex-passage { min-height: 70px; }
+        .hi-example .ex-why { min-height: 48px; }
+        .hi-add-example { display: inline-block; margin: 2px 0 20px; padding: 6px 12px; font-size: 13px; cursor: pointer; background: var(--accent-color, #2d6cdf); color: #fff; border: none; border-radius: 6px; }
+        .hi-add-example:hover { opacity: 0.9; }
+        .hi-remove-example { background: none; border: none; color: var(--danger-color, #c0392b); cursor: pointer; font-size: 12px; padding: 4px; white-space: nowrap; }
+        .hi-sub-label { display: block; font-size: 12px; opacity: 0.7; margin: 4px 0 2px; }
+    </style>
 </head>
 <body class="has-sidebar">
     <div id="stickyStatusBar" style="position:fixed;top:0;left:280px;right:0;background:transparent;padding:4px 20px;z-index:999;display:flex;justify-content:flex-end;align-items:center;pointer-events:none;">
@@ -53,6 +67,7 @@
 
         const PAGE = 'highlighting_instructions';
         const TABLE = 'ms_edit_issues';
+        const MAX_EXAMPLES = 2;
         let cfg = null, editQueue = [], idx = 0, currentIssues = [], hasUnsaved = false, busy = false;
 
         const bottomNav = new BottomNavigation({
@@ -63,9 +78,31 @@
         window.updateBottomNavigation = (i, t) => bottomNav.updateNavigation(i, t);
         window.setUnsavedChanges = (v) => bottomNav.setUnsavedChanges(v);
 
+        const esc = (s) => (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
         function autoGrow(ta) {
             ta.style.height = 'auto';
-            ta.style.height = Math.max(parseInt(getComputedStyle(ta).minHeight) || 180, ta.scrollHeight + 6) + 'px';
+            ta.style.height = Math.max(parseInt(getComputedStyle(ta).minHeight) || 100, ta.scrollHeight + 6) + 'px';
+        }
+
+        // The highlighting_instructions column holds JSON text:
+        // { what_it_is, how_to_spot_it, examples: [{ passage, why }] }
+        function parseHI(value) {
+            const out = { what_it_is: '', how_to_spot_it: '', examples: [] };
+            if (!value) return out;
+            let obj = null;
+            try { obj = JSON.parse(value); } catch (e) { obj = null; }
+            if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+                out.what_it_is = obj.what_it_is || '';
+                out.how_to_spot_it = obj.how_to_spot_it || '';
+                if (Array.isArray(obj.examples)) {
+                    out.examples = obj.examples.map(e => ({ passage: (e && e.passage) || '', why: (e && e.why) || '' }));
+                }
+            } else {
+                // Legacy plain text: keep it visible under What it is so it can be migrated
+                out.what_it_is = String(value);
+            }
+            return out;
         }
 
         async function init() {
@@ -73,7 +110,6 @@
                 updateStatus('loading', 'Loading...');
                 cfg = await loadPageConfig(PAGE);
                 applyPageTitle(cfg);
-                // queue = distinct edits with issues at the review status
                 const { data, error } = await supabase
                     .from('v_dash_highlighting')
                     .select('edit_id')
@@ -105,18 +141,16 @@
             const hiR = await loadRatingsForRecords(TABLE, ids, 'highlighting_instructions');
             const snR = await loadRatingsForRecords(TABLE, ids, 'selection_notes');
 
-            const html = currentIssues.map(i => `
-                <div class="dash-group-heading">${i.issue_name || ('Issue ' + i.issue_id)}</div>
-                ${field('hi', i.edit_issue_id, 'Highlighting Instructions', i.highlighting_instructions, hiR[i.edit_issue_id])}
-                ${field('sn', i.edit_issue_id, 'Selection Notes', i.selection_notes, snR[i.edit_issue_id])}
-            `).join('');
-            document.getElementById('issueList').innerHTML = html;
+            document.getElementById('issueList').innerHTML = currentIssues
+                .map(i => buildIssueBlock(i, hiR[i.edit_issue_id], snR[i.edit_issue_id]))
+                .join('');
 
             document.querySelectorAll('.dash-textarea').forEach(ta => {
                 autoGrow(ta);
                 ta.addEventListener('input', () => { autoGrow(ta); markUnsaved(); });
             });
             document.querySelectorAll('.dash-rating-input').forEach(inp => inp.addEventListener('input', markUnsaved));
+            currentIssues.forEach(i => refreshAddButton(i.edit_issue_id));
 
             hasUnsaved = false; window.setUnsavedChanges(false);
             window.updateBottomNavigation(idx, editQueue.length);
@@ -125,12 +159,52 @@
             document.getElementById('noRecordsMessage').style.display = 'none';
         }
 
+        function buildIssueBlock(i, hiRating, snRating) {
+            const hi = parseHI(i.highlighting_instructions);
+            const id = i.edit_issue_id;
+            return `
+              <div class="dash-group-heading">${esc(i.issue_name || ('Issue ' + i.issue_id))}</div>
+
+              <span class="dash-field-label">What it is</span>
+              <textarea class="dash-textarea hi-fullwidth" id="whatitis_${id}">${esc(hi.what_it_is)}</textarea>
+
+              <span class="dash-field-label">How to spot it</span>
+              <textarea class="dash-textarea hi-fullwidth" id="howtospot_${id}">${esc(hi.how_to_spot_it)}</textarea>
+
+              <div class="hi-rating-row">
+                <span class="dash-rating-label">Instruction rating / 100 (What it is + How to spot it)</span>
+                <input type="number" min="1" max="100" class="dash-rating-input" id="rating_hi_${id}" value="${hiRating != null ? hiRating : ''}">
+              </div>
+
+              <span class="dash-field-label">Examples from this manuscript (max ${MAX_EXAMPLES})</span>
+              <div class="hi-examples" id="examples_${id}" data-issue="${id}">
+                ${hi.examples.slice(0, MAX_EXAMPLES).map(ex => exampleRow(ex)).join('')}
+              </div>
+              <button type="button" class="hi-add-example" data-add-example="${id}" id="addex_${id}">+ Add example</button>
+
+              ${field('sn', id, 'Selection Notes', i.selection_notes, snRating)}
+            `;
+        }
+
+        function exampleRow(ex) {
+            return `
+              <div class="hi-example">
+                <div class="hi-example__fields">
+                  <span class="hi-sub-label">Passage</span>
+                  <textarea class="dash-textarea ex-passage">${esc(ex.passage)}</textarea>
+                  <span class="hi-sub-label">Why it is an example</span>
+                  <textarea class="dash-textarea ex-why">${esc(ex.why)}</textarea>
+                </div>
+                <button type="button" class="hi-remove-example" data-remove-example>Remove</button>
+              </div>`;
+        }
+
         function field(kind, id, label, value, rating) {
             return `
               <span class="dash-field-label">${label}</span>
               <div class="dash-row">
                 <div class="dash-row__text">
-                  <textarea class="dash-textarea" id="${kind}_${id}">${(value || '').replace(/</g,'&lt;')}</textarea>
+                  <textarea class="dash-textarea" id="${kind}_${id}">${esc(value)}</textarea>
                 </div>
                 <div class="dash-row__side">
                   <span class="dash-rating-label">Rating / 100</span>
@@ -139,20 +213,72 @@
               </div>`;
         }
 
+        function refreshAddButton(id) {
+            const container = document.getElementById('examples_' + id);
+            const btn = document.getElementById('addex_' + id);
+            if (!container || !btn) return;
+            btn.style.display = container.querySelectorAll('.hi-example').length >= MAX_EXAMPLES ? 'none' : '';
+        }
+
+        // Add / remove example rows (event delegation)
+        document.getElementById('issueList').addEventListener('click', (e) => {
+            const addBtn = e.target.closest('[data-add-example]');
+            if (addBtn) {
+                const id = addBtn.getAttribute('data-add-example');
+                const container = document.getElementById('examples_' + id);
+                if (container.querySelectorAll('.hi-example').length >= MAX_EXAMPLES) return;
+                container.insertAdjacentHTML('beforeend', exampleRow({ passage: '', why: '' }));
+                container.lastElementChild.querySelectorAll('.dash-textarea').forEach(ta => {
+                    autoGrow(ta);
+                    ta.addEventListener('input', () => { autoGrow(ta); markUnsaved(); });
+                });
+                refreshAddButton(id); markUnsaved();
+                return;
+            }
+            const rmBtn = e.target.closest('[data-remove-example]');
+            if (rmBtn) {
+                const row = rmBtn.closest('.hi-example');
+                const container = row.closest('.hi-examples');
+                const id = container.getAttribute('data-issue');
+                row.remove();
+                refreshAddButton(id); markUnsaved();
+            }
+        });
+
+        function collectHI(id) {
+            const container = document.getElementById('examples_' + id);
+            const examples = [];
+            if (container) {
+                container.querySelectorAll('.hi-example').forEach(row => {
+                    const passage = row.querySelector('.ex-passage').value.trim();
+                    const why = row.querySelector('.ex-why').value.trim();
+                    if (passage || why) examples.push({ passage, why });
+                });
+            }
+            return {
+                what_it_is: document.getElementById('whatitis_' + id).value,
+                how_to_spot_it: document.getElementById('howtospot_' + id).value,
+                examples
+            };
+        }
+
         function markUnsaved() { hasUnsaved = true; updateStatus('unsaved', 'Unsaved changes'); window.setUnsavedChanges(true); }
 
         async function persist() {
-            // text fields
             for (const i of currentIssues) {
-                const hi = document.getElementById('hi_' + i.edit_issue_id).value;
-                const sn = document.getElementById('sn_' + i.edit_issue_id).value;
-                await patchRows(TABLE, 'edit_issue_id', i.edit_issue_id, { highlighting_instructions: hi, selection_notes: sn });
+                const id = i.edit_issue_id;
+                const hiObj = collectHI(id);
+                const sn = document.getElementById('sn_' + id).value;
+                await patchRows(TABLE, 'edit_issue_id', id, {
+                    highlighting_instructions: JSON.stringify(hiObj),
+                    selection_notes: sn
+                });
                 const ratings = {};
-                const hiVal = document.getElementById('rating_hi_' + i.edit_issue_id).value;
-                const snVal = document.getElementById('rating_sn_' + i.edit_issue_id).value;
+                const hiVal = document.getElementById('rating_hi_' + id).value;
+                const snVal = document.getElementById('rating_sn_' + id).value;
                 if (hiVal !== '') ratings.highlighting_instructions = hiVal;
                 if (snVal !== '') ratings.selection_notes = snVal;
-                if (Object.keys(ratings).length) await saveRatings(TABLE, i.edit_issue_id, ratings);
+                if (Object.keys(ratings).length) await saveRatings(TABLE, id, ratings);
             }
         }
 
@@ -167,7 +293,6 @@
             try {
                 updateStatus('loading', 'Saving...');
                 await persist();
-                // approve this edit's reviewed issues
                 const editId = editQueue[idx];
                 for (const i of currentIssues) {
                     await patchRows(TABLE, 'edit_issue_id', i.edit_issue_id, { highlighting_instruction_status_id: cfg.next_status_id });
