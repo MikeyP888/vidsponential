@@ -48,8 +48,13 @@
     <div id="sidebarContainer"></div>
 
     <div class="container with-sidebar" style="padding-top:30px;">
-        <div class="header">
-            <h1 class="page-title">Highlighting Instructions Bank</h1>
+        <div class="header"><h1 class="page-title">Highlighting Instructions Bank</h1></div>
+        <p style="margin:-6px 0 18px;color:var(--color-text-muted,#777);font-size:0.85rem;">
+            The generic, reusable highlighting instruction per issue. Shows every issue. Use the dropdown or Prev/Next to move between them. Save &amp; Continue saves the text, status, and rating and stays on the issue; auto-save keeps the status and rating saved. The sidebar dot counts issues at the Review status.
+        </p>
+        <div class="dash-jump" style="margin-bottom:14px;">
+            <label class="dash-rating-label" for="jumpSelect" style="margin-right:8px;">Jump to:</label>
+            <select id="jumpSelect" class="input" style="min-width:360px;max-width:100%;"></select>
         </div>
         <div id="content">
             <div id="issueList"></div>
@@ -62,34 +67,27 @@
     <script type="module">
         import BottomNavigation from '/dash/shared/js/bottom-navigation.js';
         import { supabase, loadPageConfig, applyPageTitle, updateStatus, patchRows, showNoRecords } from '/dash/shared/js/dash-utils.js';
-        import { loadRatingsForRecords, saveRatings } from '/dash/shared/js/rating-utils.js';
+        import { loadRatingsForRecords, saveRating } from '/dash/shared/js/rating-utils.js';
 
-        // Bank version of the highlighting instructions page: reads ms_issues (the generic, reusable
-        // instruction per issue). Same editor as the per-edit page, minus the per-edit info box and
-        // Selection Notes. ms_issues.highlighting_instructions is JSONB, so we read/write the object directly.
+        // Bank editor for ms_issues.highlighting_instructions (JSONB). Same shape as the prompts page:
+        // shows every issue, one per page, with a jump dropdown, Prev/Next, a Status dropdown and a rating.
+        // Nothing is filtered by status; the sidebar red dot still counts issues at display_status_id.
         const PAGE = 'issue_highlighting_instructions';
         const TABLE = 'ms_issues';
+        const RATING_FIELD = 'highlighting_instructions';
         const MAX_EXAMPLES = 2;
-        let cfg = null, currentIssues = [], hasUnsaved = false, busy = false;
+        const AUTO_SAVE_MS = 10000;
 
-        const bottomNav = new BottomNavigation({
-            onSave: () => saveAndContinue(),
-            onNavigate: () => {},
-            showAutoSave: true
-        });
+        let cfg = null, statuses = [], allIssues = [], idx = 0, ratingCache = {};
+        let textDirty = false, metaDirty = false, busy = false, autoTimer = null;
+
+        const bottomNav = new BottomNavigation({ onSave: () => commit(), onNavigate: (d) => navigate(d), showAutoSave: true });
         window.updateBottomNavigation = (i, t) => bottomNav.updateNavigation(i, t);
-        window.setUnsavedChanges = (v) => bottomNav.setUnsavedChanges(v);
 
         const esc = (s) => (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const val = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+        function autoGrow(ta) { const sy = window.scrollY; ta.style.height = 'auto'; ta.style.height = Math.max(parseInt(getComputedStyle(ta).minHeight) || 120, ta.scrollHeight + 6) + 'px'; if (window.scrollY !== sy) window.scrollTo(0, sy); }
 
-        function autoGrow(ta) {
-            const sy = window.scrollY;
-            ta.style.height = 'auto';
-            ta.style.height = Math.max(parseInt(getComputedStyle(ta).minHeight) || 120, ta.scrollHeight + 6) + 'px';
-            if (window.scrollY !== sy) window.scrollTo(0, sy);
-        }
-
-        // highlighting_instructions is JSONB here, so the value arrives as an object (not a string)
         function parseHI(value) {
             const out = { what_it_is: '', how_to_spot_it: '', examples: [] };
             if (!value) return out;
@@ -112,48 +110,39 @@
                 updateStatus('loading', 'Loading...');
                 cfg = await loadPageConfig(PAGE);
                 applyPageTitle(cfg);
-                await load();
-                bottomNav.startAutoSave(autoSave);
+
+                const { data: st } = await supabase
+                    .from('ms_highlighting_instruction_statuses')
+                    .select('highlighting_instruction_status_id, highlighting_instruction_status')
+                    .order('highlighting_instruction_status_id');
+                statuses = (st || []).map(s => ({ id: s.highlighting_instruction_status_id, label: s.highlighting_instruction_status }));
+
+                const { data, error } = await supabase
+                    .from('v_dash_issue_highlighting')
+                    .select('issue_id, issue_name, highlighting_instructions, highlighting_instruction_status_id')
+                    .order('issue_id', { ascending: true });
+                if (error) throw error;
+                allIssues = data || [];
+                if (!allIssues.length) { showNoRecords('No issues found.'); updateStatus('completed', 'Nothing to show'); return; }
+
+                const ratings = await loadRatingsForRecords(TABLE, allIssues.map(i => i.issue_id), RATING_FIELD);
+                ratingCache = ratings || {};
+
+                buildJump();
+                loadIssue();
+                autoTimer = setInterval(autoSave, AUTO_SAVE_MS);
             } catch (e) { console.error(e); updateStatus('error', e.message); showNoRecords(e.message); }
         }
 
-        async function load() {
-            const { data: issues, error } = await supabase
-                .from('v_dash_issue_highlighting')
-                .select('issue_id, issue_name, highlighting_instructions, highlighting_instruction_status_id')
-                .eq('highlighting_instruction_status_id', cfg.display_status_id)
-                .order('issue_id', { ascending: true });
-            if (error) { updateStatus('error', error.message); showNoRecords(error.message); return; }
-            currentIssues = issues || [];
-            if (!currentIssues.length) { showNoRecords('No bank instructions are at the review stage.'); updateStatus('completed', 'All done'); return; }
+        function loadIssue() {
+            const cur = allIssues[idx];
+            const id = cur.issue_id;
+            const hi = parseHI(cur.highlighting_instructions);
+            const rating = ratingCache[id] != null ? ratingCache[id] : '';
+            const statusOptions = statuses.map(s => `<option value="${s.id}" ${s.id === cur.highlighting_instruction_status_id ? 'selected' : ''}>${esc(s.label)}</option>`).join('');
 
-            const ids = currentIssues.map(i => i.issue_id);
-            const hiR = await loadRatingsForRecords(TABLE, ids, 'highlighting_instructions');
-
-            document.getElementById('issueList').innerHTML = currentIssues
-                .map(i => buildIssueBlock(i, hiR[i.issue_id]))
-                .join('');
-
-            document.querySelectorAll('.dash-textarea').forEach(ta => {
-                autoGrow(ta);
-                ta.addEventListener('input', () => { autoGrow(ta); markUnsaved(); });
-            });
-            document.querySelectorAll('.dash-rating-input').forEach(inp => inp.addEventListener('input', markUnsaved));
-            currentIssues.forEach(i => refreshAddButton(i.issue_id));
-
-            hasUnsaved = false; window.setUnsavedChanges(false);
-            window.updateBottomNavigation(0, 1);
-            updateStatus('saved', 'Loaded ' + currentIssues.length + ' bank instructions');
-            document.getElementById('content').style.display = 'block';
-            document.getElementById('noRecordsMessage').style.display = 'none';
-        }
-
-        function buildIssueBlock(i, hiRating) {
-            const hi = parseHI(i.highlighting_instructions);
-            const id = i.issue_id;
-            return `
-              <div class="dash-group-heading">${esc(i.issue_name || ('Issue ' + i.issue_id))}</div>
-
+            document.getElementById('issueList').innerHTML = `
+              <div class="dash-group-heading">${esc(cur.issue_id + ' - ' + (cur.issue_name || ('Issue ' + cur.issue_id)))}</div>
               <div class="dash-row">
                 <div class="dash-row__text">
                   <span class="hi-sub-label">What it is</span>
@@ -163,7 +152,9 @@
                 </div>
                 <div class="dash-row__side">
                   <span class="dash-rating-label">Rating / 100</span>
-                  <input type="number" min="1" max="100" class="dash-rating-input" id="rating_hi_${id}" value="${hiRating != null ? hiRating : ''}">
+                  <input type="number" min="1" max="100" class="dash-rating-input" id="rating_hi_${id}" value="${rating}">
+                  <span class="dash-rating-label" style="margin-top:10px;">Status</span>
+                  <select id="status_${id}" class="input" style="width:210px;">${statusOptions}</select>
                 </div>
               </div>
 
@@ -173,6 +164,19 @@
               </div>
               <button type="button" class="hi-add-example" data-add-example="${id}" id="addex_${id}">+ Add example</button>
             `;
+
+            document.querySelectorAll('.dash-textarea').forEach(ta => { autoGrow(ta); ta.addEventListener('input', () => { autoGrow(ta); markText(); }); });
+            document.querySelectorAll('.dash-rating-input').forEach(inp => inp.addEventListener('input', markMeta));
+            document.querySelectorAll('select[id^="status_"]').forEach(sel => sel.addEventListener('change', markMeta));
+            refreshAddButton(id);
+
+            textDirty = false; metaDirty = false; bottomNav.setUnsavedChanges(false);
+            const js = document.getElementById('jumpSelect');
+            if (js) js.value = String(id);
+            window.updateBottomNavigation(idx, allIssues.length);
+            updateStatus('saved', 'Loaded ' + cur.issue_id + ' - ' + (cur.issue_name || ''));
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('noRecordsMessage').style.display = 'none';
         }
 
         function exampleRow(ex) {
@@ -195,6 +199,7 @@
             btn.style.display = container.querySelectorAll('.hi-example').length >= MAX_EXAMPLES ? 'none' : '';
         }
 
+        // Add / remove example rows (delegated; the listener lives on the stable container)
         document.getElementById('issueList').addEventListener('click', (e) => {
             const addBtn = e.target.closest('[data-add-example]');
             if (addBtn) {
@@ -204,9 +209,9 @@
                 container.insertAdjacentHTML('beforeend', exampleRow({ passage: '', why: '' }));
                 container.lastElementChild.querySelectorAll('.dash-textarea').forEach(ta => {
                     autoGrow(ta);
-                    ta.addEventListener('input', () => { autoGrow(ta); markUnsaved(); });
+                    ta.addEventListener('input', () => { autoGrow(ta); markText(); });
                 });
-                refreshAddButton(id); markUnsaved();
+                refreshAddButton(id); markText();
                 return;
             }
             const rmBtn = e.target.closest('[data-remove-example]');
@@ -215,7 +220,7 @@
                 const container = row.closest('.hi-examples');
                 const id = container.getAttribute('data-issue');
                 row.remove();
-                refreshAddButton(id); markUnsaved();
+                refreshAddButton(id); markText();
             }
         });
 
@@ -236,38 +241,76 @@
             };
         }
 
-        function markUnsaved() { hasUnsaved = true; updateStatus('unsaved', 'Unsaved changes'); window.setUnsavedChanges(true); }
+        function markText() { textDirty = true; bottomNav.setUnsavedChanges(true); updateStatus('unsaved', 'Unsaved text - press Save & Continue'); }
+        function markMeta() { metaDirty = true; bottomNav.setUnsavedChanges(true); updateStatus('unsaved', 'Unsaved changes'); }
 
-        async function persist() {
-            for (const i of currentIssues) {
-                const id = i.issue_id;
-                const hiObj = collectHI(id);
-                // JSONB column: send the object directly (not a JSON-encoded string)
-                await patchRows(TABLE, 'issue_id', id, { highlighting_instructions: hiObj });
-                const hiVal = document.getElementById('rating_hi_' + id).value;
-                if (hiVal !== '') await saveRatings(TABLE, id, { highlighting_instructions: hiVal });
+        // Save status + rating on the current issue, in place. Leaves text alone.
+        async function saveMeta() {
+            const cur = allIssues[idx];
+            const id = cur.issue_id;
+            const status = parseInt(val('status_' + id), 10);
+            if (status && status !== cur.highlighting_instruction_status_id) {
+                await patchRows(TABLE, 'issue_id', id, { highlighting_instruction_status_id: status });
+                cur.highlighting_instruction_status_id = status;
             }
+            const rv = val('rating_hi_' + id);
+            if (rv !== '') { await saveRating(TABLE, id, RATING_FIELD, rv); ratingCache[id] = parseInt(rv, 10); }
         }
 
         async function autoSave() {
-            if (!hasUnsaved || busy) return;
-            await persist();
-            hasUnsaved = false; window.setUnsavedChanges(false); updateStatus('saved', 'Auto-saved');
+            if (busy || !metaDirty) return;
+            busy = true;
+            try {
+                await saveMeta();
+                metaDirty = false;
+                bottomNav.setUnsavedChanges(textDirty);
+                bottomNav.updateAutoSaveStatus('saved', 'Auto-saved');
+                if (!textDirty) updateStatus('saved', 'Auto-saved (status + rating)');
+                setTimeout(() => bottomNav.updateAutoSaveStatus('ready', 'Auto-save: Ready'), 2000);
+            } catch (e) { console.error(e); bottomNav.updateAutoSaveStatus('error', 'Auto-save failed'); }
+            finally { busy = false; }
         }
 
-        async function saveAndContinue() {
+        // Save & Continue: save text (JSONB object), status, and rating in place; stay on this issue.
+        async function commit() {
             if (busy) return; busy = true;
             try {
                 updateStatus('loading', 'Saving...');
-                await persist();
-                for (const i of currentIssues) {
-                    await patchRows(TABLE, 'issue_id', i.issue_id, { highlighting_instruction_status_id: cfg.next_status_id });
-                }
-                hasUnsaved = false; window.setUnsavedChanges(false);
-                showNoRecords('All bank instructions reviewed.');
-                updateStatus('completed', 'All done');
+                const cur = allIssues[idx];
+                const id = cur.issue_id;
+                const hiObj = collectHI(id);
+                const status = parseInt(val('status_' + id), 10) || cur.highlighting_instruction_status_id;
+                await patchRows(TABLE, 'issue_id', id, { highlighting_instructions: hiObj, highlighting_instruction_status_id: status });
+                cur.highlighting_instructions = hiObj;
+                cur.highlighting_instruction_status_id = status;
+                const rv = val('rating_hi_' + id);
+                if (rv !== '') { await saveRating(TABLE, id, RATING_FIELD, rv); ratingCache[id] = parseInt(rv, 10); }
+                textDirty = false; metaDirty = false; bottomNav.setUnsavedChanges(false);
+                loadIssue();
+                updateStatus('saved', 'Saved');
             } catch (e) { console.error(e); updateStatus('error', e.message); }
             finally { busy = false; }
+        }
+
+        function buildJump() {
+            const sel = document.getElementById('jumpSelect');
+            if (!sel) return;
+            sel.innerHTML = allIssues.map(i =>
+                `<option value="${i.issue_id}">${esc(i.issue_id + ' - ' + (i.issue_name || ''))}</option>`
+            ).join('');
+            sel.onchange = (e) => {
+                if (busy) return;
+                const ni = allIssues.findIndex(i => String(i.issue_id) === String(e.target.value));
+                if (ni < 0) return;
+                idx = ni; loadIssue();
+            };
+        }
+
+        async function navigate(d) {
+            if (busy) return;
+            const n = idx + d;
+            if (n < 0 || n >= allIssues.length) return;
+            idx = n; loadIssue();
         }
 
         document.addEventListener('DOMContentLoaded', init);
