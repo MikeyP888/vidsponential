@@ -27,7 +27,8 @@
     <link rel="stylesheet" href="/dash/shared/styles/dash.css">
     <style>
         .hi-fullwidth { width: 100%; }
-        .hi-rating-row { display: flex; align-items: center; gap: 10px; margin: 6px 0 18px; }
+        .hi-sub-label { display: block; font-size: 13px; opacity: 0.75; margin: 8px 0 2px; }
+        .hi-sub-label:first-child { margin-top: 0; }
         .hi-examples { margin-bottom: 8px; }
         .hi-example { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--border-color, #ddd); border-radius: 8px; }
         .hi-example__fields { flex: 1; }
@@ -37,7 +38,6 @@
         .hi-add-example { display: inline-block; margin: 2px 0 20px; padding: 6px 12px; font-size: 13px; cursor: pointer; background: var(--accent-color, #2d6cdf); color: #fff; border: none; border-radius: 6px; }
         .hi-add-example:hover { opacity: 0.9; }
         .hi-remove-example { background: none; border: none; color: var(--danger-color, #c0392b); cursor: pointer; font-size: 12px; padding: 4px; white-space: nowrap; }
-        .hi-sub-label { display: block; font-size: 12px; opacity: 0.7; margin: 4px 0 2px; }
     </style>
 </head>
 <body class="has-sidebar">
@@ -80,9 +80,12 @@
 
         const esc = (s) => (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+        // Auto-grow with the scroll-jump fix (Dash Master Plan section 14B step 6)
         function autoGrow(ta) {
+            const sy = window.scrollY;
             ta.style.height = 'auto';
-            ta.style.height = Math.max(parseInt(getComputedStyle(ta).minHeight) || 100, ta.scrollHeight + 6) + 'px';
+            ta.style.height = Math.max(parseInt(getComputedStyle(ta).minHeight) || 120, ta.scrollHeight + 6) + 'px';
+            if (window.scrollY !== sy) window.scrollTo(0, sy);
         }
 
         // The highlighting_instructions column holds JSON text:
@@ -116,7 +119,8 @@
                     .eq('highlighting_instruction_status_id', cfg.display_status_id)
                     .order('edit_id', { ascending: true });
                 if (error) throw error;
-                editQueue = [...new Set((data || []).map(r => r.edit_id))];
+                // Skip orphan rows with no edit_id (they can't be reviewed per-edit and would break the query)
+                editQueue = [...new Set((data || []).map(r => r.edit_id).filter(id => id != null))];
                 if (!editQueue.length) { showNoRecords('No highlighting instructions are at the review stage.'); updateStatus('completed', 'All done'); return; }
                 await loadEdit();
                 bottomNav.startAutoSave(autoSave);
@@ -165,15 +169,17 @@
             return `
               <div class="dash-group-heading">${esc(i.issue_name || ('Issue ' + i.issue_id))}</div>
 
-              <span class="dash-field-label">What it is</span>
-              <textarea class="dash-textarea hi-fullwidth" id="whatitis_${id}">${esc(hi.what_it_is)}</textarea>
-
-              <span class="dash-field-label">How to spot it</span>
-              <textarea class="dash-textarea hi-fullwidth" id="howtospot_${id}">${esc(hi.how_to_spot_it)}</textarea>
-
-              <div class="hi-rating-row">
-                <span class="dash-rating-label">Instruction rating / 100 (What it is + How to spot it)</span>
-                <input type="number" min="1" max="100" class="dash-rating-input" id="rating_hi_${id}" value="${hiRating != null ? hiRating : ''}">
+              <div class="dash-row">
+                <div class="dash-row__text">
+                  <span class="hi-sub-label">What it is</span>
+                  <textarea class="dash-textarea hi-fullwidth" id="whatitis_${id}">${esc(hi.what_it_is)}</textarea>
+                  <span class="hi-sub-label">How to spot it</span>
+                  <textarea class="dash-textarea hi-fullwidth" id="howtospot_${id}">${esc(hi.how_to_spot_it)}</textarea>
+                </div>
+                <div class="dash-row__side">
+                  <span class="dash-rating-label">Rating / 100</span>
+                  <input type="number" min="1" max="100" class="dash-rating-input" id="rating_hi_${id}" value="${hiRating != null ? hiRating : ''}">
+                </div>
               </div>
 
               <span class="dash-field-label">Examples from this manuscript (max ${MAX_EXAMPLES})</span>
