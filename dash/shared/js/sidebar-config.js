@@ -35,6 +35,7 @@ export const sidebarConfig = {
     ]},
     { title: 'Editing', icon: ICON.marker, items: [
       { id: 'highlighting_instructions', fileName: 'highlighting_instructions.html', label: 'Highlighting Instructions', icon: ICON.marker, built: true },
+      { id: 'issue_highlighting_instructions', fileName: 'issue_highlighting_instructions.html', label: 'Highlighting Instructions Bank', icon: ICON.marker, built: true },
       { id: 'annotations', fileName: 'annotations.html', label: 'Annotations', icon: ICON.comment, built: true },
       { id: 'report_sections', fileName: 'report_sections.html', label: 'Report Sections', icon: ICON.report, built: true },
       { id: 'character_feedback', fileName: 'character_feedback.html', label: 'Character Feedback', icon: ICON.user, built: true },

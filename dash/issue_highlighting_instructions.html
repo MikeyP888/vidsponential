@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Highlighting Instructions Bank</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦋</text></svg>">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="/dash/shared/styles/theme.css">
+    <link rel="stylesheet" href="/dash/shared/styles/brand.css">
+    <link rel="stylesheet" href="/dash/shared/styles/fonts.css">
+    <link rel="stylesheet" href="/dash/shared/styles/components.css">
+    <link rel="stylesheet" href="/dash/shared/styles/base.css">
+    <link rel="stylesheet" href="/dash/shared/styles/layout.css">
+    <link rel="stylesheet" href="/dash/shared/styles/buttons.css">
+    <link rel="stylesheet" href="/dash/shared/styles/forms.css">
+    <link rel="stylesheet" href="/dash/shared/styles/status.css">
+    <link rel="stylesheet" href="/dash/shared/styles/notifications.css">
+    <link rel="stylesheet" href="/dash/shared/styles/script_editor_styles.css">
+    <link rel="stylesheet" href="/dash/shared/styles/missing-layout.css">
+    <link rel="stylesheet" href="/dash/shared/styles/navigation.css">
+    <link rel="stylesheet" href="/dash/shared/styles/sidebar.css">
+    <link rel="stylesheet" href="/dash/shared/styles/bottom-navigation.css">
+    <link rel="stylesheet" href="/dash/shared/styles/dash.css">
+    <style>
+        .hi-fullwidth { width: 100%; }
+        .hi-sub-label { display: block; font-size: 13px; opacity: 0.75; margin: 8px 0 2px; }
+        .hi-sub-label:first-child { margin-top: 0; }
+        .hi-examples { margin-bottom: 8px; }
+        .hi-example { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--border-color, #ddd); border-radius: 8px; }
+        .hi-example__fields { flex: 1; }
+        .hi-example__fields .dash-textarea { width: 100%; }
+        .hi-example .ex-passage { min-height: 70px; }
+        .hi-example .ex-why { min-height: 48px; }
+        .hi-add-example { display: inline-block; margin: 2px 0 20px; padding: 6px 12px; font-size: 13px; cursor: pointer; background: var(--accent-color, #2d6cdf); color: #fff; border: none; border-radius: 6px; }
+        .hi-add-example:hover { opacity: 0.9; }
+        .hi-remove-example { background: none; border: none; color: var(--danger-color, #c0392b); cursor: pointer; font-size: 12px; padding: 4px; white-space: nowrap; }
+    </style>
+</head>
+<body class="has-sidebar">
+    <div id="stickyStatusBar" style="position:fixed;top:0;left:280px;right:0;background:transparent;padding:4px 20px;z-index:999;display:flex;justify-content:flex-end;align-items:center;pointer-events:none;">
+        <div class="status-indicator" id="stickyStatusIndicator" style="pointer-events:auto;">Loading</div>
+    </div>
+
+    <div id="sidebarContainer"></div>
+
+    <div class="container with-sidebar" style="padding-top:30px;">
+        <div class="header">
+            <h1 class="page-title">Highlighting Instructions Bank</h1>
+        </div>
+        <div id="content">
+            <div id="issueList"></div>
+        </div>
+        <div id="noRecordsMessage" class="message" style="display:none;"></div>
+    </div>
+
+    <script src="/dash/shared/js/theme-manager.js"></script>
+    <script type="module" src="/dash/shared/js/sidebar-component.js"></script>
+    <script type="module">
+        import BottomNavigation from '/dash/shared/js/bottom-navigation.js';
+        import { supabase, loadPageConfig, applyPageTitle, updateStatus, patchRows, showNoRecords } from '/dash/shared/js/dash-utils.js';
+        import { loadRatingsForRecords, saveRatings } from '/dash/shared/js/rating-utils.js';
+
+        // Bank version of the highlighting instructions page: reads ms_issues (the generic, reusable
+        // instruction per issue). Same editor as the per-edit page, minus the per-edit info box and
+        // Selection Notes. ms_issues.highlighting_instructions is JSONB, so we read/write the object directly.
+        const PAGE = 'issue_highlighting_instructions';
+        const TABLE = 'ms_issues';
+        const MAX_EXAMPLES = 2;
+        let cfg = null, currentIssues = [], hasUnsaved = false, busy = false;
+
+        const bottomNav = new BottomNavigation({
+            onSave: () => saveAndContinue(),
+            onNavigate: () => {},
+            showAutoSave: true
+        });
+        window.updateBottomNavigation = (i, t) => bottomNav.updateNavigation(i, t);
+        window.setUnsavedChanges = (v) => bottomNav.setUnsavedChanges(v);
+
+        const esc = (s) => (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        function autoGrow(ta) {
+            const sy = window.scrollY;
+            ta.style.height = 'auto';
+            ta.style.height = Math.max(parseInt(getComputedStyle(ta).minHeight) || 120, ta.scrollHeight + 6) + 'px';
+            if (window.scrollY !== sy) window.scrollTo(0, sy);
+        }
+
+        // highlighting_instructions is JSONB here, so the value arrives as an object (not a string)
+        function parseHI(value) {
+            const out = { what_it_is: '', how_to_spot_it: '', examples: [] };
+            if (!value) return out;
+            let obj = value;
+            if (typeof value === 'string') { try { obj = JSON.parse(value); } catch (e) { obj = null; } }
+            if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+                out.what_it_is = obj.what_it_is || '';
+                out.how_to_spot_it = obj.how_to_spot_it || '';
+                if (Array.isArray(obj.examples)) {
+                    out.examples = obj.examples.map(e => ({ passage: (e && e.passage) || '', why: (e && e.why) || '' }));
+                }
+            } else if (typeof value === 'string') {
+                out.what_it_is = value;
+            }
+            return out;
+        }
+
+        async function init() {
+            try {
+                updateStatus('loading', 'Loading...');
+                cfg = await loadPageConfig(PAGE);
+                applyPageTitle(cfg);
+                await load();
+                bottomNav.startAutoSave(autoSave);
+            } catch (e) { console.error(e); updateStatus('error', e.message); showNoRecords(e.message); }
+        }
+
+        async function load() {
+            const { data: issues, error } = await supabase
+                .from('v_dash_issue_highlighting')
+                .select('issue_id, issue_name, highlighting_instructions, highlighting_instruction_status_id')
+                .eq('highlighting_instruction_status_id', cfg.display_status_id)
+                .order('issue_id', { ascending: true });
+            if (error) { updateStatus('error', error.message); showNoRecords(error.message); return; }
+            currentIssues = issues || [];
+            if (!currentIssues.length) { showNoRecords('No bank instructions are at the review stage.'); updateStatus('completed', 'All done'); return; }
+
+            const ids = currentIssues.map(i => i.issue_id);
+            const hiR = await loadRatingsForRecords(TABLE, ids, 'highlighting_instructions');
+
+            document.getElementById('issueList').innerHTML = currentIssues
+                .map(i => buildIssueBlock(i, hiR[i.issue_id]))
+                .join('');
+
+            document.querySelectorAll('.dash-textarea').forEach(ta => {
+                autoGrow(ta);
+                ta.addEventListener('input', () => { autoGrow(ta); markUnsaved(); });
+            });
+            document.querySelectorAll('.dash-rating-input').forEach(inp => inp.addEventListener('input', markUnsaved));
+            currentIssues.forEach(i => refreshAddButton(i.issue_id));
+
+            hasUnsaved = false; window.setUnsavedChanges(false);
+            window.updateBottomNavigation(0, 1);
+            updateStatus('saved', 'Loaded ' + currentIssues.length + ' bank instructions');
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('noRecordsMessage').style.display = 'none';
+        }
+
+        function buildIssueBlock(i, hiRating) {
+            const hi = parseHI(i.highlighting_instructions);
+            const id = i.issue_id;
+            return `
+              <div class="dash-group-heading">${esc(i.issue_name || ('Issue ' + i.issue_id))}</div>
+
+              <div class="dash-row">
+                <div class="dash-row__text">
+                  <span class="hi-sub-label">What it is</span>
+                  <textarea class="dash-textarea hi-fullwidth" id="whatitis_${id}">${esc(hi.what_it_is)}</textarea>
+                  <span class="hi-sub-label">How to spot it</span>
+                  <textarea class="dash-textarea hi-fullwidth" id="howtospot_${id}">${esc(hi.how_to_spot_it)}</textarea>
+                </div>
+                <div class="dash-row__side">
+                  <span class="dash-rating-label">Rating / 100</span>
+                  <input type="number" min="1" max="100" class="dash-rating-input" id="rating_hi_${id}" value="${hiRating != null ? hiRating : ''}">
+                </div>
+              </div>
+
+              <span class="dash-field-label">Examples (max ${MAX_EXAMPLES})</span>
+              <div class="hi-examples" id="examples_${id}" data-issue="${id}">
+                ${hi.examples.slice(0, MAX_EXAMPLES).map(ex => exampleRow(ex)).join('')}
+              </div>
+              <button type="button" class="hi-add-example" data-add-example="${id}" id="addex_${id}">+ Add example</button>
+            `;
+        }
+
+        function exampleRow(ex) {
+            return `
+              <div class="hi-example">
+                <div class="hi-example__fields">
+                  <span class="hi-sub-label">Passage</span>
+                  <textarea class="dash-textarea ex-passage">${esc(ex.passage)}</textarea>
+                  <span class="hi-sub-label">Why it is an example</span>
+                  <textarea class="dash-textarea ex-why">${esc(ex.why)}</textarea>
+                </div>
+                <button type="button" class="hi-remove-example" data-remove-example>Remove</button>
+              </div>`;
+        }
+
+        function refreshAddButton(id) {
+            const container = document.getElementById('examples_' + id);
+            const btn = document.getElementById('addex_' + id);
+            if (!container || !btn) return;
+            btn.style.display = container.querySelectorAll('.hi-example').length >= MAX_EXAMPLES ? 'none' : '';
+        }
+
+        document.getElementById('issueList').addEventListener('click', (e) => {
+            const addBtn = e.target.closest('[data-add-example]');
+            if (addBtn) {
+                const id = addBtn.getAttribute('data-add-example');
+                const container = document.getElementById('examples_' + id);
+                if (container.querySelectorAll('.hi-example').length >= MAX_EXAMPLES) return;
+                container.insertAdjacentHTML('beforeend', exampleRow({ passage: '', why: '' }));
+                container.lastElementChild.querySelectorAll('.dash-textarea').forEach(ta => {
+                    autoGrow(ta);
+                    ta.addEventListener('input', () => { autoGrow(ta); markUnsaved(); });
+                });
+                refreshAddButton(id); markUnsaved();
+                return;
+            }
+            const rmBtn = e.target.closest('[data-remove-example]');
+            if (rmBtn) {
+                const row = rmBtn.closest('.hi-example');
+                const container = row.closest('.hi-examples');
+                const id = container.getAttribute('data-issue');
+                row.remove();
+                refreshAddButton(id); markUnsaved();
+            }
+        });
+
+        function collectHI(id) {
+            const container = document.getElementById('examples_' + id);
+            const examples = [];
+            if (container) {
+                container.querySelectorAll('.hi-example').forEach(row => {
+                    const passage = row.querySelector('.ex-passage').value.trim();
+                    const why = row.querySelector('.ex-why').value.trim();
+                    if (passage || why) examples.push({ passage, why });
+                });
+            }
+            return {
+                what_it_is: document.getElementById('whatitis_' + id).value,
+                how_to_spot_it: document.getElementById('howtospot_' + id).value,
+                examples
+            };
+        }
+
+        function markUnsaved() { hasUnsaved = true; updateStatus('unsaved', 'Unsaved changes'); window.setUnsavedChanges(true); }
+
+        async function persist() {
+            for (const i of currentIssues) {
+                const id = i.issue_id;
+                const hiObj = collectHI(id);
+                // JSONB column: send the object directly (not a JSON-encoded string)
+                await patchRows(TABLE, 'issue_id', id, { highlighting_instructions: hiObj });
+                const hiVal = document.getElementById('rating_hi_' + id).value;
+                if (hiVal !== '') await saveRatings(TABLE, id, { highlighting_instructions: hiVal });
+            }
+        }
+
+        async function autoSave() {
+            if (!hasUnsaved || busy) return;
+            await persist();
+            hasUnsaved = false; window.setUnsavedChanges(false); updateStatus('saved', 'Auto-saved');
+        }
+
+        async function saveAndContinue() {
+            if (busy) return; busy = true;
+            try {
+                updateStatus('loading', 'Saving...');
+                await persist();
+                for (const i of currentIssues) {
+                    await patchRows(TABLE, 'issue_id', i.issue_id, { highlighting_instruction_status_id: cfg.next_status_id });
+                }
+                hasUnsaved = false; window.setUnsavedChanges(false);
+                showNoRecords('All bank instructions reviewed.');
+                updateStatus('completed', 'All done');
+            } catch (e) { console.error(e); updateStatus('error', e.message); }
+            finally { busy = false; }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
